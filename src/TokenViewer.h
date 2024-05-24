@@ -14,12 +14,16 @@
 
 enum class TokenType
 {
+    Any,
     Identifier,
     Number,
     Operator,
     Assignment,
     Terminator,
-    Grouper,
+    LeftParenthesis,
+    RightParenthesis,
+    LeftBracket,
+    RightBracket,
     Delimiter,
     Unexpected,
 
@@ -33,7 +37,7 @@ struct Token
     std::uint64_t end;
     TokenType type;
 
-    template<typename T> T As();
+    template<typename T> T As() const;
 };
 
 class TokenViewer
@@ -46,14 +50,17 @@ class TokenViewer
     void Process();
 
 public:
-    Token const &Consume();
-    Token const &Peek(std::uint64_t lookahead = 1);
+    Token const &Consume(TokenType type = TokenType::Any);
+    Token const &ConsumeAnyOf(std::vector<TokenType> const &types);
+    Token const &Peek(std::uint64_t lookahead = 0);
 
     bool Expect(TokenType type, std::uint64_t lookahead = 0);
     template<typename T> bool Expect(TokenType type, T const &value, std::uint64_t lookahead = 0)
     {
         return this->Expect(type, lookahead) && this->tokens_[this->index_ + lookahead].As<T>() == value;
     }
+
+    bool ExpectAnyOf(std::vector<TokenType> const &types, std::uint64_t lookahead = 0);
 
     void Assert(TokenType type, std::uint64_t lookahead = 0);
     template<typename T> void Assert(TokenType type, T const &value, std::uint64_t lookahead = 0)
@@ -63,6 +70,8 @@ public:
             throw std::runtime_error("unexpected token!");
         }
     }
+
+    void AssertAnyOf(std::vector<TokenType> const &types);
 
     explicit TokenViewer(std::string const &input) : input_(input)
     {
