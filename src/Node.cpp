@@ -33,6 +33,11 @@ double BinaryNode::Evaluate(EvaluationContext &context)
         {
             return this->lhs_->Evaluate(context) / this->rhs_->Evaluate(context);
         }
+
+        case '^':
+        {
+            return pow(this->lhs_->Evaluate(context), this->rhs_->Evaluate(context));
+        }
     }
 
     throw std::runtime_error("cannot perform unknown operation!");

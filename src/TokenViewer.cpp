@@ -66,6 +66,7 @@ void TokenViewer::Process()
             case '-':
             case '*':
             case '/':
+            case '^':
                 t.type = TokenType::Operator;
                 break;
 

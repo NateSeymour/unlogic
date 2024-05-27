@@ -298,7 +298,7 @@ endfunction()
 macro(set_conan_compiler_if_appleclang lang command output_variable)
     if(CMAKE_${lang}_COMPILER_ID STREQUAL "AppleClang")
         execute_process(COMMAND xcrun --find ${command}
-            OUTPUT_VARIABLE _xcrun_out OUTPUT_STRIP_TRAILING_WHITESPACE)
+                OUTPUT_VARIABLE _xcrun_out OUTPUT_STRIP_TRAILING_WHITESPACE)
         cmake_path(GET _xcrun_out PARENT_PATH _xcrun_toolchain_path)
         cmake_path(GET CMAKE_${lang}_COMPILER PARENT_PATH _compiler_parent_path)
         if ("${_xcrun_toolchain_path}" STREQUAL "${_compiler_parent_path}")
@@ -319,14 +319,14 @@ macro(append_compiler_executables_configuration)
         set_conan_compiler_if_appleclang(C cc _conan_c_compiler)
     else()
         message(WARNING "CMake-Conan: The C compiler is not defined. "
-                        "Please define CMAKE_C_COMPILER or enable the C language.")
+                "Please define CMAKE_C_COMPILER or enable the C language.")
     endif()
     if(CMAKE_CXX_COMPILER)
         set(_conan_cpp_compiler "\"cpp\":\"${CMAKE_CXX_COMPILER}\"")
         set_conan_compiler_if_appleclang(CXX c++ _conan_cpp_compiler)
     else()
         message(WARNING "CMake-Conan: The C++ compiler is not defined. "
-                        "Please define CMAKE_CXX_COMPILER or enable the C++ language.")
+                "Please define CMAKE_CXX_COMPILER or enable the C++ language.")
     endif()
 
     if(NOT "x${_conan_c_compiler}${_conan_cpp_compiler}" STREQUAL "x")
@@ -412,21 +412,21 @@ endfunction()
 function(conan_profile_detect_default)
     message(STATUS "CMake-Conan: Checking if a default profile exists")
     execute_process(COMMAND ${CONAN_COMMAND} profile path default
-                    RESULT_VARIABLE return_code
-                    OUTPUT_VARIABLE conan_stdout
-                    ERROR_VARIABLE conan_stderr
-                    ECHO_ERROR_VARIABLE    # show the text output regardless
-                    ECHO_OUTPUT_VARIABLE
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    if(NOT ${return_code} EQUAL "0")
-        message(STATUS "CMake-Conan: The default profile doesn't exist, detecting it.")
-        execute_process(COMMAND ${CONAN_COMMAND} profile detect
             RESULT_VARIABLE return_code
             OUTPUT_VARIABLE conan_stdout
             ERROR_VARIABLE conan_stderr
             ECHO_ERROR_VARIABLE    # show the text output regardless
             ECHO_OUTPUT_VARIABLE
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    if(NOT ${return_code} EQUAL "0")
+        message(STATUS "CMake-Conan: The default profile doesn't exist, detecting it.")
+        execute_process(COMMAND ${CONAN_COMMAND} profile detect
+                RESULT_VARIABLE return_code
+                OUTPUT_VARIABLE conan_stdout
+                ERROR_VARIABLE conan_stderr
+                ECHO_ERROR_VARIABLE    # show the text output regardless
+                ECHO_OUTPUT_VARIABLE
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     endif()
 endfunction()
 
@@ -447,11 +447,11 @@ function(conan_install)
     endif()
 
     execute_process(COMMAND ${CONAN_COMMAND} install ${CMAKE_SOURCE_DIR} ${CONAN_ARGS} ${ARGN} --format=json
-                    RESULT_VARIABLE return_code
-                    OUTPUT_VARIABLE conan_stdout
-                    ERROR_VARIABLE conan_stderr
-                    ECHO_ERROR_VARIABLE    # show the text output regardless
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+            RESULT_VARIABLE return_code
+            OUTPUT_VARIABLE conan_stdout
+            ERROR_VARIABLE conan_stderr
+            ECHO_ERROR_VARIABLE    # show the text output regardless
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
     if(DEFINED PATH_TO_CMAKE_BIN)
         set(ENV{PATH} "${_OLD_PATH}")
@@ -481,10 +481,10 @@ endfunction()
 
 function(conan_get_version conan_command conan_current_version)
     execute_process(
-        COMMAND ${conan_command} --version
-        OUTPUT_VARIABLE conan_output
-        RESULT_VARIABLE conan_result
-        OUTPUT_STRIP_TRAILING_WHITESPACE
+            COMMAND ${conan_command} --version
+            OUTPUT_VARIABLE conan_output
+            RESULT_VARIABLE conan_result
+            OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     if(conan_result)
         message(FATAL_ERROR "CMake-Conan: Error when trying to run Conan")
@@ -500,12 +500,12 @@ function(conan_version_check)
     set(oneValueArgs MINIMUM CURRENT)
     set(multiValueArgs )
     cmake_parse_arguments(CONAN_VERSION_CHECK
-        "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+            "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     if(NOT CONAN_VERSION_CHECK_MINIMUM)
         message(FATAL_ERROR "CMake-Conan: Required parameter MINIMUM not set!")
     endif()
-        if(NOT CONAN_VERSION_CHECK_CURRENT)
+    if(NOT CONAN_VERSION_CHECK_CURRENT)
         message(FATAL_ERROR "CMake-Conan: Required parameter CURRENT not set!")
     endif()
 
@@ -614,8 +614,8 @@ endmacro()
 
 
 cmake_language(
-    SET_DEPENDENCY_PROVIDER conan_provide_dependency
-    SUPPORTED_METHODS FIND_PACKAGE
+        SET_DEPENDENCY_PROVIDER conan_provide_dependency
+        SUPPORTED_METHODS FIND_PACKAGE
 )
 
 
@@ -624,8 +624,8 @@ macro(conan_provide_dependency_check)
     get_property(_CONAN_PROVIDE_DEPENDENCY_INVOKED GLOBAL PROPERTY CONAN_PROVIDE_DEPENDENCY_INVOKED)
     if(NOT _CONAN_PROVIDE_DEPENDENCY_INVOKED)
         message(WARNING "Conan is correctly configured as dependency provider, "
-                        "but Conan has not been invoked. Please add at least one "
-                        "call to `find_package()`.")
+                "but Conan has not been invoked. Please add at least one "
+                "call to `find_package()`.")
         if(DEFINED CONAN_COMMAND)
             # supress warning in case `CONAN_COMMAND` was specified but unused.
             set(_CONAN_COMMAND ${CONAN_COMMAND})

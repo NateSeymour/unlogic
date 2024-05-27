@@ -16,6 +16,7 @@ enum class Precedence : std::uint64_t
     Assignment,
     SumDifference,
     ProductQuotient,
+    Power,
     Maximum,
 };
 
@@ -33,6 +34,7 @@ class MathFunction
             {"/", Precedence::ProductQuotient},
             {",", Precedence::Delimiter},
             {";", Precedence::Terminator},
+            {"^", Precedence::Power},
     };
 
     /*
