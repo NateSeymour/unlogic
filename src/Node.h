@@ -6,6 +6,7 @@
 #include <memory>
 #include <map>
 #include <ranges>
+#include <vector>
 
 class Node;
 class Function;

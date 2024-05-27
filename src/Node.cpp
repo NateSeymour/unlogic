@@ -1,3 +1,4 @@
+#include <cmath>
 #include "Node.h"
 
 double EmptyNode::Evaluate(EvaluationContext &context)
@@ -36,7 +37,7 @@ double BinaryNode::Evaluate(EvaluationContext &context)
 
         case '^':
         {
-            return pow(this->lhs_->Evaluate(context), this->rhs_->Evaluate(context));
+            return std::pow(this->lhs_->Evaluate(context), this->rhs_->Evaluate(context));
         }
     }
 

@@ -11,6 +11,8 @@ add_executable(unlogic src/main.cpp
         src/Node.cpp
         src/Node.h
         src/MathFunction.cpp
-        src/MathFunction.h)
+        src/MathFunction.h
+        src/GraphRenderer.cpp
+        src/GraphRenderer.h)
 
 target_link_libraries(unlogic PRIVATE sfml::sfml)

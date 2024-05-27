@@ -235,6 +235,11 @@ class MathFunction
     }
 
 public:
+    std::string const &FunctionString() const
+    {
+        return std::ref(this->raw_);
+    }
+
     double Evaluate(EvaluationContext &context)
     {
         return this->tree_->Evaluate(context);
