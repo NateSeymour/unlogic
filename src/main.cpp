@@ -9,7 +9,7 @@ int main()
     // Construct window
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    sf::RenderWindow window(sf::VideoMode(2400, 1000), "My window", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(2400, 2400), "My window", sf::Style::Default, settings);
 
     while(window.isOpen())
     {
