@@ -14,7 +14,12 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # External Libs
+find_package(PkgConfig)
+pkg_check_modules(Pistache REQUIRED IMPORTED_TARGET libpistache)
+
 find_package(SFML REQUIRED)
+find_package(cryptopp REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 # Unlogic
 add_library(unlogic
@@ -30,3 +35,7 @@ target_link_libraries(unlogic PUBLIC sfml::sfml)
 
 add_executable(unlogic-cli src/main.cpp)
 target_link_libraries(unlogic-cli PUBLIC unlogic)
+
+add_executable(unlogic-server
+        src/server/main.cpp)
+target_link_libraries(unlogic-server PUBLIC unlogic PkgConfig::Pistache cryptopp::cryptopp nlohmann_json::nlohmann_json)

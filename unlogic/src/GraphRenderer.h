@@ -54,14 +54,13 @@ public:
         {
             // Calculate points
             std::size_t point_count = std::ceil(this->range_.Length() / this->step_);
-            std::cout << point_count << std::endl;
             this->points_.clear();
             this->points_.reserve(point_count);
             for (std::size_t i = 0; i < point_count; i++)
             {
                 double x = this->range_.start + (i * this->step_);
                 this->context_.parameters["x"] = x;
-                double y = this->function_.Evaluate(this->context_) * -1;
+                double y = this->function_.Evaluate(this->context_);
 
                 this->points_.emplace_back(x * this->scalar_.x, y * this->scalar_.y);
             }
@@ -84,8 +83,6 @@ public:
 
                 double tx = (this->thickness / 2) * std::cos(theta2);
                 double ty = (this->thickness / 2) * std::sin(theta2);
-
-                std::cout << this->points_[i].x << " " << tx << " " << ty << std::endl;
 
                 auto const &point = this->points_[i];
 
