@@ -32,7 +32,7 @@ class Curve
     std::vector<sf::Vertex> vertices_;
     std::vector<sf::Vector2f> points_;
 
-    double thickness = 100.0;
+    double thickness = 10.0;
 
     bool clean_ = false;
 
@@ -67,8 +67,6 @@ public:
             }
 
             // Calculate triangle fan
-            sf::Color colors[] = { sf::Color::Red, sf::Color::Green, sf::Color::Blue, sf::Color::Magenta };
-
             this->vertices_.clear();
             this->vertices_.reserve(point_count * 2);
             double dx = 0.0;
@@ -81,8 +79,8 @@ public:
                     dy = this->points_[i + 1].y - this->points_[i].y;
                 }
 
-                double theta1 = std::atan2(dy, dx) * (180.0/3.1415);
-                double theta2 = (90.0 - theta1) * 3.1415*180.0;
+                double theta1 = std::atan2(dy, dx);
+                double theta2 = ((3.1415/2) - theta1);
 
                 double tx = (this->thickness / 2) * std::cos(theta2);
                 double ty = (this->thickness / 2) * std::sin(theta2);
@@ -91,10 +89,8 @@ public:
 
                 auto const &point = this->points_[i];
 
-                auto color = colors[i % 4];
-
-                this->vertices_.emplace_back(sf::Vector2f(point.x + tx, point.y + ty), color); // a1
-                this->vertices_.emplace_back(sf::Vector2f(point.x - tx, point.y - ty), color); // a2
+                this->vertices_.emplace_back(sf::Vector2f(point.x + tx, point.y - ty), sf::Color::Red); // a1
+                this->vertices_.emplace_back(sf::Vector2f(point.x - tx, point.y + ty), sf::Color::Red); // a2
             }
 
             this->clean_ = true;
