@@ -23,6 +23,6 @@ jobs:
         node-version: 18.x
     - run: npm ci
     - run: npm run build --if-present
-    - run: npm test
+    - run: npm test --if-present
     - name: Deploy to Pages
       uses: actions/deploy-pages@v4
