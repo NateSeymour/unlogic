@@ -2,13 +2,13 @@
 // Created by nathan on 5/27/24.
 //
 
-#ifndef UNLOGIC_GRAPHRENDERER_H
-#define UNLOGIC_GRAPHRENDERER_H
+#ifndef UNLOGIC_GRAPHRENDERER_TEST_H
+#define UNLOGIC_GRAPHRENDERER_TEST_H
 
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
-#include "Parser.h"
+#include "Program.h"
 
 struct Range
 {
@@ -23,8 +23,7 @@ struct Range
 
 class Curve
 {
-    EvaluationContext &context_;
-    MathFunction &function_;
+    unlogic::Function &function_;
     Range range_;
     double step_;
     sf::Vector2f scalar_ = {1.0, 1.0};
@@ -59,8 +58,7 @@ public:
             for (std::size_t i = 0; i < point_count; i++)
             {
                 double x = this->range_.start + (i * this->step_);
-                this->context_.parameters["x"] = x;
-                double y = this->function_.Evaluate(this->context_);
+                double y = this->function_({x});
 
                 this->points_.emplace_back(x * this->scalar_.x, y * this->scalar_.y);
             }
@@ -96,14 +94,12 @@ public:
         return this->vertices_;
     }
 
-    explicit Curve(MathFunction &function, EvaluationContext &context, Range range, double step) : function_(function), context_(context),
-                                                                                                   range_(range), step_(step) {}
+    explicit Curve(unlogic::Function &function, Range range, double step) : function_(function), range_(range), step_(step) {}
 };
 
 class GraphRenderer
 {
-    EvaluationContext context_;
-    MathFunction function_;
+    unlogic::Function function_;
     Range range_;
     double step_;
     sf::View view_;
@@ -151,12 +147,9 @@ public:
         surface.draw(buffer.data(), buffer.size(), sf::TriangleStrip);
     }
 
-    explicit GraphRenderer(std::string function, Range range = {-10, 10}, double step = 0.1)
-        : function_(std::move(function)),
-          range_(range),
-          step_(step),
-          curve_(this->function_, this->context_, range, step) {}
+    explicit GraphRenderer(std::string const &function, Range range = {-10, 10}, double step = 0.1)
+        : function_(unlogic::compile(function)), range_(range), step_(step), curve_(this->function_, range, step) {}
 };
 
 
-#endif //UNLOGIC_GRAPHRENDERER_H
+#endif //UNLOGIC_GRAPHRENDERER_TEST_H

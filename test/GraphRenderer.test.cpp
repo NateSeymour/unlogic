@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 #include "Parser.h"
-#include "GraphRenderer.h"
+#include "GraphRenderer.test.h"
 
 TEST(GraphRenderer, QuadraticImageGeneration)
 {
     // Generate image
     sf::RenderTexture texture;
-    texture.create(1000, 1000);
+    texture.create(250, 250);
 
     GraphRenderer renderer("f[x] = x^2; f(x);");
 
@@ -14,5 +14,5 @@ TEST(GraphRenderer, QuadraticImageGeneration)
 
     sf::Image image = texture.getTexture().copyToImage();
     std::vector<sf::Uint8> buffer;
-    image.saveToMemory(buffer, "png");
+    image.saveToMemory(buffer, "jpg");
 }

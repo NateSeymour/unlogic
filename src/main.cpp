@@ -1,10 +1,10 @@
 #include <SFML/Graphics.hpp>
-#include "GraphRenderer.h"
+#include "GraphRenderer.test.h"
 
 int main()
 {
     // Construct GraphRenderer
-    GraphRenderer renderer("x^2;");
+    GraphRenderer renderer("f[x] = x^2;");
 
     // Construct window
     sf::ContextSettings settings;

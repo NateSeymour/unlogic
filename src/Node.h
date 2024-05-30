@@ -33,7 +33,7 @@ namespace unlogic
         std::shared_ptr<Node> body_;
 
     public:
-        double Run(EvaluationContext &context, std::vector<std::unique_ptr<Node>> &parameter_values)
+        double ContextualRun(EvaluationContext &context, std::vector<std::unique_ptr<Node>> &parameter_values)
         {
             EvaluationContext scoped_context = context;
             for (auto const &[name, value]: std::views::zip(this->parameters_, parameter_values)) {
@@ -41,6 +41,17 @@ namespace unlogic
             }
 
             return this->body_->Evaluate(scoped_context);
+        }
+
+        double operator()(std::initializer_list<double> arguments)
+        {
+            EvaluationContext ctx;
+
+            for (auto const &[name, value]: std::views::zip(this->parameters_, arguments)) {
+                ctx.parameters[name] = value;
+            }
+
+            return this->body_->Evaluate(ctx);
         }
 
         Function(std::vector<std::string> parameters, std::shared_ptr<Node> body) : parameters_(std::move(parameters)), body_(std::move(body)) {}
@@ -95,6 +106,11 @@ namespace unlogic
         std::shared_ptr<Node> body_;
 
     public:
+        Function GenerateFunction() const
+        {
+            return {this->parameters_, this->body_};
+        }
+
         double Evaluate(EvaluationContext &context) override;
 
         FunctionDefinitionNode(std::string identifier, std::shared_ptr<Node> body, std::vector<std::string> parameters)

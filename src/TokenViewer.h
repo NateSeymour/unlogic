@@ -103,6 +103,8 @@ namespace unlogic
                     break;
                 }
             }
+
+            this->index_ = 0;
         }
     };
 }

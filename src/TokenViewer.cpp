@@ -92,17 +92,17 @@ Token TokenViewer::ParseNextToken()
         };
     }
 
-    if(std::isdigit(this->input_[this->index_]))
-    {
-        return this->TokenizeNumber();
-    }
-
     if(std::isalpha(this->input_[this->index_]))
     {
         return this->TokenizeIdentifier();
     }
 
-    this->TokenizeSymbol();
+    if(std::isdigit(this->input_[this->index_]))
+    {
+        return this->TokenizeNumber();
+    }
+
+    return this->TokenizeSymbol();
 }
 
 Token TokenViewer::TokenizeNumber()
@@ -110,12 +110,11 @@ Token TokenViewer::TokenizeNumber()
     std::string value;
 
     std::size_t punctuation_count = 0;
-    while(char c = this->input_[this->index_++])
+    while(char c = this->input_[this->index_])
     {
         if(std::isdigit(c))
         {
             value.push_back(c);
-            continue;
         }
         else if(c == '.')
         {
@@ -126,6 +125,12 @@ Token TokenViewer::TokenizeNumber()
 
             punctuation_count++;
         }
+        else
+        {
+            break;
+        }
+
+        this->index_++;
     }
 
     return {
@@ -138,7 +143,7 @@ Token TokenViewer::TokenizeIdentifier()
 {
     std::string value;
 
-    while(char c = this->input_[this->index_++])
+    while(char c = this->input_[this->index_])
     {
         if(!std::isalnum(c))
         {
@@ -146,17 +151,18 @@ Token TokenViewer::TokenizeIdentifier()
         }
 
         value.push_back(c);
+        this->index_++;
     }
 
     return {
             .value = value,
-            .type = TokenType::Number,
+            .type = TokenType::Identifier,
     };
 }
 
 Token TokenViewer::TokenizeSymbol()
 {
-    char c = this->input_[this->index_];
+    char c = this->input_[this->index_++];
     switch(c)
     {
         case '+':
@@ -204,6 +210,13 @@ Token TokenViewer::TokenizeSymbol()
                     .value = std::string(1, c),
                     .type = TokenType::Delimiter,
             };
+
+        case '=':
+            return {
+                    .value = std::string(1, c),
+                    .type = TokenType::Assignment,
+            };
+
         default:
         {
             throw TokenException(*this);

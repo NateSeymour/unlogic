@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "../GraphRenderer.h"
+#include "../GraphRenderer.test.h"
 
 using namespace Pistache;
 using namespace nlohmann;

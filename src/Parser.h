@@ -43,20 +43,16 @@ namespace unlogic
 
         std::unique_ptr<Node> ParseBinOp(std::unique_ptr<Node> lhs);
         std::unique_ptr<Node> ParseExpression(Precedence precedence = Precedence::Assignment);
-        std::unique_ptr<Node> ParseFunctionDefinition();
-        std::unique_ptr<Node> ParseStatement();
 
     public:
+        std::unique_ptr<FunctionDefinitionNode> ParseFunctionDefinition();
+        std::unique_ptr<Node> ParseStatement();
         std::unique_ptr<Node> ParseProgram();
 
         explicit Parser(std::string const &input) : input_(input), tv_(input_) {}
     };
 
-    std::unique_ptr<Node> parse(std::string const &input)
-    {
-        Parser p(input);
-        return p.ParseProgram();
-    }
+    std::unique_ptr<Node> parse(std::string const &input);
 }
 
 #endif //UNLOGIC_PARSER_H

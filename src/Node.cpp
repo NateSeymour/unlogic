@@ -82,5 +82,5 @@ double FunctionCallNode::Evaluate(EvaluationContext &context)
         throw std::runtime_error("attempted to call function that is not defined!");
     }
 
-    return context.functions[this->identifier_]->Run(context, this->parameters_);
+    return context.functions[this->identifier_]->ContextualRun(context, this->parameters_);
 }

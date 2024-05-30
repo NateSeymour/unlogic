@@ -8,15 +8,13 @@ namespace unlogic
 {
     class Program
     {
-        unlogic::EvaluationContext ctx_;
-        std::unique_ptr<unlogic::Node> tree_;
+        EvaluationContext ctx_;
+        std::unique_ptr<Node> tree_;
 
     public:
-        double Evaluate(std::string const &input);
-
         Program()
         {
-            this->tree_ = std::make_unique<unlogic::EmptyNode>();
+            this->tree_ = std::make_unique<EmptyNode>();
         }
 
         explicit Program(std::string const &initial)
@@ -24,6 +22,8 @@ namespace unlogic
             this->tree_ = unlogic::parse(initial);
         }
     };
+
+    Function compile(std::string const& function);
 }
 
 #endif //UNLOGIC_PROGRAM_H

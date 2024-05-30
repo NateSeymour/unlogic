@@ -17,26 +17,31 @@ std::unique_ptr<Node> Parser::ParseExpression(Precedence precedence)
     std::unique_ptr<Node> expression;
 
     auto t = this->tv_.Consume();
-    switch (t.type) {
-        case TokenType::Number: {
+    switch (t.type)
+    {
+        case TokenType::Number:
+        {
             expression = std::make_unique<ConstantNode>(t.Double());
             break;
         }
 
-        case TokenType::Identifier: {
+        case TokenType::Identifier:
+        {
             // Function Call
-            if (this->tv_.Expect(TokenType::LeftParenthesis)) {
+            if (this->tv_.Expect(TokenType::LeftParenthesis))
+            {
                 this->tv_.Consume(TokenType::LeftParenthesis);
 
                 std::vector<std::unique_ptr<Node>> parameters;
 
-                while (true) {
+                while (true)
+                {
                     parameters.push_back(this->ParseExpression());
 
-                    auto seperator_or_end = this->tv_.ConsumeAnyOf(
-                            {TokenType::RightParenthesis, TokenType::Delimiter});
+                    auto seperator_or_end = this->tv_.ConsumeAnyOf({TokenType::RightParenthesis, TokenType::Delimiter});
 
-                    if (seperator_or_end.type == TokenType::RightParenthesis) {
+                    if (seperator_or_end.type == TokenType::RightParenthesis)
+                    {
                         break;
                     }
                 }
@@ -50,15 +55,20 @@ std::unique_ptr<Node> Parser::ParseExpression(Precedence precedence)
             break;
         }
 
-        default: {
+        default:
+        {
             throw std::runtime_error("unexpected token!");
         }
     }
 
-    while (this->NextPrecedence() > precedence) {
-        if (this->tv_.Expect(TokenType::Operator)) {
+    while (this->NextPrecedence() > precedence)
+    {
+        if (this->tv_.Expect(TokenType::Operator))
+        {
             expression = this->ParseBinOp(std::move(expression));
-        } else {
+        }
+        else
+        {
             throw std::runtime_error("unexpected token!");
         }
     }
@@ -66,22 +76,23 @@ std::unique_ptr<Node> Parser::ParseExpression(Precedence precedence)
     return expression;
 }
 
-std::unique_ptr<Node> Parser::ParseFunctionDefinition()
+std::unique_ptr<FunctionDefinitionNode> Parser::ParseFunctionDefinition()
 {
     auto identifier = this->tv_.Consume(TokenType::Identifier);
     this->tv_.Consume(TokenType::LeftBracket);
 
     std::vector<std::string> parameters;
 
-    while (true) {
+    while (true)
+    {
         auto parameter = this->tv_.Consume(TokenType::Identifier);
 
         parameters.push_back(parameter.String());
 
-        auto seperator_or_end = this->tv_.ConsumeAnyOf(
-                {TokenType::RightBracket, TokenType::Delimiter});
+        auto seperator_or_end = this->tv_.ConsumeAnyOf({TokenType::RightBracket, TokenType::Delimiter});
 
-        if (seperator_or_end.type == TokenType::RightBracket) {
+        if (seperator_or_end.type == TokenType::RightBracket)
+        {
             break;
         }
     }
@@ -100,21 +111,25 @@ std::unique_ptr<Node> Parser::ParseStatement()
     this->tv_.AssertAnyOf({TokenType::Number, TokenType::Identifier});
 
     auto next = this->tv_.Peek(1);
-    switch (next.type) {
+    switch (next.type)
+    {
         case TokenType::Operator:
         case TokenType::EndOfFile:
         case TokenType::Terminator:
-        case TokenType::LeftParenthesis: {
+        case TokenType::LeftParenthesis:
+        {
             statement = this->ParseExpression();
             break;
         }
 
-        case TokenType::LeftBracket: {
+        case TokenType::LeftBracket:
+        {
             statement = this->ParseFunctionDefinition();
             break;
         }
 
-        default: {
+        default:
+        {
             throw std::runtime_error("unexpected token!");
         }
     }
@@ -129,9 +144,16 @@ std::unique_ptr<Node> Parser::ParseProgram()
 {
     auto program = std::make_unique<BlockNode>();
 
-    while (!this->tv_.Expect(TokenType::EndOfFile)) {
+    while (!this->tv_.Expect(TokenType::EndOfFile))
+    {
         program->AddStatement(this->ParseStatement());
     }
 
     return program;
+}
+
+std::unique_ptr<Node> parse(const std::string &input)
+{
+    Parser p(input);
+    return p.ParseProgram();
 }
