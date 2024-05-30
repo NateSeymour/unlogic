@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "MathFunction.h"
+#include "Parser.h"
 #include "GraphRenderer.h"
 
 TEST(GraphRenderer, QuadraticImageGeneration)

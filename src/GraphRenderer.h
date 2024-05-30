@@ -8,7 +8,7 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
-#include "MathFunction.h"
+#include "Parser.h"
 
 struct Range
 {

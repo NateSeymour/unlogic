@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
 #include <cmath>
-#include "MathFunction.h"
+#include "Parser.h"
 
 TEST(Unlogic, Basic)
 {
+    Math m("f(x) = 3x + 4;");
+    Callable f = unlogic::compile("f(x) = 3x + 4;");
+
+    //
     EvaluationContext ctx;
-    MathFunction f("f[x] = 32*x; f(x);");
+    Parser f("f[x] = 32*x; f(x);");
 
     ctx.parameters["x"] = 10;
 
@@ -17,7 +21,7 @@ TEST(Unlogic, Basic)
 TEST(Unlogic, StressTest)
 {
     EvaluationContext ctx;
-    MathFunction f("f[x] = x^2 + 32*x; f(x);");
+    Parser f("f[x] = x^2 + 32*x; f(x);");
 
     for(std::size_t i = 0; i < 1000000; i++)
     {

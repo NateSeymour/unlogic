@@ -18,10 +18,14 @@ add_library(unlogic
         src/TokenViewer.h
         src/Node.cpp
         src/Node.h
-        src/MathFunction.cpp
-        src/MathFunction.h
+        src/Parser.cpp
+        src/Parser.h
         src/GraphRenderer.cpp
-        src/GraphRenderer.h)
+        src/GraphRenderer.h
+        src/Program.cpp
+        src/Program.h
+        src/Exception.cpp
+        src/Exception.h)
 target_link_libraries(unlogic PUBLIC sfml::sfml)
 
 add_executable(unlogic-cli src/main.cpp)

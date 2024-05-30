@@ -2,113 +2,11 @@
 // Created by nathan on 5/23/24.
 //
 
+#include <map>
 #include "TokenViewer.h"
+#include "Exception.h"
 
-template<> std::string Token::As<std::string>() const
-{
-    return this->input.substr(this->start, this->end - this->start);
-}
-
-template<> double Token::As<double>() const
-{
-    return std::stod(this->As<std::string>());
-}
-
-void TokenViewer::Process()
-{
-    std::uint64_t index = 0;
-
-    while(true)
-    {
-        // Ignore whitespace
-        while(std::isspace(this->input_[index]) && index < this->input_.length())
-        {
-            index++;
-        }
-
-        Token t{this->input_};
-        t.start = index;
-
-        if(index >= this->input_.length())
-        {
-            t.end = index;
-            t.type = TokenType::EndOfFile;
-            this->tokens_.push_back(t);
-            break;
-        }
-
-        // Identifier
-        if(std::isalpha(this->input_[index]))
-        {
-            while(std::isalpha(this->input_[++index]) && index < this->input_.length());
-
-            t.end = index;
-            t.type = TokenType::Identifier;
-            this->tokens_.push_back(t);
-            continue;
-        }
-
-        // Number
-        if(std::isdigit(this->input_[index]))
-        {
-            while(std::isdigit(this->input_[++index]) && index < this->input_.length());
-
-            t.end = index;
-            t.type = TokenType::Number;
-            this->tokens_.push_back(t);
-            continue;
-        }
-
-        // Misc.
-        switch(this->input_[index++])
-        {
-            case '+':
-            case '-':
-            case '*':
-            case '/':
-            case '^':
-                t.type = TokenType::Operator;
-                break;
-
-            case '=':
-                t.type = TokenType::Assignment;
-                break;
-
-            case '\n':
-            case ';':
-                t.type = TokenType::Terminator;
-                break;
-
-            case '[':
-                t.type = TokenType::LeftBracket;
-                break;
-
-            case ']':
-                t.type = TokenType::RightBracket;
-                break;
-
-            case '(':
-                t.type = TokenType::LeftParenthesis;
-                break;
-
-            case ')':
-                t.type = TokenType::RightParenthesis;
-                break;
-
-            case ',':
-                t.type = TokenType::Delimiter;
-                break;
-        }
-
-        t.end = index;
-        this->tokens_.push_back(t);
-
-        if(t.type == TokenType::EndOfFile)
-        {
-            break;
-        }
-    }
-}
+using namespace unlogic;
 
 Token const &TokenViewer::Consume(TokenType type)
 {
@@ -176,4 +74,174 @@ bool TokenViewer::ExpectAnyOf(const std::vector<TokenType> &types, std::uint64_t
     }
 
     return false;
+}
+
+Token TokenViewer::ParseNextToken()
+{
+    // Cut out whitespace
+    while(std::isspace(this->input_[this->index_]))
+    {
+        this->index_++;
+    }
+
+    if(this->index_ >= this->input_.size())
+    {
+        return {
+            .value = "",
+            .type = TokenType::EndOfFile,
+        };
+    }
+
+    if(std::isdigit(this->input_[this->index_]))
+    {
+        return this->TokenizeNumber();
+    }
+
+    if(std::isalpha(this->input_[this->index_]))
+    {
+        return this->TokenizeIdentifier();
+    }
+
+    this->TokenizeSymbol();
+}
+
+Token TokenViewer::TokenizeNumber()
+{
+    std::string value;
+
+    std::size_t punctuation_count = 0;
+    while(char c = this->input_[this->index_++])
+    {
+        if(std::isdigit(c))
+        {
+            value.push_back(c);
+            continue;
+        }
+        else if(c == '.')
+        {
+            if(punctuation_count > 0)
+            {
+                break;
+            }
+
+            punctuation_count++;
+        }
+    }
+
+    return {
+        .value = value,
+        .type = TokenType::Number,
+    };
+}
+
+Token TokenViewer::TokenizeIdentifier()
+{
+    std::string value;
+
+    while(char c = this->input_[this->index_++])
+    {
+        if(!std::isalnum(c))
+        {
+            break;
+        }
+
+        value.push_back(c);
+    }
+
+    return {
+            .value = value,
+            .type = TokenType::Number,
+    };
+}
+
+Token TokenViewer::TokenizeSymbol()
+{
+    char c = this->input_[this->index_];
+    switch(c)
+    {
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '^':
+            return {
+                .value = std::string(1, c),
+                .type = TokenType::Operator,
+            };
+
+        case '(':
+            return {
+                .value = std::string(1, c),
+                .type = TokenType::LeftParenthesis,
+            };
+
+        case ')':
+            return {
+                    .value = std::string(1, c),
+                    .type = TokenType::RightParenthesis,
+            };
+
+        case '[':
+            return {
+                    .value = std::string(1, c),
+                    .type = TokenType::LeftBracket,
+            };
+
+        case ']':
+            return {
+                    .value = std::string(1, c),
+                    .type = TokenType::RightBracket,
+            };
+
+        case ';':
+            return {
+                    .value = std::string(1, c),
+                    .type = TokenType::Terminator,
+            };
+
+        case ',':
+            return {
+                    .value = std::string(1, c),
+                    .type = TokenType::Delimiter,
+            };
+        default:
+        {
+            throw TokenException(*this);
+        }
+    }
+}
+
+bool TokenViewer::Expect(TokenType type, const std::string &value, std::uint64_t lookahead)
+{
+    return this->Expect(type, lookahead) && this->tokens_[this->index_ + lookahead].String() == value;
+}
+
+std::string const &Token::String() const
+{
+    return this->value;
+}
+
+double Token::Double() const
+{
+    return std::stod(this->value);
+}
+
+std::map<std::string, Precedence> op_precedence = {
+        {"+", Precedence::SumDifference},
+        {"-", Precedence::SumDifference},
+        {"*", Precedence::ProductQuotient},
+        {"/", Precedence::ProductQuotient},
+        {",", Precedence::Delimiter},
+        {";", Precedence::Terminator},
+        {"^", Precedence::Power},
+};
+
+Precedence Token::Precedence() const
+{
+    if(!op_precedence.contains(this->value))
+    {
+        return Precedence::Minimum;
+    }
+
+    return op_precedence[this->value];
 }

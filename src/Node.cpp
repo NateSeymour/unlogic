@@ -1,6 +1,8 @@
 #include <cmath>
 #include "Node.h"
 
+using namespace unlogic;
+
 double EmptyNode::Evaluate(EvaluationContext &context)
 {
     throw std::runtime_error("cannot evaluate empty node!");
