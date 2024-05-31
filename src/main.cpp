@@ -11,6 +11,9 @@ int main()
     settings.antialiasingLevel = 8;
     sf::RenderWindow window(sf::VideoMode(250, 250), "My window", sf::Style::Default, settings);
 
+    sf::Transform t;
+    t.scale(1.0, -1.0);
+
     while(window.isOpen())
     {
         // check all the window's events that were triggered since the last iteration of the loop
@@ -29,7 +32,7 @@ int main()
 
         window.clear(sf::Color::White);
 
-        window.draw(graph);
+        window.draw(graph, t);
 
         window.display();
     }
