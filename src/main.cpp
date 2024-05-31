@@ -1,15 +1,15 @@
 #include <SFML/Graphics.hpp>
-#include "GraphRenderer.h"
+#include "Graph.h"
 
 int main()
 {
     // Construct GraphRenderer
-    GraphRenderer renderer("f[x] = x^2;");
+    Graph graph({ "f[x] = x^2;", "f[x] = x^3;", "f[x] = 2*x + 3" });
 
     // Construct window
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    sf::RenderWindow window(sf::VideoMode(2400, 2400), "My window", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(250, 250), "My window", sf::Style::Default, settings);
 
     while(window.isOpen())
     {
@@ -27,7 +27,10 @@ int main()
             }
         }
 
-        renderer.Draw(window);
+        window.clear(sf::Color::White);
+
+        window.draw(graph);
+
         window.display();
     }
 

@@ -1,5 +1,5 @@
 #include <benchmark/benchmark.h>
-#include "GraphRenderer.h"
+#include "Graph.h"
 
 static void BM_QuadraticImageGeneration(benchmark::State &state)
 {

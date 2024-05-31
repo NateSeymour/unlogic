@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "GraphRenderer.h"
+#include "Graph.h"
 
 TEST(GraphRenderer, QuadraticImageGeneration)
 {

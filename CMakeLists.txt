@@ -21,12 +21,13 @@ add_library(unlogic
         src/Node.h
         src/Parser.cpp
         src/Parser.h
-        src/GraphRenderer.cpp
-        src/GraphRenderer.h
+        src/Graph.cpp
+        src/Graph.h
         src/Program.cpp
         src/Program.h
         src/Exception.cpp
-        src/Exception.h)
+        src/Exception.h
+        src/SFMLX.h)
 target_link_libraries(unlogic PUBLIC sfml::sfml)
 
 add_executable(unlogic-cli src/main.cpp)
