@@ -8,6 +8,7 @@ find_package(PkgConfig)
 pkg_check_modules(Pistache IMPORTED_TARGET libpistache)
 
 find_package(SFML REQUIRED)
+find_package(benchmark REQUIRED)
 find_package(cryptopp REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(GTest REQUIRED)
@@ -21,7 +22,7 @@ add_library(unlogic
         src/Parser.cpp
         src/Parser.h
         src/GraphRenderer.cpp
-        src/GraphRenderer.test.h
+        src/GraphRenderer.h
         src/Program.cpp
         src/Program.h
         src/Exception.cpp
@@ -36,6 +37,12 @@ add_executable(unlogic-test
         test/GraphRenderer.test.cpp)
 target_link_libraries(unlogic-test PRIVATE unlogic GTest::gtest_main)
 target_include_directories(unlogic-test PRIVATE src)
+
+add_executable(unlogic-benchmark
+        benchmark/GraphRenderer.benchmark.cpp)
+target_link_libraries(unlogic-benchmark PRIVATE unlogic benchmark::benchmark_main)
+target_include_directories(unlogic-benchmark PRIVATE src)
+
 
 if(Pistache_FOUND)
     add_executable(unlogic-server

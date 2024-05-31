@@ -7,7 +7,7 @@ std::unique_ptr<Node> Parser::ParseBinOp(std::unique_ptr<Node> lhs)
     auto op = this->tv_.Consume();
     auto value = op.String()[0];
 
-    auto rhs = this->ParseExpression(op.Precedence());
+    auto rhs = this->ParseExpression(op.TokenPrecedence());
 
     return std::make_unique<BinaryNode>(std::move(lhs), std::move(rhs), value);
 }

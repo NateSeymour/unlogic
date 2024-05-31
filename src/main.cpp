@@ -1,5 +1,5 @@
 #include <SFML/Graphics.hpp>
-#include "GraphRenderer.test.h"
+#include "GraphRenderer.h"
 
 int main()
 {

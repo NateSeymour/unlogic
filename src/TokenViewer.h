@@ -49,7 +49,7 @@ namespace unlogic
         std::string value;
         TokenType type;
 
-        Precedence Precedence() const;
+        Precedence TokenPrecedence() const;
         std::string const &String() const;
         double Double() const;
     };

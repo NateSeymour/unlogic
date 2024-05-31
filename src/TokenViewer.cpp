@@ -249,7 +249,7 @@ std::map<std::string, Precedence> op_precedence = {
         {"^", Precedence::Power},
 };
 
-Precedence Token::Precedence() const
+Precedence Token::TokenPrecedence() const
 {
     if(!op_precedence.contains(this->value))
     {

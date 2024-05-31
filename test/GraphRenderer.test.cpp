@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
-#include "Parser.h"
-#include "GraphRenderer.test.h"
+#include "GraphRenderer.h"
 
 TEST(GraphRenderer, QuadraticImageGeneration)
 {
@@ -8,7 +7,7 @@ TEST(GraphRenderer, QuadraticImageGeneration)
     sf::RenderTexture texture;
     texture.create(250, 250);
 
-    GraphRenderer renderer("f[x] = x^2; f(x);");
+    GraphRenderer renderer("f[x] = x^2;");
 
     renderer.Draw(texture);
 

@@ -2,8 +2,8 @@
 // Created by nathan on 5/27/24.
 //
 
-#ifndef UNLOGIC_GRAPHRENDERER_TEST_H
-#define UNLOGIC_GRAPHRENDERER_TEST_H
+#ifndef UNLOGIC_GRAPHRENDERER_H
+#define UNLOGIC_GRAPHRENDERER_H
 
 #include <SFML/Graphics.hpp>
 #include <cmath>
@@ -152,4 +152,4 @@ public:
 };
 
 
-#endif //UNLOGIC_GRAPHRENDERER_TEST_H
+#endif //UNLOGIC_GRAPHRENDERER_H

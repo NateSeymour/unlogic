@@ -38,7 +38,7 @@ namespace unlogic
 
         Precedence NextPrecedence()
         {
-            return this->tv_.Peek().Precedence();
+            return this->tv_.Peek().TokenPrecedence();
         }
 
         std::unique_ptr<Node> ParseBinOp(std::unique_ptr<Node> lhs);
