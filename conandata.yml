@@ -1,9 +1,0 @@
-# This file is managed by Conan, contents will be overwritten.
-# To keep your changes, remove these comment lines, but the plugin won't be able to modify your requirements
-
-requirements:
-  - "benchmark/1.8.3"
-  - "gtest/1.14.0"
-  - "nlohmann_json/3.11.3"
-  - "cryptopp/8.9.0"
-  - "sfml/2.6.1"

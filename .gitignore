@@ -1,4 +1,6 @@
 cmake-build-*
+build/
 .DS_Store
 .idea
 scratch/
+CMakeUserPresets.json
