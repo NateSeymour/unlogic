@@ -29,12 +29,13 @@ add_library(unlogic
         src/Parser.h
         src/Graph.cpp
         src/Graph.h
-        src/Program.cpp
-        src/Program.h
         src/Exception.cpp
         src/Exception.h
-        src/SFMLX.h)
-target_link_libraries(unlogic PUBLIC sfml::sfml)
+        src/SFMLX.h
+        src/Compiler.cpp
+        src/Compiler.h)
+target_link_libraries(unlogic PUBLIC sfml::sfml ${llvm_libs})
+target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS})
 
 add_executable(unlogic-cli src/main.cpp)
 target_link_libraries(unlogic-cli PUBLIC unlogic)
