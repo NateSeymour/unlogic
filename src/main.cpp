@@ -4,7 +4,7 @@
 int main()
 {
     // Construct GraphRenderer
-    Graph graph({ "f[x] = x^2;", "f[x] = x^3;", "f[x] = 2*x + 3" });
+    Graph graph({ "f[x] = x^2;", "g[x] = x^3;", "q[x] = 2*x + 3" });
 
     // Construct window
     sf::ContextSettings settings;

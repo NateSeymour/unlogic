@@ -1,3 +1,4 @@
+#include <numbers>
 #include "Graph.h"
 
 void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
@@ -68,7 +69,7 @@ void Plot::update()
         }
 
         double theta1 = std::atan2(dy, dx);
-        double theta2 = ((3.1415/2) - theta1);
+        double theta2 = ((std::numbers::pi/2) - theta1);
 
         double tx = (this->thickness_ / 2) * std::cos(theta2);
         double ty = (this->thickness_ / 2) * std::sin(theta2);
