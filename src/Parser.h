@@ -13,7 +13,7 @@ namespace unlogic
     /*
      * Grammar
      * identifier_list:
-     *      | identifier
+     *      | IDENTIFIER
      *      | identifier_list ','
      * parameter_list:
      *      | expression
@@ -45,18 +45,26 @@ namespace unlogic
         std::string const &input_;
         TokenViewer tv_;
 
-        std::unique_ptr<Node> ParseBinOp(std::unique_ptr<Node> lhs);
+        std::unique_ptr<Node> ParseBinaryOperation(std::unique_ptr<Node> lhs);
         std::unique_ptr<Node> ParseExpression(Precedence precedence = Precedence::Assignment);
-        std::unique_ptr<Node> ParseFunctionDefinition();
-        std::unique_ptr<Node> ParseStatement();
+
+        Prototype ParseAnonymousFunctionDefinition();
+        Prototype ParseNamedFunctionDefinition();
 
     public:
-        std::unique_ptr<Node> ParseProgram();
+        /**
+         *
+         * @return
+         * @grammar
+         * function_body:
+         *      | expression
+         * function_definition:
+         *      | IDENTIFIER '(' identifier_list ')' '=' function_body
+         */
+        Prototype ParseFunctionDefinition();
 
         explicit Parser(std::string const &input) : input_(input), tv_(input_) {}
     };
-
-    std::unique_ptr<Node> parse(std::string const &input);
 }
 
 #endif //UNLOGIC_PARSER_H

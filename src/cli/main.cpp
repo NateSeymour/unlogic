@@ -1,5 +1,5 @@
 #include <SFML/Graphics.hpp>
-#include "Graph.h"
+#include "../graphic/Graph.h"
 
 int main()
 {

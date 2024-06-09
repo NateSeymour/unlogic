@@ -2,14 +2,13 @@
 
 using namespace unlogic;
 
-std::unique_ptr<Node> Parser::ParseBinOp(std::unique_ptr<Node> lhs)
+std::unique_ptr<Node> Parser::ParseBinaryOperation(std::unique_ptr<Node> lhs)
 {
     auto op = this->tv_.Consume();
-    auto value = op.String()[0];
 
     auto rhs = this->ParseExpression(op.TokenPrecedence());
 
-    return std::make_unique<BinaryNode>(std::move(lhs), std::move(rhs), value);
+    return std::make_unique<BinaryOperationNode>(std::move(lhs), std::move(rhs), op.String());
 }
 
 std::unique_ptr<Node> Parser::ParseExpression(Precedence precedence)
@@ -32,11 +31,11 @@ std::unique_ptr<Node> Parser::ParseExpression(Precedence precedence)
             {
                 this->tv_.Consume(TokenType::LeftParenthesis);
 
-                std::vector<std::unique_ptr<Node>> parameters;
+                std::vector<std::unique_ptr<Node>> arguments;
 
                 while (true)
                 {
-                    parameters.push_back(this->ParseExpression());
+                    arguments.push_back(this->ParseExpression());
 
                     auto seperator_or_end = this->tv_.ConsumeAnyOf({TokenType::RightParenthesis, TokenType::Delimiter});
 
@@ -46,12 +45,12 @@ std::unique_ptr<Node> Parser::ParseExpression(Precedence precedence)
                     }
                 }
 
-                expression = std::make_unique<FunctionCallNode>(t.String(), std::move(parameters));
+                expression = std::make_unique<CallNode>(t.String(), std::move(arguments));
                 break;
             }
 
-            // Else identifier
-            expression = std::make_unique<IdentifierNode>(t.String());
+            // Else variable
+            expression = std::make_unique<VariableNode>(t.String());
             break;
         }
 
@@ -61,11 +60,11 @@ std::unique_ptr<Node> Parser::ParseExpression(Precedence precedence)
         }
     }
 
-    while (this->NextPrecedence() > precedence)
+    while (this->tv_.Peek().TokenPrecedence() > precedence)
     {
         if (this->tv_.Expect(TokenType::Operator))
         {
-            expression = this->ParseBinOp(std::move(expression));
+            expression = this->ParseBinaryOperation(std::move(expression));
         }
         else
         {
@@ -76,22 +75,46 @@ std::unique_ptr<Node> Parser::ParseExpression(Precedence precedence)
     return expression;
 }
 
-std::unique_ptr<FunctionDefinitionNode> Parser::ParseFunctionDefinition()
+Prototype Parser::ParseAnonymousFunctionDefinition()
 {
-    auto identifier = this->tv_.Consume(TokenType::Identifier);
-    this->tv_.Consume(TokenType::LeftBracket);
+    Prototype prototype {
+        .name = "__anon",
+        .anonymous = true,
+    };
 
-    std::vector<std::string> parameters;
+    prototype.body = this->ParseExpression();
+
+    // Run through AST to determine if a named variable is used and add it to the argument list.
+    for(auto const &child : prototype.body->Children())
+    {
+        if(child->Type() == NodeType::Variable)
+        {
+            auto child_node = reinterpret_cast<VariableNode const*>(child);
+            prototype.arguments.push_back(child_node->identifier_);
+        }
+    }
+
+    return prototype;
+}
+
+Prototype Parser::ParseNamedFunctionDefinition()
+{
+    Prototype prototype;
+
+    auto t_prototype_name = this->tv_.Consume(TokenType::Identifier);
+    prototype.name = t_prototype_name.String();
+
+    this->tv_.Consume(TokenType::LeftParenthesis);
 
     while (true)
     {
-        auto parameter = this->tv_.Consume(TokenType::Identifier);
+        auto argument = this->tv_.Consume(TokenType::Identifier);
 
-        parameters.push_back(parameter.String());
+        prototype.arguments.push_back(argument.String());
 
-        auto seperator_or_end = this->tv_.ConsumeAnyOf({TokenType::RightBracket, TokenType::Delimiter});
+        auto seperator_or_end = this->tv_.ConsumeAnyOf({TokenType::RightParenthesis, TokenType::Delimiter});
 
-        if (seperator_or_end.type == TokenType::RightBracket)
+        if (seperator_or_end.type == TokenType::RightParenthesis)
         {
             break;
         }
@@ -99,61 +122,19 @@ std::unique_ptr<FunctionDefinitionNode> Parser::ParseFunctionDefinition()
 
     this->tv_.Consume(TokenType::Assignment);
 
-    std::shared_ptr<Node> function_body = this->ParseExpression();
+    prototype.body = this->ParseExpression();
 
-    return std::make_unique<FunctionDefinitionNode>(identifier.String(), std::move(function_body), parameters);
+    return prototype;
 }
 
-std::unique_ptr<Node> Parser::ParseStatement()
+Prototype Parser::ParseFunctionDefinition()
 {
-    std::unique_ptr<Node> statement;
-
-    this->tv_.AssertAnyOf({TokenType::Number, TokenType::Identifier});
-
-    auto next = this->tv_.Peek(1);
-    switch (next.type)
+    if(this->tv_.Expect(TokenType::Identifier) && this->tv_.Expect(TokenType::LeftParenthesis, 1))
     {
-        case TokenType::Operator:
-        case TokenType::EndOfFile:
-        case TokenType::Terminator:
-        case TokenType::LeftParenthesis:
-        {
-            statement = this->ParseExpression();
-            break;
-        }
-
-        case TokenType::LeftBracket:
-        {
-            statement = this->ParseFunctionDefinition();
-            break;
-        }
-
-        default:
-        {
-            throw std::runtime_error("unexpected token!");
-        }
+        return this->ParseNamedFunctionDefinition();
     }
-
-    this->tv_.Assert(TokenType::Terminator);
-    this->tv_.Consume();
-
-    return statement;
-}
-
-std::unique_ptr<Node> Parser::ParseProgram()
-{
-    auto program = std::make_unique<BlockNode>();
-
-    while (!this->tv_.Expect(TokenType::EndOfFile))
+    else
     {
-        program->AddStatement(this->ParseStatement());
+        return this->ParseAnonymousFunctionDefinition();
     }
-
-    return program;
-}
-
-std::unique_ptr<Node> parse(const std::string &input)
-{
-    Parser p(input);
-    return p.ParseProgram();
 }

@@ -13,7 +13,6 @@ find_package(cryptopp REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(GTest REQUIRED)
 
-# LLVM
 find_package(LLVM 17 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
@@ -27,30 +26,28 @@ add_library(unlogic
         src/Node.h
         src/Parser.cpp
         src/Parser.h
-        src/Graph.cpp
-        src/Graph.h
         src/Exception.cpp
         src/Exception.h
-        src/SFMLX.h
         src/Compiler.cpp
         src/Compiler.h)
-target_link_libraries(unlogic PUBLIC sfml::sfml ${llvm_libs})
+target_link_libraries(unlogic PUBLIC ${llvm_libs})
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS})
 
-add_executable(unlogic-cli src/main.cpp)
-target_link_libraries(unlogic-cli PUBLIC unlogic)
+add_library(unlogic-graphic
+        src/graphic/Graph.cpp
+        src/graphic/Graph.h
+        src/graphic/SFMLX.h
+)
+target_link_libraries(unlogic-graphic PUBLIC unlogic sfml::sfml)
+
+add_executable(unlogic-cli src/cli/main.cpp)
+target_link_libraries(unlogic-cli PUBLIC unlogic unlogic-graphic)
 
 add_executable(unlogic-test
-        test/function.test.cpp
-        test/GraphRenderer.test.cpp)
+        test/unlogic.test.cpp
+)
 target_link_libraries(unlogic-test PRIVATE unlogic GTest::gtest_main)
 target_include_directories(unlogic-test PRIVATE src)
-
-add_executable(unlogic-benchmark
-        benchmark/GraphRenderer.benchmark.cpp)
-target_link_libraries(unlogic-benchmark PRIVATE unlogic benchmark::benchmark_main)
-target_include_directories(unlogic-benchmark PRIVATE src)
-
 
 if(Pistache_FOUND)
     add_executable(unlogic-server
