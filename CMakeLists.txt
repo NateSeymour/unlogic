@@ -16,7 +16,6 @@ find_package(GTest REQUIRED)
 find_package(LLVM 17 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
-llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 # Unlogic
 add_library(unlogic
@@ -30,7 +29,7 @@ add_library(unlogic
         src/Exception.h
         src/Compiler.cpp
         src/Compiler.h)
-target_link_libraries(unlogic PUBLIC ${llvm_libs})
+target_link_libraries(unlogic PUBLIC LLVM-17)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS})
 
 add_library(unlogic-graphic

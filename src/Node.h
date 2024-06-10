@@ -17,14 +17,18 @@ namespace unlogic
 {
     struct CompilationContext
     {
-        llvm::LLVMContext llvm_ctx;
-        llvm::IRBuilder<> builder;
-        llvm::Module module;
+        std::unique_ptr<llvm::LLVMContext> llvm_ctx;
+        std::unique_ptr<llvm::Module> module;
+        std::unique_ptr<llvm::IRBuilder<>> builder;
 
         std::map<std::string, llvm::Value*> named_values;
 
-        CompilationContext() : builder(llvm_ctx), module("Unlogic", llvm_ctx) {}
-        CompilationContext(llvm::StringRef module_name) : builder(llvm_ctx), module(module_name, llvm_ctx) {}
+        CompilationContext(llvm::StringRef module_name = "Unlogic")
+        {
+            this->llvm_ctx = std::make_unique<llvm::LLVMContext>();
+            this->builder = std::make_unique<llvm::IRBuilder<>>(*this->llvm_ctx);
+            this->module = std::make_unique<llvm::Module>(module_name, *llvm_ctx);
+        }
     };
 
     enum class NodeType
@@ -79,7 +83,7 @@ namespace unlogic
     public:
         llvm::Value *Codegen(CompilationContext &ctx) override
         {
-            return llvm::ConstantFP::get(ctx.llvm_ctx, llvm::APFloat(this->value_));
+            return llvm::ConstantFP::get(*ctx.llvm_ctx, llvm::APFloat(this->value_));
         }
 
         NodeType Type() const override
@@ -103,7 +107,7 @@ namespace unlogic
     public:
         llvm::Value *Codegen(CompilationContext &ctx) override
         {
-            llvm::Function *function = ctx.module.getFunction(this->function_name_);
+            llvm::Function *function = ctx.module->getFunction(this->function_name_);
 
             if(function->arg_size() < this->arguments_.size())
             {
@@ -116,7 +120,7 @@ namespace unlogic
                 argument_values.push_back(argument->Codegen(ctx));
             }
 
-            return ctx.builder.CreateCall(function, argument_values, "calltmp");
+            return ctx.builder->CreateCall(function, argument_values, "calltmp");
         }
 
         NodeType Type() const override
@@ -152,10 +156,10 @@ namespace unlogic
             llvm::Value *lhs = this->lhs_->Codegen(ctx);
             llvm::Value *rhs = this->rhs_->Codegen(ctx);
 
-            if(op_ == "+") return ctx.builder.CreateFAdd(lhs, rhs, "addtmp");
-            if(op_ == "-") return ctx.builder.CreateFSub(lhs, rhs, "subtmp");
-            if(op_ == "*") return ctx.builder.CreateFMul(lhs, rhs, "multmp");
-            if(op_ == "/") return ctx.builder.CreateFDiv(lhs, rhs, "divtmp");
+            if(op_ == "+") return ctx.builder->CreateFAdd(lhs, rhs, "addtmp");
+            if(op_ == "-") return ctx.builder->CreateFSub(lhs, rhs, "subtmp");
+            if(op_ == "*") return ctx.builder->CreateFMul(lhs, rhs, "multmp");
+            if(op_ == "/") return ctx.builder->CreateFDiv(lhs, rhs, "divtmp");
 
             return nullptr;
         }
@@ -184,7 +188,7 @@ namespace unlogic
         BinaryOperationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs, std::string op) : lhs_(std::move(lhs)), rhs_(std::move(rhs)), op_(std::move(op)) {}
     };
 
-    class Prototype
+    struct Prototype
     {
         std::unique_ptr<Node> body;
         std::string name;
@@ -195,9 +199,9 @@ namespace unlogic
         llvm::Function *Codegen(CompilationContext &ctx)
         {
             // Generate function information
-            std::vector<llvm::Type*> argument_types(this->arguments.size(), llvm::Type::getDoubleTy(ctx.llvm_ctx));
-            llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(ctx.llvm_ctx), argument_types, false);
-            llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, this->name, ctx.module);
+            std::vector<llvm::Type*> argument_types(this->arguments.size(), llvm::Type::getDoubleTy(*ctx.llvm_ctx));
+            llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(*ctx.llvm_ctx), argument_types, false);
+            llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, this->name, *ctx.module);
 
             unsigned idx = 0;
             for (auto &arg : function->args())
@@ -206,8 +210,8 @@ namespace unlogic
             }
 
             // Generate function body
-            llvm::BasicBlock *block = llvm::BasicBlock::Create(ctx.llvm_ctx, "entry", function);
-            ctx.builder.SetInsertPoint(block);
+            llvm::BasicBlock *block = llvm::BasicBlock::Create(*ctx.llvm_ctx, "entry", function);
+            ctx.builder->SetInsertPoint(block);
 
             ctx.named_values.clear();
             for(auto &arg : function->args())
@@ -216,7 +220,7 @@ namespace unlogic
             }
 
             llvm::Value* return_value = this->body->Codegen(ctx);
-            ctx.builder.CreateRet(return_value);
+            ctx.builder->CreateRet(return_value);
             llvm::verifyFunction(*function);
 
             return function;

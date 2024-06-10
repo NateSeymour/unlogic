@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CONAN_VERSION=$(conan -v)
-if [[ -nz $? ]]; then
+if [[ ! -z "${CONAN_VERSION}" ]]; then
 	echo "Found Conan!"
 else
 	echo "Could not find Conan!"
