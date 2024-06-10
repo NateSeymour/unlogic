@@ -7,7 +7,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <cmath>
-#include "Program.h"
+#include "../Compiler.h"
 
 struct Range
 {
@@ -22,7 +22,7 @@ struct Range
 
 class Plot : public sf::Drawable, public sf::Transformable
 {
-    unlogic::Function function_;
+    unlogic::Callable<double> function_;
     sf::Color color_ = sf::Color::Red;
     double precision_ = 0.1;
     double thickness_ = 0.1;
@@ -38,7 +38,7 @@ protected:
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 public:
-    Plot(unlogic::Function function, sf::Vector2f domain) : function_(std::move(function)), domain_(domain)
+    Plot(unlogic::Callable<double> function, sf::Vector2f domain) : function_(std::move(function)), domain_(domain)
     {
         this->update();
     }
@@ -56,9 +56,10 @@ protected:
 public:
     Graph(std::initializer_list<std::string> functions, sf::Vector2f domain = {-10.0, 10.0}) : domain_(domain)
     {
+        unlogic::Compiler compiler;
         for(auto const &function : functions)
         {
-            this->plots_.emplace_back(unlogic::compile(function), domain);
+            this->plots_.emplace_back(compiler.CompileFunction<double>(function), domain);
         }
     }
 };

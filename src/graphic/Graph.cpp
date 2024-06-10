@@ -50,7 +50,7 @@ void Plot::update()
     for (std::size_t i = 0; i < point_count; i++)
     {
         double x = this->domain_.x + ((double)i * this->precision_);
-        double y = this->function_({x});
+        double y = this->function_(x);
 
         this->points_.emplace_back(x, y);
     }
