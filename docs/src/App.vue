@@ -41,10 +41,10 @@ interface UnlogicParameters {
     f: string,
 }
 
-const parameters = ref<UnlogicParameters>({ f: 'x^3;' });
+const parameters = ref<UnlogicParameters>({ f: 'f(x) = x^2' });
 
 const imageSource = computed(() => {
-    return `https://unlogic.seymour.global/render/${btoa(JSON.stringify(parameters.value))}`;
+    return `http://localhost:9000/unlogic/${btoa(JSON.stringify(parameters.value))}`;
 });
 </script>
 

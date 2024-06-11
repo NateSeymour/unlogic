@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "../Graph.h"
+#include "../graphic/Graph.h"
 
 using namespace Pistache;
 using namespace nlohmann;
@@ -17,7 +17,7 @@ public:
      *
      * @param req - JSON Request
      * {
-     *      "f": OPTIONAL("f[x] = x^2; f(x);") - function of which to produce a graph
+     *      "f": OPTIONAL("f(x) = x^2") - function of which to produce a graph
      * }
      * @param res
      */
@@ -43,17 +43,16 @@ public:
         // Generate image
         sf::RenderTexture texture;
         texture.create(1000, 1000);
+        texture.clear(sf::Color::White);
 
-        std::cout << parameters.value("f", "f[x] = x^2; f(x);") << std::endl;
-        std::cout << parameters.dump() << std::endl;
+        unlogic::Graph graph(parameters.value("f", "f(x) = x^2"));
 
-        GraphRenderer renderer(parameters.value("f", "f[x] = x^2; f(x);"));
-
-        renderer.Draw(texture);
+        texture.draw(graph);
+        texture.display();
 
         sf::Image image = texture.getTexture().copyToImage();
         std::vector<sf::Uint8> buffer;
-        image.saveToMemory(buffer, "png");
+        image.saveToMemory(buffer, "jpg");
 
         // Respond
         res.send(Http::Code::Ok, (char const *)buffer.data(), buffer.size(), MIME(Image, Png));
@@ -64,7 +63,9 @@ public:
 
 int main()
 {
-    Address address(Ipv4::any(), Port(9006));
+    unlogic::Compiler::InitializeCompilerRuntime();
+
+    Address address(Ipv4::any(), Port(9000));
 
     Rest::Router router;
     UnlogicServer server;

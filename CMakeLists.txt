@@ -59,7 +59,7 @@ target_include_directories(unlogic-benchmark PRIVATE src)
 if(Pistache_FOUND)
     add_executable(unlogic-server
             src/server/main.cpp)
-    target_link_libraries(unlogic-server PUBLIC unlogic PkgConfig::Pistache cryptopp::cryptopp nlohmann_json::nlohmann_json)
+    target_link_libraries(unlogic-server PUBLIC unlogic unlogic-graphic PkgConfig::Pistache cryptopp::cryptopp nlohmann_json::nlohmann_json)
 else()
     message(WARNING "Pistache not found. Not configuring unlogic-server module...")
 endif()
