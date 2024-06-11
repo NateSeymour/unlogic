@@ -83,6 +83,18 @@ TEST(UnlogicCompiler, CompileAnonymousFunction)
     ASSERT_EQ(f(2), 2);
 }
 
+TEST(UnlogicCompiler, MultipleFunctionDefinitions)
+{
+    unlogic::Compiler compiler;
+    auto f = compiler.CompileFunction<double>("f(x) = x / 2");
+    auto g = compiler.CompileFunction<double>("g(x) = x * 2");
+    auto q = compiler.CompileFunction<double>("q(x) = x + 2");
+
+    ASSERT_EQ(f(25), 12.5);
+    ASSERT_EQ(g(25), 50);
+    ASSERT_EQ(q(25), 27);
+}
+
 TEST(Unlogic, MultipleParameterFunction)
 {
     unlogic::Compiler compiler;
