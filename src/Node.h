@@ -33,6 +33,7 @@ namespace unlogic
         void InitializeStdLib()
         {
             this->GenerateStdLibFunctionDefinition("pow", 2);
+            this->GenerateStdLibFunctionDefinition("sin", 1);
         }
 
         CompilationContext(llvm::StringRef module_name = "Unlogic")
