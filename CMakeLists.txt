@@ -28,7 +28,8 @@ add_library(unlogic
         src/Exception.cpp
         src/Exception.h
         src/Compiler.cpp
-        src/Compiler.h)
+        src/Compiler.h
+)
 target_link_libraries(unlogic PUBLIC LLVM-17)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS})
 
@@ -48,6 +49,12 @@ add_executable(unlogic-test
 )
 target_link_libraries(unlogic-test PRIVATE unlogic unlogic-graphic GTest::gtest_main)
 target_include_directories(unlogic-test PRIVATE src)
+
+add_executable(unlogic-benchmark
+        benchmark/unlogic-graphic.benchmark.cpp
+)
+target_link_libraries(unlogic-benchmark PRIVATE unlogic unlogic-graphic benchmark::benchmark_main)
+target_include_directories(unlogic-benchmark PRIVATE src)
 
 if(Pistache_FOUND)
     add_executable(unlogic-server

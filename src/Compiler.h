@@ -48,6 +48,13 @@ namespace unlogic
         std::unique_ptr<llvm::orc::LLJIT> jit_;
 
     public:
+        static void InitializeCompilerRuntime()
+        {
+            llvm::InitializeNativeTarget();
+            llvm::InitializeNativeTargetAsmPrinter();
+            llvm::InitializeNativeTargetAsmParser();
+        }
+
         template<typename... Args>
         Callable<Args...> CompileFunction(std::string const &input)
         {
@@ -75,10 +82,6 @@ namespace unlogic
 
         Compiler()
         {
-            llvm::InitializeNativeTarget();
-            llvm::InitializeNativeTargetAsmPrinter();
-            llvm::InitializeNativeTargetAsmParser();
-
             auto jit = llvm::orc::LLJITBuilder().create();
             if(auto e = jit.takeError())
             {
