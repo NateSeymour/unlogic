@@ -44,8 +44,9 @@ target_link_libraries(unlogic-cli PUBLIC unlogic unlogic-graphic)
 
 add_executable(unlogic-test
         test/unlogic.test.cpp
+        test/unlogic-graphic.test.cpp
 )
-target_link_libraries(unlogic-test PRIVATE unlogic GTest::gtest_main)
+target_link_libraries(unlogic-test PRIVATE unlogic unlogic-graphic GTest::gtest_main)
 target_include_directories(unlogic-test PRIVATE src)
 
 if(Pistache_FOUND)

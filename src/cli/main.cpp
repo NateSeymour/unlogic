@@ -4,12 +4,12 @@
 int main()
 {
     // Construct GraphRenderer
-    Graph graph({ "f(x) = x^2", "g(x) = x^3", "q(x) = 2*x + 3" });
+    unlogic::Graph graph({ "f(x) = x^2", "g(x) = x^3", "q(x) = 2*x + 3", "z(x) = 2^x" });
 
     // Construct window
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    sf::RenderWindow window(sf::VideoMode(250, 250), "My window", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(1000, 1000), "Unlogic", sf::Style::Default, settings);
 
     sf::Transform t;
     t.scale(1.0, -1.0);

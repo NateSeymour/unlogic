@@ -1,6 +1,8 @@
 #include <numbers>
 #include "Graph.h"
 
+using namespace unlogic;
+
 void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     // Save reference to old view
@@ -76,7 +78,7 @@ void Plot::update()
 
         auto const &point = this->points_[i];
 
-        this->vertices_.emplace_back(sf::Vector2f(point.x + tx, point.y - ty), sf::Color::Red); // a1
-        this->vertices_.emplace_back(sf::Vector2f(point.x - tx, point.y + ty), sf::Color::Red); // a2
+        this->vertices_.emplace_back(sf::Vector2f(point.x + tx, point.y - ty), this->color_); // a1
+        this->vertices_.emplace_back(sf::Vector2f(point.x - tx, point.y + ty), this->color_); // a2
     }
 }
