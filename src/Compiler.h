@@ -5,6 +5,7 @@
 #ifndef UNLOGIC_COMPILER_H
 #define UNLOGIC_COMPILER_H
 
+#include <cmath>
 #include <string>
 #include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/ExecutorProcessControl.h>
@@ -90,6 +91,20 @@ namespace unlogic
             {
                 throw std::runtime_error(llvm::toString(std::move(e)));
             }
+
+            // Instantiate stdlib
+            auto symbol_map = llvm::orc::SymbolMap{
+                { this->jit_->mangleAndIntern("pow"), { llvm::orc::ExecutorAddr::fromPtr(&std::pow<double, double>), llvm::JITSymbolFlags::Callable }}
+            };
+            auto std_sym_def = stdlib->define(llvm::orc::absoluteSymbols(symbol_map));
+            if(std_sym_def)
+            {
+                throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
+            }
+
+            // Add stdlib to link order
+            llvm::orc::JITDylib &main = this->jit_->getMainJITDylib();
+            main.addToLinkOrder(*stdlib);
         }
     };
 }

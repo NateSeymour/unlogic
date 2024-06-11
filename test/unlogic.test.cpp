@@ -134,3 +134,11 @@ TEST(Unlogic, Division)
 
     ASSERT_EQ(f(25), 12.5);
 }
+
+TEST(Unlogic, Exponent)
+{
+    unlogic::Compiler compiler;
+    auto f = compiler.CompileFunction<double>("f(x) = x^2");
+
+    ASSERT_EQ(f(5), 25);
+}

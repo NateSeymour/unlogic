@@ -23,11 +23,25 @@ namespace unlogic
 
         std::map<std::string, llvm::Value*> named_values;
 
+        llvm::Function *GenerateStdLibFunctionDefinition(std::string const &name, std::uint8_t nargs)
+        {
+            std::vector<llvm::Type*> argument_types(nargs, llvm::Type::getDoubleTy(*this->llvm_ctx));
+            llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(*this->llvm_ctx), argument_types, false);
+            return llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, name, *this->module);
+        }
+
+        void InitializeStdLib()
+        {
+            this->GenerateStdLibFunctionDefinition("pow", 2);
+        }
+
         CompilationContext(llvm::StringRef module_name = "Unlogic")
         {
             this->llvm_ctx = std::make_unique<llvm::LLVMContext>();
             this->builder = std::make_unique<llvm::IRBuilder<>>(*this->llvm_ctx);
             this->module = std::make_unique<llvm::Module>(module_name, *llvm_ctx);
+
+            this->InitializeStdLib();
         }
     };
 
@@ -160,6 +174,12 @@ namespace unlogic
             if(op_ == "-") return ctx.builder->CreateFSub(lhs, rhs, "subtmp");
             if(op_ == "*") return ctx.builder->CreateFMul(lhs, rhs, "multmp");
             if(op_ == "/") return ctx.builder->CreateFDiv(lhs, rhs, "divtmp");
+            if(op_ == "^")
+            {
+                llvm::Function *pow = ctx.module->getFunction("pow");
+
+                return ctx.builder->CreateCall(pow, {lhs, rhs}, "pow");
+            }
 
             return nullptr;
         }
