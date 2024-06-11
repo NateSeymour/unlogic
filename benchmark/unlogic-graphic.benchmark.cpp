@@ -5,6 +5,8 @@
 #include "Compiler.h"
 #include "graphic/Graph.h"
 
+// TODO: Replace the native functions of SFML with a better PNG library, because stb is *slow as hell*
+
 static void BM_PolynomialRender100x100(benchmark::State &state)
 {
     unlogic::Compiler::InitializeCompilerRuntime();
