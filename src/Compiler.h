@@ -97,7 +97,7 @@ namespace unlogic
 
             // Instantiate stdlib
             auto symbol_map = llvm::orc::SymbolMap{
-                { this->jit_->mangleAndIntern("pow"), { llvm::orc::ExecutorAddr::fromPtr(&std::pow<double, double>), llvm::JITSymbolFlags::Callable }},
+                { this->jit_->mangleAndIntern("pow"), { llvm::orc::ExecutorAddr::fromPtr((double(*)(double, double))&std::pow), llvm::JITSymbolFlags::Callable }},
                 { this->jit_->mangleAndIntern("sin"), { llvm::orc::ExecutorAddr::fromPtr((double(*)(double))&std::sin), llvm::JITSymbolFlags::Callable }},
             };
             auto std_sym_def = stdlib->define(llvm::orc::absoluteSymbols(symbol_map));

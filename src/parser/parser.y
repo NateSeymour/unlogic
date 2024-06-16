@@ -12,17 +12,28 @@
 
 %code top
 {
-    static unlogic::Parser::symbol_type yylex()
+    #include <string>
+    #include "Scanner.h"
+    #include "Node.h"
+
+    static unlogic::Parser::symbol_type yylex(unlogic::Scanner &scanner)
     {
+        return scanner.get_next_token();
     }
 }
 
 // TOKENS
 %define api.token.prefix {TOKEN_}
 
+%token <std::string> IDENTIFIER;
+
+%type <unlogic::Prototype> function;
+
 // ENTRY
 %start function
 
 %%
 
-function:
+function : IDENTIFIER;
+
+%%

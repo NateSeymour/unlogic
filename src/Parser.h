@@ -6,7 +6,7 @@
 #include <memory>
 #include <map>
 #include "TokenViewer.h"
-#include "Node.h"
+#include "parser/Node.h"
 
 namespace unlogic
 {
