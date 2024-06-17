@@ -21,7 +21,7 @@ jobs:
       run: conan profile detect
     - uses: actions/checkout@v4
     - name: Configure Project and Install Conan Dependencies
-      run: ./kickstart.sh Release
+      run: sudo ./kickstart.sh Release
     - name: Configure Project
       run: cd cmake-build-release && cmake .. -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -G "Ninja"
     - name: Build Project
