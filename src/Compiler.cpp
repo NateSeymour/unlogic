@@ -3,3 +3,7 @@
 //
 
 #include "Compiler.h"
+
+using namespace unlogic;
+
+Library unlogic::stdlib();

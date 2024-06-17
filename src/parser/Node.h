@@ -129,7 +129,8 @@ namespace unlogic
                 throw std::runtime_error("Aaaaaahhhhhhh");
             }
 
-            std::vector<llvm::Value *> argument_values(this->arguments_.size());
+            std::vector<llvm::Value *> argument_values;
+            argument_values.reserve(this->arguments_.size());
             for(auto const &argument : this->arguments_)
             {
                 argument_values.push_back(argument->Codegen(ctx));

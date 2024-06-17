@@ -142,3 +142,35 @@ TEST(Unlogic, Parentheses)
 
     ASSERT_EQ(f(5), 125);
 }
+
+TEST(Unlogic, OperatorPrecedence)
+{
+    unlogic::Compiler compiler;
+    auto f = compiler.CompileFunction<>("3 + 2 * 4");
+
+    ASSERT_EQ(f(), 11);
+}
+
+TEST(Unlogic, NegativeNumbers)
+{
+    unlogic::Compiler compiler;
+    auto f = compiler.CompileFunction<>("-3 + 2 * 4");
+
+    ASSERT_EQ(f(), 5);
+}
+
+TEST(Unlogic, StdlibPow)
+{
+    unlogic::Compiler compiler;
+    auto f = compiler.CompileFunction<double>("f(x) := pow(x, 2)");
+
+    ASSERT_EQ(f(10), 100);
+}
+
+TEST(Unlogic, StdlibSin)
+{
+    unlogic::Compiler compiler;
+    auto f = compiler.CompileFunction<>("sin(100)");
+
+    ASSERT_EQ(f(), std::sin(100));
+}

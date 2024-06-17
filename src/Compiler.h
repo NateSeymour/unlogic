@@ -24,6 +24,33 @@
 
 namespace unlogic
 {
+    struct LibraryFunction
+    {
+        void *function;
+        int nargs;
+    };
+
+    class Library
+    {
+        std::map<std::string, LibraryFunction> definitions_;
+
+    public:
+        llvm::orc::SymbolMap SymbolMap() const
+        {
+            llvm::orc::SymbolMap sym;
+
+            for(auto const &[name, definition] : this->definitions_)
+            {
+            }
+        }
+
+        void PopulateModule(llvm::Module &module) const {}
+
+        Library(std::map<std::string, LibraryFunction> definitions) : definitions_(std::move(definitions)) {}
+    };
+
+    extern Library stdlib;
+
     template<typename... Args>
     class Callable
     {
@@ -31,7 +58,7 @@ namespace unlogic
         double(*function_)(Args...) = nullptr;
 
     protected:
-        Callable(llvm::orc::ExecutorAddr function)
+        explicit Callable(llvm::orc::ExecutorAddr function)
         {
             this->function_ = function.toPtr<double(*)(Args...)>();
         }
