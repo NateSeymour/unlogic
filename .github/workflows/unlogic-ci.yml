@@ -16,14 +16,12 @@ jobs:
     - name: Install System Dependencies
       run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev
     - name: Configure pipx
-      run: sudo pipx ensurepath && source ~/.bashrc ~/.profile
-    - name: Install Conan
-      run: sudo pipx install conan
+      run: sudo pipx ensurepath
     - name: Configure Conan
-      run: conan profile detect
+      run: pipx conan profile detect
     - uses: actions/checkout@v4
     - name: Configure Project and Install Conan Dependencies
-      run: mkdir cmake-build-release && sudo ~/.local/bin/conan install . --output-folder="cmake-build-release" --build=missing -s build_type="Release" -c tools.system.package_manager:mode=install
+      run: mkdir cmake-build-release && sudo pipx conan install . --output-folder="cmake-build-release" --build=missing -s build_type="Release" -c tools.system.package_manager:mode=install
     - name: Configure Project
       run: cd cmake-build-release && cmake .. -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -G "Ninja"
     - name: Build Project
