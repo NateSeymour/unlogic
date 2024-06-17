@@ -17,6 +17,8 @@ jobs:
       run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev
     - name: Install Conan
       run: sudo pipx install conan
+    - name: Configure Conan
+      run: conan profile detect
     - uses: actions/checkout@v4
     - name: Configure Project and Install Conan Dependencies
       run: ./kickstart.sh Release
