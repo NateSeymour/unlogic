@@ -47,7 +47,7 @@ add_library(unlogic-graphic
         src/graphic/Graph.h
         src/graphic/SFMLX.h
 )
-target_link_libraries(unlogic-graphic PUBLIC unlogic sfml::sfml)
+target_link_libraries(unlogic-graphic PUBLIC unlogic sfml-graphics)
 add_executable(unlogic-cli src/cli/main.cpp)
 target_link_libraries(unlogic-cli PUBLIC unlogic unlogic-graphic)
 
@@ -56,7 +56,7 @@ add_executable(unlogic-test
         test/unlogic-graphic.test.cpp
         test/main.test.cpp
 )
-target_link_libraries(unlogic-test PUBLIC unlogic unlogic-graphic GTest::gtest)
+target_link_libraries(unlogic-test PUBLIC unlogic unlogic-graphic GTest::gtest sfml-window)
 target_include_directories(unlogic-test PUBLIC src)
 
 add_executable(unlogic-benchmark
