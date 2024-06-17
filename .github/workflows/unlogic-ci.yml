@@ -10,17 +10,13 @@ on:
     branches: [ "main" ]
 
 jobs:
-  deps:
+  build:
     runs-on: ubuntu-24.04
     steps:
     - name: Install System Dependencies
       run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev
     - name: Install Conan
       run: sudo pipx install conan
-  build:
-    runs-on: ubuntu-24.04
-    needs: deps
-    steps:
     - uses: actions/checkout@v4
     - name: Configure Project and Install Conan Dependencies
       run: ./kickstart.sh Release
@@ -28,11 +24,5 @@ jobs:
       run: cd cmake-build-release && cmake .. -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -G "Ninja"
     - name: Build Project
       run: cd cmake-build-release && cmake --build . --target unlogic-test
-  test:
-    runs-on: ubuntu-24.04
-    needs: build
-    steps:
     - name: Unlogic Tests
       run: cd cmake-build-release && ./unlogic-test
-
-
