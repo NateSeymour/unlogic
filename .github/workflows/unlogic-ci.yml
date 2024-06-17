@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Install System Dependencies
-      run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev curl
+      run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev wget
     - name: Install Conan
-      run: curl -O https://github.com/conan-io/conan/releases/download/2.4.1/conan-2.4.1-amd64.deb && sudo dpkg -i conan-2.4.1-amd64.deb
+      run: wget https://github.com/conan-io/conan/releases/download/2.4.1/conan-2.4.1-amd64.deb && sudo dpkg -i conan-2.4.1-amd64.deb
     - name: Configure Conan
       run: conan profile detect
     - uses: actions/checkout@v4
