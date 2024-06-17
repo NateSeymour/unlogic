@@ -17,12 +17,13 @@ jobs:
       run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev
     - name: Install Conan
       run: sudo pipx install conan
-    - name: Configure Project and Install Conan Dependencies
-      run: ./kickstart.sh Release
   build:
     runs-on: ubuntu-24.04
     needs: deps
     steps:
+    - uses: actions/checkout@v4
+    - name: Configure Project and Install Conan Dependencies
+      run: ./kickstart.sh Release
     - name: Configure Project
       run: cd cmake-build-release && cmake .. -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -G "Ninja"
     - name: Build Project
