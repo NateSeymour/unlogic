@@ -11,7 +11,7 @@ on:
 
 jobs:
   deps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Install System Dependencies
       run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev
@@ -20,7 +20,7 @@ jobs:
     - name: Configure Project and Install Conan Dependencies
       run: ./kickstart.sh Release
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: deps
     steps:
     - name: Configure Project
@@ -28,7 +28,7 @@ jobs:
     - name: Build Project
       run: cd cmake-build-release && cmake --build . --target unlogic-test
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
     - name: Unlogic Tests
