@@ -15,4 +15,4 @@ else
 fi
 
 OUTPUT_FOLDER=$(echo "cmake-build-${CONAN_BUILD_TYPE}" | awk '{print tolower($0)}')
-conan install . --output-folder="${OUTPUT_FOLDER}" --build=missing -s build_type="${CONAN_BUILD_TYPE}"
+conan install . --output-folder="${OUTPUT_FOLDER}" --build=missing -s build_type="${CONAN_BUILD_TYPE}" -c tools.system.package_manager:mode=install
