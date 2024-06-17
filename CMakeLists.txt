@@ -28,8 +28,6 @@ BISON_TARGET(unlogic-parser src/parser/Parser.y ${CMAKE_CURRENT_BINARY_DIR}/pars
 
 # Unlogic
 add_library(unlogic STATIC
-        src/TokenViewer.cpp
-        src/TokenViewer.h
         src/parser/Node.cpp
         src/parser/Node.h
         src/Exception.cpp
