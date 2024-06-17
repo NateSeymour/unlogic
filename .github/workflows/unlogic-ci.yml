@@ -16,9 +16,9 @@ jobs:
     - name: Install System Dependencies
       run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev
     - name: Configure pipx
-      run: sudo pipx ensurepath && source ~/.bashrc ~/.profile
+      run: sudo pipx --global ensurepath && source ~/.bashrc ~/.profile
     - name: Install Conan
-      run: sudo pipx install --global conan
+      run: sudo pipx --global install conan
     - name: Configure Conan
       run: conan profile detect
     - uses: actions/checkout@v4
