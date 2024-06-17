@@ -18,7 +18,7 @@ jobs:
     - name: Configure pipx
       run: sudo pipx ensurepath && source ~/.bashrc ~/.profile
     - name: Install Conan
-      run: sudo pipx install conan
+      run: sudo pipx install --global conan
     - name: Configure Conan
       run: conan profile detect
     - uses: actions/checkout@v4
