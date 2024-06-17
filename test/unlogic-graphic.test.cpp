@@ -11,7 +11,7 @@ TEST(UnlogicGraphic, PolynomialRender100x100)
     sf::RenderTexture texture;
     texture.create(100, 100);
 
-    unlogic::Graph graph("f(x) = x^2");
+    unlogic::Graph graph("f(x) := x^2");
 
     texture.draw(graph);
 
@@ -25,7 +25,7 @@ TEST(UnlogicGraphic, PolynomialRender1000x1000)
     sf::RenderTexture texture;
     texture.create(1000, 1000);
 
-    unlogic::Graph graph("f(x) = x^2");
+    unlogic::Graph graph("f(x) := x^2");
 
     texture.draw(graph);
 
@@ -39,7 +39,7 @@ TEST(UnlogicGraphic, ExponentialRender100x100)
     sf::RenderTexture texture;
     texture.create(100, 100);
 
-    unlogic::Graph graph("f(x) = 2^x");
+    unlogic::Graph graph("f(x) := 2^x");
 
     texture.draw(graph);
 

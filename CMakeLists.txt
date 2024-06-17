@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 23)
 find_package(SFML REQUIRED)
 find_package(benchmark REQUIRED)
 find_package(GTest REQUIRED)
-find_package(BISON REQUIRED 3.8)
+find_package(BISON 3.8 REQUIRED)
 find_package(FLEX REQUIRED)
 
 find_package(LLVM 17 CONFIG REQUIRED)
@@ -23,8 +23,8 @@ else()
 endif()
 
 # Parser
-bison_target(unlogic-parser src/parser/Parser.y ${CMAKE_CURRENT_BINARY_DIR}/Parser.cpp DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/Parser.h)
-flex_target(unlogic-scanner src/parser/Scanner.l ${CMAKE_CURRENT_BINARY_DIR}/Scanner.cpp DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/Scanner.h)
+FLEX_TARGET(unlogic-scanner src/parser/Scanner.l ${CMAKE_CURRENT_BINARY_DIR}/parser/Scanner.cpp)
+BISON_TARGET(unlogic-parser src/parser/Parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser/Parser.cpp)
 
 # Unlogic
 add_library(unlogic STATIC
@@ -32,17 +32,17 @@ add_library(unlogic STATIC
         src/TokenViewer.h
         src/parser/Node.cpp
         src/parser/Node.h
-        src/Parser.cpp
-        src/Parser.h
         src/Exception.cpp
         src/Exception.h
         src/Compiler.cpp
         src/Compiler.h
-        ${BISON_unlogic-parser-OUTPUTS}
-        ${FLEX_unlogic-scanner-OUTPUTS}
+        ${FLEX_unlogic-scanner_OUTPUTS}
+        ${BISON_unlogic-parser_OUTPUTS}
+        src/parser/ParserInterface.h
+        src/parser/ParserInterface.cpp
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs})
-target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS})
+target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(unlogic-graphic
         src/graphic/Graph.cpp

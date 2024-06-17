@@ -18,7 +18,9 @@
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/Support/TargetSelect.h>
-#include "Parser.h"
+#include "parser/Node.h"
+#include "parser/Parser.hpp"
+#include "parser/Scanner.h"
 
 namespace unlogic
 {
@@ -58,12 +60,10 @@ namespace unlogic
         template<typename... Args>
         Callable<Args...> CompileFunction(std::string const &input)
         {
-            Parser parser(input);
-
             CompilationContext ctx;
-            Prototype protoype = parser.ParseFunctionDefinition();
+            Prototype prototype = unlogic::parse_prototype(input);
 
-            protoype.Codegen(ctx);
+            prototype.Codegen(ctx);
 
             llvm::orc::JITDylib &main = this->jit_->getMainJITDylib();
             auto rt = main.createResourceTracker();
@@ -71,7 +71,7 @@ namespace unlogic
             llvm::orc::ThreadSafeModule tsm(std::move(ctx.module), std::move(ctx.llvm_ctx));
             this->jit_->addIRModule(rt, std::move(tsm));
 
-            auto function = this->jit_->lookup(protoype.name);
+            auto function = this->jit_->lookup(prototype.name);
             if(auto e = function.takeError())
             {
                 throw std::runtime_error(llvm::toString(std::move(e)));

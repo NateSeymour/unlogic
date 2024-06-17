@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
-#include "Parser.h"
+#include "parser/ParserInterface.h"
 #include "Compiler.h"
 
 TEST(UnlogicParser, NamedFunctionDefinition)
 {
-    unlogic::Parser parser("f(x) = 3*x + 2");
-
-    auto prototype = parser.ParseFunctionDefinition();
+    auto prototype = unlogic::parse_prototype("f(x) := 3*x + 2");
 
     ASSERT_EQ(prototype.name, "f");
     ASSERT_EQ(prototype.anonymous, false);
@@ -20,9 +18,7 @@ TEST(UnlogicParser, NamedFunctionDefinition)
 
 TEST(UnlogicParser, NamedFunctionMultipleParameterDefinition)
 {
-    unlogic::Parser parser("f(x, y, z) = 3*x + 2");
-
-    auto prototype = parser.ParseFunctionDefinition();
+    auto prototype = unlogic::parse_prototype("f(x, y, z) := 3*x + 2");
 
     ASSERT_EQ(prototype.name, "f");
     ASSERT_EQ(prototype.anonymous, false);
@@ -37,9 +33,7 @@ TEST(UnlogicParser, NamedFunctionMultipleParameterDefinition)
 
 TEST(UnlogicParser, AnonymousFunctionDefinition)
 {
-    unlogic::Parser parser("3*x + 2 - y");
-
-    auto prototype = parser.ParseFunctionDefinition();
+    auto prototype = unlogic::parse_prototype("3*x + 2 - y");
 
     ASSERT_EQ(prototype.name, "__anon");
     ASSERT_EQ(prototype.anonymous, true);
@@ -53,9 +47,7 @@ TEST(UnlogicParser, AnonymousFunctionDefinition)
 
 TEST(UnlogicParser, AnonymousFunctionMultipleParameterDefinition)
 {
-    unlogic::Parser parser("3*x + 2 - y / z");
-
-    auto prototype = parser.ParseFunctionDefinition();
+    auto prototype = unlogic::parse_prototype("3*x + 2 - y / z");
 
     ASSERT_EQ(prototype.name, "__anon");
     ASSERT_EQ(prototype.anonymous, true);
@@ -70,7 +62,7 @@ TEST(UnlogicParser, AnonymousFunctionMultipleParameterDefinition)
 TEST(UnlogicCompiler, CompileNamedFunction)
 {
     unlogic::Compiler compiler;
-    auto f = compiler.CompileFunction<double>("f(x) = x");
+    auto f = compiler.CompileFunction<double>("f(x) := x");
 
     ASSERT_EQ(f(2), 2);
 }
@@ -86,9 +78,9 @@ TEST(UnlogicCompiler, CompileAnonymousFunction)
 TEST(UnlogicCompiler, MultipleFunctionDefinitions)
 {
     unlogic::Compiler compiler;
-    auto f = compiler.CompileFunction<double>("f(x) = x / 2");
-    auto g = compiler.CompileFunction<double>("g(x) = x * 2");
-    auto q = compiler.CompileFunction<double>("q(x) = x + 2");
+    auto f = compiler.CompileFunction<double>("f(x) := x / 2");
+    auto g = compiler.CompileFunction<double>("g(x) := x * 2");
+    auto q = compiler.CompileFunction<double>("q(x) := x + 2");
 
     ASSERT_EQ(f(25), 12.5);
     ASSERT_EQ(g(25), 50);
@@ -98,7 +90,7 @@ TEST(UnlogicCompiler, MultipleFunctionDefinitions)
 TEST(Unlogic, MultipleParameterFunction)
 {
     unlogic::Compiler compiler;
-    auto f = compiler.CompileFunction<double, double>("f(x, y) = x * y");
+    auto f = compiler.CompileFunction<double, double>("f(x, y) := x * y");
 
     ASSERT_EQ(f(2, 2), 4);
 }
@@ -106,7 +98,7 @@ TEST(Unlogic, MultipleParameterFunction)
 TEST(Unlogic, Addition)
 {
     unlogic::Compiler compiler;
-    auto f = compiler.CompileFunction<double>("f(x) = x + 7");
+    auto f = compiler.CompileFunction<double>("f(x) := x + 7");
 
     ASSERT_EQ(f(2), 9);
 }
@@ -114,7 +106,7 @@ TEST(Unlogic, Addition)
 TEST(Unlogic, Subtraction)
 {
     unlogic::Compiler compiler;
-    auto f = compiler.CompileFunction<double>("f(x) = x - 7");
+    auto f = compiler.CompileFunction<double>("f(x) := x - 7");
 
     ASSERT_EQ(f(2), -5);
 }
@@ -122,7 +114,7 @@ TEST(Unlogic, Subtraction)
 TEST(Unlogic, Multiplication)
 {
     unlogic::Compiler compiler;
-    auto f = compiler.CompileFunction<double>("f(x) = x * 7");
+    auto f = compiler.CompileFunction<double>("f(x) := x * 7");
 
     ASSERT_EQ(f(2), 14);
 }
@@ -130,7 +122,7 @@ TEST(Unlogic, Multiplication)
 TEST(Unlogic, Division)
 {
     unlogic::Compiler compiler;
-    auto f = compiler.CompileFunction<double>("f(x) = x / 2");
+    auto f = compiler.CompileFunction<double>("f(x) := x / 2");
 
     ASSERT_EQ(f(25), 12.5);
 }
@@ -138,7 +130,15 @@ TEST(Unlogic, Division)
 TEST(Unlogic, Exponent)
 {
     unlogic::Compiler compiler;
-    auto f = compiler.CompileFunction<double>("f(x) = x^2");
+    auto f = compiler.CompileFunction<double>("f(x) := x^2");
 
     ASSERT_EQ(f(5), 25);
+}
+
+TEST(Unlogic, Parentheses)
+{
+    unlogic::Compiler compiler;
+    auto f = compiler.CompileFunction<double>("f(x) := x^(2+1)");
+
+    ASSERT_EQ(f(5), 125);
 }
