@@ -15,6 +15,8 @@ jobs:
     steps:
     - name: Install System Dependencies
       run: sudo apt install -y python3 pipx build-essential cmake llvm-17-dev
+    - name: Configure pipx
+      run: sudo pipx ensurepath
     - name: Install Conan
       run: sudo pipx install conan
     - name: Configure Conan
