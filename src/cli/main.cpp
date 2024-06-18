@@ -6,7 +6,13 @@ int main()
     unlogic::Compiler::InitializeCompilerRuntime();
 
     // Construct GraphRenderer
-    unlogic::Graph graph({ "z(x) := sin(x)", "a(x) := cos(x)", "b(x) := tan(x)" });
+    unlogic::Graph graph({
+        "a(x) := sin(x)",
+        "b(x) := cos(x)",
+        "c(x) := tan(x)",
+        "d(x) := sqrt(x)",
+        "e(x) := log(x)",
+    });
 
     // Construct window
     sf::ContextSettings settings;
