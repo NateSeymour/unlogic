@@ -6,7 +6,7 @@ int main()
     unlogic::Compiler::InitializeCompilerRuntime();
 
     // Construct GraphRenderer
-    unlogic::Graph graph({ "f(x) := x^2", "g(x) := x^3", "q(x) := 2*x + 3", "z(x) := sin(x)", "a(x) := cos(x)", "b(x) := tan(x)" });
+    unlogic::Graph graph({ "z(x) := sin(x)", "a(x) := cos(x)", "b(x) := tan(x)" });
 
     // Construct window
     sf::ContextSettings settings;

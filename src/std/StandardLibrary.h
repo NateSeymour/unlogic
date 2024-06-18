@@ -1,0 +1,15 @@
+//
+// Created by nathan on 6/18/24.
+//
+
+#ifndef UNLOGIC_STANDARDLIBRARY_H
+#define UNLOGIC_STANDARDLIBRARY_H
+
+#include "Library.h"
+
+namespace unlogic
+{
+    extern Library stdlib;
+}
+
+#endif //UNLOGIC_STANDARDLIBRARY_H

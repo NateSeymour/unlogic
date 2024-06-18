@@ -21,54 +21,11 @@
 #include "parser/Node.h"
 #include "parser/Parser.hpp"
 #include "parser/Scanner.h"
+#include "Library.h"
+#include "std/StandardLibrary.h"
 
 namespace unlogic
 {
-    struct LibraryFunction
-    {
-        void *function;
-        std::uint8_t nargs;
-    };
-
-    class Library
-    {
-        friend class Compiler;
-
-        std::string name_;
-        std::map<std::string, LibraryFunction> definitions_;
-
-    public:
-        void PopulateCompilationContext(CompilationContext &ctx) const
-        {
-            for(auto const &[name, definition] : this->definitions_)
-            {
-                ctx.RegisterLibraryFunction(name, definition.nargs);
-            }
-        }
-
-        llvm::orc::SymbolMap SymbolMap(llvm::orc::LLJIT const &jit) const
-        {
-            llvm::orc::SymbolMap sym;
-
-            for(auto const &[name, definition] : this->definitions_)
-            {
-                sym.insert({
-                    jit.mangleAndIntern(name),
-                    {
-                        llvm::orc::ExecutorAddr::fromPtr(definition.function),
-                        llvm::JITSymbolFlags::Callable
-                    }
-                });
-            }
-
-            return sym;
-        }
-
-        Library(std::string name, std::map<std::string, LibraryFunction> definitions) : name_(name), definitions_(std::move(definitions)) {}
-    };
-
-    extern Library stdlib;
-
     template<typename... Args>
     class Callable
     {

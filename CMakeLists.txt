@@ -14,12 +14,12 @@ find_package(LLVM 17 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
-# llvm_map_components_to_libnames is being a PAIN IN MY ASS on MacOS. It keeps trying to include a non-existent "LLVMjit" library. So I just brute force all
+# llvm_map_components_to_libnames is being a PAIN IN MY ASS. It keeps trying to include a non-existent "LLVMjit" library. So I just brute force all
 # libs into it because I am lazy.
 if(APPLE)
     set(llvm_libs ${LLVM_AVAILABLE_LIBS})
 else()
-    llvm_map_components_to_libnames(llvm_libs core support irreader engine native)
+    set(llvm_libs -lLLVM-17)
 endif()
 
 # Parser
@@ -38,6 +38,10 @@ add_library(unlogic STATIC
         ${BISON_unlogic-parser_OUTPUTS}
         src/parser/ParserInterface.h
         src/parser/ParserInterface.cpp
+        src/std/StandardLibrary.cpp
+        src/std/StandardLibrary.h
+        src/Library.cpp
+        src/Library.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs})
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRENT_BINARY_DIR})
