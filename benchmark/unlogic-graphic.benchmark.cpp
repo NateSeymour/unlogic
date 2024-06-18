@@ -18,7 +18,7 @@ static void BM_PolynomialRender100x100(benchmark::State &state)
     {
         texture.clear();
 
-        unlogic::Graph graph("f(x) = x^2");
+        unlogic::Graph graph("f(x) := x^2");
 
         texture.draw(graph);
 
@@ -39,7 +39,7 @@ static void BM_PolynomialRender1000x1000(benchmark::State &state)
     {
         texture.clear();
 
-        unlogic::Graph graph("f(x) = x^2");
+        unlogic::Graph graph("f(x) := x^2");
 
         texture.draw(graph);
 
@@ -61,16 +61,16 @@ static void BM_PolynomialRender10Functions1000x1000(benchmark::State &state)
         texture.clear();
 
         unlogic::Graph graph({
-            "a(x) = x^2",
-            "b(x) = x^3",
-            "c(x) = x^4",
-            "d(x) = x^2 - 2*x + 4",
-            "e(x) = 314*12+x",
-            "f(x) = 2^x",
-            "g(x) = 900 / 4*x",
-            "h(x) = x^1/2",
-            "i(x) = 2*x + 15",
-            "j(x) = 300*x",
+            "a(x) := x^2",
+            "b(x) := x^3",
+            "c(x) := x^4",
+            "d(x) := x^2 - 2*x + 4",
+            "e(x) := 314*12+x",
+            "f(x) := 2^x",
+            "g(x) := sqrt(x)",
+            "h(x) := sin(x)",
+            "i(x) := cos(x)",
+            "j(x) := tan(x)",
         });
 
         texture.draw(graph);
