@@ -23,17 +23,11 @@ namespace unlogic
 
         std::map<std::string, llvm::Value*> named_values;
 
-        llvm::Function *GenerateStdLibFunctionDefinition(std::string const &name, std::uint8_t nargs)
+        llvm::Function *RegisterLibraryFunction(std::string const &name, std::uint8_t nargs)
         {
             std::vector<llvm::Type*> argument_types(nargs, llvm::Type::getDoubleTy(*this->llvm_ctx));
             llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(*this->llvm_ctx), argument_types, false);
             return llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, name, *this->module);
-        }
-
-        void InitializeStdLib()
-        {
-            this->GenerateStdLibFunctionDefinition("pow", 2);
-            this->GenerateStdLibFunctionDefinition("sin", 1);
         }
 
         CompilationContext(llvm::StringRef module_name = "Unlogic")
@@ -41,8 +35,6 @@ namespace unlogic
             this->llvm_ctx = std::make_unique<llvm::LLVMContext>();
             this->builder = std::make_unique<llvm::IRBuilder<>>(*this->llvm_ctx);
             this->module = std::make_unique<llvm::Module>(module_name, *llvm_ctx);
-
-            this->InitializeStdLib();
         }
     };
 

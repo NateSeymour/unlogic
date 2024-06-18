@@ -27,26 +27,44 @@ namespace unlogic
     struct LibraryFunction
     {
         void *function;
-        int nargs;
+        std::uint8_t nargs;
     };
 
     class Library
     {
+        friend class Compiler;
+
+        std::string name_;
         std::map<std::string, LibraryFunction> definitions_;
 
     public:
-        llvm::orc::SymbolMap SymbolMap() const
+        void PopulateCompilationContext(CompilationContext &ctx) const
+        {
+            for(auto const &[name, definition] : this->definitions_)
+            {
+                ctx.RegisterLibraryFunction(name, definition.nargs);
+            }
+        }
+
+        llvm::orc::SymbolMap SymbolMap(llvm::orc::LLJIT const &jit) const
         {
             llvm::orc::SymbolMap sym;
 
             for(auto const &[name, definition] : this->definitions_)
             {
+                sym.insert({
+                    jit.mangleAndIntern(name),
+                    {
+                        llvm::orc::ExecutorAddr::fromPtr(definition.function),
+                        llvm::JITSymbolFlags::Callable
+                    }
+                });
             }
+
+            return sym;
         }
 
-        void PopulateModule(llvm::Module &module) const {}
-
-        Library(std::map<std::string, LibraryFunction> definitions) : definitions_(std::move(definitions)) {}
+        Library(std::string name, std::map<std::string, LibraryFunction> definitions) : name_(name), definitions_(std::move(definitions)) {}
     };
 
     extern Library stdlib;
@@ -75,6 +93,7 @@ namespace unlogic
     class Compiler
     {
         std::unique_ptr<llvm::orc::LLJIT> jit_;
+        std::vector<Library> libraries_;
 
     public:
         static void InitializeCompilerRuntime()
@@ -88,6 +107,11 @@ namespace unlogic
         Callable<Args...> CompileFunction(std::string const &input)
         {
             CompilationContext ctx;
+            for(auto const &library : this->libraries_)
+            {
+                library.PopulateCompilationContext(ctx);
+            }
+
             Prototype prototype = unlogic::parse_prototype(input);
 
             prototype.Codegen(ctx);
@@ -107,6 +131,29 @@ namespace unlogic
             return Callable<Args...>(*function);
         }
 
+        void AddLibrary(Library const &library)
+        {
+            auto dylib = this->jit_->createJITDylib(library.name_);
+            if(auto e = dylib.takeError())
+            {
+                throw std::runtime_error(llvm::toString(std::move(e)));
+            }
+
+            // Instantiate stdlib
+            auto symbol_map = library.SymbolMap(*this->jit_);
+            auto std_sym_def = dylib->define(llvm::orc::absoluteSymbols(symbol_map));
+            if(std_sym_def)
+            {
+                throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
+            }
+
+            // Add stdlib to link order
+            llvm::orc::JITDylib &main = this->jit_->getMainJITDylib();
+            main.addToLinkOrder(*dylib);
+
+            this->libraries_.push_back(library);
+        }
+
         Compiler()
         {
             auto jit = llvm::orc::LLJITBuilder().create();
@@ -116,26 +163,7 @@ namespace unlogic
             }
             this->jit_ = std::move(*jit);
 
-            auto stdlib = this->jit_->createJITDylib("std");
-            if(auto e = stdlib.takeError())
-            {
-                throw std::runtime_error(llvm::toString(std::move(e)));
-            }
-
-            // Instantiate stdlib
-            auto symbol_map = llvm::orc::SymbolMap{
-                { this->jit_->mangleAndIntern("pow"), { llvm::orc::ExecutorAddr::fromPtr((double(*)(double, double))&std::pow), llvm::JITSymbolFlags::Callable }},
-                { this->jit_->mangleAndIntern("sin"), { llvm::orc::ExecutorAddr::fromPtr((double(*)(double))&std::sin), llvm::JITSymbolFlags::Callable }},
-            };
-            auto std_sym_def = stdlib->define(llvm::orc::absoluteSymbols(symbol_map));
-            if(std_sym_def)
-            {
-                throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
-            }
-
-            // Add stdlib to link order
-            llvm::orc::JITDylib &main = this->jit_->getMainJITDylib();
-            main.addToLinkOrder(*stdlib);
+            this->AddLibrary(stdlib);
         }
     };
 }

@@ -57,7 +57,10 @@
 %type <unlogic::Prototype> anonymous_prototype;
 %type <unlogic::PrototypeSignature> prototype_signature;
 %type <std::vector<std::string>> identifier_list;
+%type <std::vector<std::unique_ptr<unlogic::Node>>> argument_list;
 %type <std::unique_ptr<unlogic::Node>> expression;
+%type <std::unique_ptr<unlogic::Node>> function_call;
+
 
 // ENTRY
 %start program
@@ -124,6 +127,27 @@ identifier_list
     }
     ;
 
+argument_list
+    : expression
+    {
+        $$.push_back(std::move($1));
+    }
+    | argument_list DELIMITER expression
+    {
+        auto &list = $1;
+        list.push_back(std::move($3));
+        $$ = std::move($1);
+    }
+    ;
+
+
+function_call
+    : IDENTIFIER OPEN_PARENTHESIS argument_list CLOSED_PARENTHESIS
+    {
+        $$ = std::make_unique<unlogic::CallNode>($1, std::move($3));
+    }
+    ;
+
 expression
     : NUMBER
     {
@@ -132,6 +156,10 @@ expression
     | IDENTIFIER
     {
         $$ = std::make_unique<unlogic::VariableNode>($1);
+    }
+    | function_call
+    {
+        $$ = std::move($1);
     }
     | expression BINOP_ADD expression
     {
