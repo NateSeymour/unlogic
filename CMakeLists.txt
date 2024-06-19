@@ -4,11 +4,11 @@ project(unlogic)
 set(CMAKE_CXX_STANDARD 23)
 
 # External Libs
-find_package(SFML REQUIRED)
+find_package(SFML 2.6.1 REQUIRED)
 find_package(benchmark REQUIRED)
 find_package(GTest REQUIRED)
-find_package(BISON 3.8 REQUIRED)
-find_package(FLEX REQUIRED)
+find_package(BISON 3.8.2 REQUIRED)
+find_package(FLEX 2.6.4 REQUIRED)
 
 find_package(LLVM 17 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
@@ -43,7 +43,7 @@ add_library(unlogic STATIC
         src/Library.cpp
         src/Library.h
 )
-target_link_libraries(unlogic PUBLIC ${llvm_libs})
+target_link_libraries(unlogic PUBLIC ${llvm_libs} ${FLEX_LIBRARIES})
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(unlogic-graphic
