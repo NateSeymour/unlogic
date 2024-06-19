@@ -21,9 +21,7 @@ jobs:
       run: sudo conan profile detect && conan profile detect
     - uses: actions/checkout@v4
     - name: Configure Project and Install Conan Dependencies
-      run: mkdir cmake-build-release-dummy && sudo conan install . --output-folder="cmake-build-release-dummy" --build=missing -s build_type="Release" -c tools.system.package_manager:mode=install
-    - name: Configure Project and Install Conan Dependencies Again
-      run: mkdir cmake-build-release && conan install . --output-folder="cmake-build-release" --build=missing -s build_type="Release"
+      run: mkdir cmake-build-release && sudo conan install . --output-folder="cmake-build-release" --build=missing -s build_type="Release" -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
     - name: Configure Project
       run: cd cmake-build-release && cmake .. -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -G "Ninja"
     - name: Build Project
