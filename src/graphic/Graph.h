@@ -48,29 +48,35 @@ namespace unlogic
 
     class Graph : public sf::Drawable, public sf::Transformable
     {
+        unlogic::Compiler compiler_;
         std::vector<Plot> plots_;
         sf::Vector2f center_ = {0.0, 0.0};
         sf::Vector2f domain_;
+
+        sf::Color color_wheel_[4] = {sf::Color::Red, sf::Color::Blue, sf::Color::Cyan, sf::Color::Green};
+        int wheel_index_ = 0;
 
     protected:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
     public:
+        void AddPlot(std::string const &function)
+        {
+            auto color = this->color_wheel_[(this->wheel_index_++)%sizeof(this->color_wheel_)];
+            this->plots_.emplace_back(this->compiler_.CompileFunction<double>(function), this->domain_, color);
+        }
+
         Graph(std::initializer_list<std::string> functions, sf::Vector2f domain = {-10.0, 10.0}) : domain_(domain)
         {
-            sf::Color color_wheel[] = {sf::Color::Red, sf::Color::Blue, sf::Color::Cyan, sf::Color::Green};
-            int wheel_index = 0;
-
-            unlogic::Compiler compiler;
             for(auto const &function : functions)
             {
-                this->plots_.emplace_back(compiler.CompileFunction<double>(function), domain, color_wheel[(wheel_index++)%sizeof(color_wheel)]);
+                this->AddPlot(function);
             }
         }
 
         Graph(std::string const &function, sf::Vector2f domain = {-10.0, 10.0}) : Graph(std::initializer_list<std::string>{function}, domain) {}
 
-        Graph() = delete;
+        Graph(sf::Vector2f domain = {-10.0, 10.0}) : domain_(domain) {};
     };
 }
 

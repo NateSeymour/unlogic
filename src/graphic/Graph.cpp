@@ -12,6 +12,7 @@ void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
     // Create new view
     auto width = this->domain_.y - this->domain_.x;
     auto height = width * ((float)target_size.y / (float)target_size.x);
+    sf::Vector2f range = {height/-2.f, height/2.f};
     target.setView(sf::View(this->center_, {width, height}));
 
     // Draw Axis
@@ -27,6 +28,27 @@ void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
     y_axis.setPosition(0.f - axis_thickness / 2.f, height / -2.f);
 
     target.draw(y_axis, states);
+
+    // Draw Gridlines
+    auto grid_thickness = axis_thickness / 2.f;
+
+    for(float i = this->domain_.x; i < this->domain_.y; i++)
+    {
+        sf::RectangleShape gridline({grid_thickness, height});
+        gridline.setFillColor(sf::Color(0, 0, 0, 10));
+        gridline.setPosition(i - (grid_thickness / 2.f), height / -2.f);
+
+        target.draw(gridline, states);
+    }
+
+    for(float i = range.x; i < range.y; i++)
+    {
+        sf::RectangleShape gridline({width, grid_thickness});
+        gridline.setFillColor(sf::Color(0, 0, 0, 10));
+        gridline.setPosition(this->domain_.x, i - (axis_thickness / 2.f));
+
+        target.draw(gridline, states);
+    }
 
     // Draw Plots
     for(auto const &plot : this->plots_)

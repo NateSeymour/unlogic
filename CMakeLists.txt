@@ -43,7 +43,7 @@ add_library(unlogic STATIC
         src/Library.cpp
         src/Library.h
 )
-target_link_libraries(unlogic PUBLIC ${llvm_libs} ${FLEX_LIBRARIES})
+target_link_libraries(unlogic PUBLIC ${llvm_libs})
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(unlogic-graphic

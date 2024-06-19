@@ -1,18 +1,18 @@
 #include <SFML/Graphics.hpp>
 #include "../graphic/Graph.h"
 
-int main()
+int main(int argc, char const **argv)
 {
     unlogic::Compiler::InitializeCompilerRuntime();
 
-    // Construct GraphRenderer
-    unlogic::Graph graph({
-        "a(x) := sin(x)",
-        "b(x) := cos(x)",
-        "c(x) := tan(x)",
-        "d(x) := sqrt(x)",
-        "e(x) := log(x)",
-    });
+    // Construct Graph
+    unlogic::Graph graph;
+
+    // Parse Arguments
+    for(int i = 1; i < argc; i++)
+    {
+        graph.AddPlot(std::string(argv[i]));
+    }
 
     // Construct window
     sf::ContextSettings settings;

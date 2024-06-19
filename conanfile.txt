@@ -2,12 +2,7 @@
 benchmark/1.8.3
 gtest/1.14.0
 sfml/2.6.1
-flex/2.6.4
-bison/3.8.2
 
 [generators]
 CMakeDeps
 CMakeToolchain
-
-[layout]
-cmake_layout
