@@ -18,10 +18,10 @@ jobs:
     - name: Install Conan
       run: wget https://github.com/conan-io/conan/releases/download/2.2.2/conan-2.2.2-amd64.deb && sudo dpkg -i conan-2.2.2-amd64.deb
     - name: Configure Conan
-      run: sudo conan profile detect && conan profile detect
+      run: conan profile detect
     - uses: actions/checkout@v4
     - name: Configure Project and Install Conan Dependencies
-      run: mkdir cmake-build-release && sudo conan install . --output-folder="cmake-build-release" --build=missing -s build_type="Release" -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
+      run: mkdir cmake-build-release && conan install . --output-folder="cmake-build-release" --build=missing -s build_type="Release" -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
     - name: Configure Project
       run: cd cmake-build-release && cmake .. --preset conan-release -G "Ninja"
     - name: Build Tests
