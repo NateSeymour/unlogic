@@ -16,7 +16,7 @@ jobs:
     - name: Install System Dependencies
       run: sudo apt install -y build-essential cmake llvm-17-dev wget ninja-build bison flex
     - name: Install Conan
-      run: wget https://github.com/conan-io/conan/releases/download/2.4.1/conan-2.4.1-amd64.deb && sudo dpkg -i conan-2.4.1-amd64.deb
+      run: wget https://github.com/conan-io/conan/releases/download/2.2.2/conan-2.2.2-amd64.deb && sudo dpkg -i conan-2.2.2-amd64.deb
     - name: Configure Conan
       run: sudo conan profile detect && conan profile detect
     - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
       run: mkdir cmake-build-release && sudo conan install . --output-folder="cmake-build-release" --build=missing -s build_type="Release" -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
     - name: Configure Project
       run: cd cmake-build-release && cmake .. -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -G "Ninja"
-    - name: Build Project
+    - name: Build Tests
       run: cd cmake-build-release && cmake --build . --target unlogic-test
-    - name: Unlogic Tests
+    - name: Run Tests
       run: cd cmake-build-release && ./unlogic-test
