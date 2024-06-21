@@ -5,47 +5,46 @@ using namespace unlogic;
 
 void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    // Save reference to old view
-    auto old_view = target.getView();
-    auto target_size = target.getSize();
-
     // Create new view
-    auto width = this->domain_.y - this->domain_.x;
-    auto height = width * ((float)target_size.y / (float)target_size.x);
-    sf::Vector2f range = {height/-2.f, height/2.f};
-    target.setView(sf::View(this->center_, {width, height}));
+    sf::View const &view = target.getView();
+    auto [width, height] = view.getSize();
+
+    sf::Vector2f const &center = view.getCenter();
+    sf::Vector2f domain(center.x - (width / 2), center.x + (width / 2));
+    sf::Vector2f range(center.y - (height / 2), center.y + (height / 2));
 
     // Draw Axis
-    float axis_thickness = width / 100.f;
-    sf::RectangleShape x_axis({width, axis_thickness});
+    sf::RectangleShape x_axis({width, this->axis_thickness_});
     x_axis.setFillColor(sf::Color::Black);
-    x_axis.setPosition(this->domain_.x, 0.f - axis_thickness / 2.f);
+    x_axis.setPosition(domain.x, 0.f - this->axis_thickness_ / 2.f);
 
     target.draw(x_axis, states);
 
-    sf::RectangleShape y_axis({axis_thickness, height});
+    sf::RectangleShape y_axis({this->axis_thickness_, height});
     y_axis.setFillColor(sf::Color::Black);
-    y_axis.setPosition(0.f - axis_thickness / 2.f, height / -2.f);
+    y_axis.setPosition(0.f - this->axis_thickness_ / 2.f, range.y * -1);
 
     target.draw(y_axis, states);
 
     // Draw Gridlines
-    auto grid_thickness = axis_thickness / 2.f;
+    auto grid_thickness = this->axis_thickness_ / 2.f;
 
-    for(float i = this->domain_.x; i < this->domain_.y; i++)
+    // X gridlines
+    for(int i = std::floor(domain.x); i < (int)std::ceil(domain.y); i++)
     {
         sf::RectangleShape gridline({grid_thickness, height});
         gridline.setFillColor(sf::Color(0, 0, 0, 10));
-        gridline.setPosition(i - (grid_thickness / 2.f), height / -2.f);
+        gridline.setPosition(i - (grid_thickness / 2.f), range.y * -1);
 
         target.draw(gridline, states);
     }
 
-    for(float i = range.x; i < range.y; i++)
+    // Y gridlines
+    for(int i = std::floor(range.x); i < (int)std::ceil(range.y); i++)
     {
         sf::RectangleShape gridline({width, grid_thickness});
         gridline.setFillColor(sf::Color(0, 0, 0, 10));
-        gridline.setPosition(this->domain_.x, i - (axis_thickness / 2.f));
+        gridline.setPosition(domain.x, (i*-1) - (this->axis_thickness_ / 2.f));
 
         target.draw(gridline, states);
     }
@@ -55,9 +54,6 @@ void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
     {
         target.draw(plot, states);
     }
-
-    // Return to old view
-    target.setView(old_view);
 }
 
 void Plot::draw(sf::RenderTarget &target, sf::RenderStates states) const

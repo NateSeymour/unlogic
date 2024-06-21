@@ -50,8 +50,9 @@ namespace unlogic
     {
         unlogic::Compiler compiler_;
         std::vector<Plot> plots_;
-        sf::Vector2f center_ = {0.0, 0.0};
         sf::Vector2f domain_;
+        sf::View view_;
+        float axis_thickness_ = 0.1f;
 
         sf::Color color_wheel_[4] = {sf::Color::Red, sf::Color::Blue, sf::Color::Cyan, sf::Color::Green};
         int wheel_index_ = 0;
