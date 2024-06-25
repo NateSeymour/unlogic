@@ -84,7 +84,6 @@ int main(int argc, char const **argv)
                 {
                     if(!mouse_down) break;
 
-                    auto const &center = view.getCenter();
                     sf::Vector2i current_location(event.mouseMove.x, event.mouseMove.y);
                     sf::Vector2i delta_pixels = mouse_press_location - current_location;
                     sf::Vector2f delta_coords = (sf::Vector2f(delta_pixels) / scalar) + previous_center;
