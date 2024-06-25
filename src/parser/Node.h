@@ -43,7 +43,10 @@ namespace unlogic
         Variable,
         Constant,
         Call,
-        BinaryOperation,
+        Addition,
+        Subtraction,
+        Multiplication,
+        Division,
     };
 
     class Node
@@ -52,6 +55,8 @@ namespace unlogic
         virtual llvm::Value *Codegen(CompilationContext &ctx) = 0;
         virtual NodeType Type() const = 0;
         virtual std::vector<Node const *> Children() const = 0;
+        virtual std::unique_ptr<Node> Derive() const = 0;
+        virtual std::unique_ptr<Node> Copy() const = 0;
 
         virtual ~Node() {}
     };
@@ -64,20 +69,15 @@ namespace unlogic
         std::string identifier_;
 
     public:
-        llvm::Value *Codegen(CompilationContext &ctx) override
-        {
-            return ctx.named_values[this->identifier_];
-        }
-
         NodeType Type() const override
         {
             return NodeType::Variable;
         }
 
-        std::vector<Node const *> Children() const override
-        {
-            return { this };
-        }
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+        std::vector<Node const *> Children() const override;
+        std::unique_ptr<Node> Derive() const override;
+        std::unique_ptr<Node> Copy() const override;
 
         VariableNode(std::string identifier) : identifier_(identifier) {}
     };
@@ -88,20 +88,15 @@ namespace unlogic
         double value_ = 0.0;
 
     public:
-        llvm::Value *Codegen(CompilationContext &ctx) override
-        {
-            return llvm::ConstantFP::get(*ctx.llvm_ctx, llvm::APFloat(this->value_));
-        }
-
         NodeType Type() const override
         {
             return NodeType::Constant;
         }
 
-        std::vector<const Node *> Children() const override
-        {
-            return { this };
-        }
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+        std::vector<const Node *> Children() const override;
+        std::unique_ptr<Node> Derive() const override;
+        std::unique_ptr<Node> Copy() const override;
 
         ConstantNode(double value) : value_(value) {}
     };
@@ -112,45 +107,86 @@ namespace unlogic
         std::vector<std::unique_ptr<Node>> arguments_;
 
     public:
-        llvm::Value *Codegen(CompilationContext &ctx) override
-        {
-            llvm::Function *function = ctx.module->getFunction(this->function_name_);
-
-            if(function->arg_size() < this->arguments_.size())
-            {
-                throw std::runtime_error("Aaaaaahhhhhhh");
-            }
-
-            std::vector<llvm::Value *> argument_values;
-            argument_values.reserve(this->arguments_.size());
-            for(auto const &argument : this->arguments_)
-            {
-                argument_values.push_back(argument->Codegen(ctx));
-            }
-
-            return ctx.builder->CreateCall(function, argument_values, "calltmp");
-        }
-
         NodeType Type() const override
         {
             return NodeType::Call;
         }
 
-        std::vector<const Node *> Children() const override
-        {
-            std::vector<Node const *> children{this};
-            for(auto const &argument : this->arguments_)
-            {
-                for(auto const &child : argument->Children())
-                {
-                    children.push_back(child);
-                }
-            }
-
-            return children;
-        }
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+        std::vector<const Node *> Children() const override;
 
         CallNode(std::string function_name, std::vector<std::unique_ptr<Node>> arguments) : function_name_(std::move(function_name)), arguments_(std::move(arguments)) {}
+    };
+
+    class BinaryNode : public Node
+    {
+    protected:
+        std::unique_ptr<Node> lhs_, rhs_;
+
+    public:
+        std::vector<const Node *> Children() const override;
+
+        BinaryNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
+    };
+
+    class AdditionNode : public BinaryNode
+    {
+    public:
+        NodeType Type() const override
+        {
+            return NodeType::Addition;
+        }
+
+        std::unique_ptr<Node> Derive() const override;
+        std::unique_ptr<Node> Copy() const override;
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+
+        AdditionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+    };
+
+    class SubtractionNode : public BinaryNode
+    {
+    public:
+        NodeType Type() const override
+        {
+            return NodeType::Subtraction;
+        }
+
+        std::unique_ptr<Node> Derive() const override;
+        std::unique_ptr<Node> Copy() const override;
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+
+        SubtractionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+    };
+
+    class MultiplicationNode : public BinaryNode
+    {
+    public:
+        NodeType Type() const override
+        {
+            return NodeType::Multiplication;
+        }
+
+        std::unique_ptr<Node> Derive() const override;
+        std::unique_ptr<Node> Copy() const override;
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+
+        MultiplicationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+    };
+
+    class DivisionNode : public BinaryNode
+    {
+    public:
+        NodeType Type() const override
+        {
+            return NodeType::Division;
+        }
+
+        std::unique_ptr<Node> Derive() const override;
+        std::unique_ptr<Node> Copy() const override;
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+
+        DivisionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
     };
 
     class BinaryOperationNode : public Node
@@ -181,22 +217,6 @@ namespace unlogic
         NodeType Type() const override
         {
             return NodeType::BinaryOperation;
-        }
-
-        std::vector<Node const *> Children() const override
-        {
-            std::vector<Node const *> children{this};
-            for(auto const &child : this->lhs_->Children())
-            {
-                children.push_back(child);
-            }
-
-            for(auto const &child : this->rhs_->Children())
-            {
-                children.push_back(child);
-            }
-
-            return children;
         }
 
         BinaryOperationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs, std::string op) : lhs_(std::move(lhs)), rhs_(std::move(rhs)), op_(std::move(op)) {}
