@@ -75,6 +75,14 @@ std::vector<const Node *> CallNode::Children() const
     return children;
 }
 
+std::unique_ptr<Node> CallNode::Derive() const {
+    return std::unique_ptr<Node>();
+}
+
+std::unique_ptr<Node> CallNode::Copy() const {
+    return std::unique_ptr<Node>();
+}
+
 std::unique_ptr<Node> AdditionNode::Derive() const
 {
     return std::make_unique<AdditionNode>(this->lhs_->Derive(), this->rhs_->Derive());
@@ -174,4 +182,21 @@ llvm::Value *DivisionNode::Codegen(CompilationContext &ctx)
     llvm::Value *rhs = this->rhs_->Codegen(ctx);
 
     return ctx.builder->CreateFDiv(lhs, rhs, "divtmp");
+}
+
+std::unique_ptr<Node> PotentiationNode::Derive() const {
+    return std::unique_ptr<Node>();
+}
+
+std::unique_ptr<Node> PotentiationNode::Copy() const {
+    return std::make_unique<PotentiationNode>(this->lhs_->Copy(), this->rhs_->Copy());
+}
+
+llvm::Value *PotentiationNode::Codegen(CompilationContext &ctx) {
+    llvm::Value *lhs = this->lhs_->Codegen(ctx);
+    llvm::Value *rhs = this->rhs_->Codegen(ctx);
+
+    llvm::Function *pow = ctx.module->getFunction("pow");
+
+    return ctx.builder->CreateCall(pow, {lhs, rhs}, "powtmp");
 }

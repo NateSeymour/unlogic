@@ -163,23 +163,23 @@ expression
     }
     | expression BINOP_ADD expression
     {
-        $$ = std::make_unique<unlogic::BinaryOperationNode>(std::move($1), std::move($3), "+");
+        $$ = std::make_unique<unlogic::AdditionNode>(std::move($1), std::move($3));
     }
     | expression BINOP_SUB expression
     {
-        $$ = std::make_unique<unlogic::BinaryOperationNode>(std::move($1), std::move($3), "-");
+        $$ = std::make_unique<unlogic::SubtractionNode>(std::move($1), std::move($3));
     }
     | expression BINOP_MUL expression
     {
-        $$ = std::make_unique<unlogic::BinaryOperationNode>(std::move($1), std::move($3), "*");
+        $$ = std::make_unique<unlogic::MultiplicationNode>(std::move($1), std::move($3));
     }
     | expression BINOP_DIV expression
     {
-        $$ = std::make_unique<unlogic::BinaryOperationNode>(std::move($1), std::move($3), "/");
+        $$ = std::make_unique<unlogic::DivisionNode>(std::move($1), std::move($3));
     }
     | expression BINOP_EXP expression
     {
-        $$ = std::make_unique<unlogic::BinaryOperationNode>(std::move($1), std::move($3), "^");
+        $$ = std::make_unique<unlogic::PotentiationNode>(std::move($1), std::move($3));
     }
     | OPEN_PARENTHESIS expression CLOSED_PARENTHESIS
     {

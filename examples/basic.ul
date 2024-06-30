@@ -1,0 +1,6 @@
+given f(x) := sin(x);
+
+plot {
+    f as 'My Plot',
+    f' as 'Derivative',
+};

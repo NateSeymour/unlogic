@@ -47,6 +47,7 @@ namespace unlogic
         Subtraction,
         Multiplication,
         Division,
+        Potentiation,
     };
 
     class Node
@@ -114,6 +115,8 @@ namespace unlogic
 
         llvm::Value *Codegen(CompilationContext &ctx) override;
         std::vector<const Node *> Children() const override;
+        std::unique_ptr<Node> Derive() const override;
+        std::unique_ptr<Node> Copy() const override;
 
         CallNode(std::string function_name, std::vector<std::unique_ptr<Node>> arguments) : function_name_(std::move(function_name)), arguments_(std::move(arguments)) {}
     };
@@ -189,37 +192,19 @@ namespace unlogic
         DivisionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
     };
 
-    class BinaryOperationNode : public Node
+    class PotentiationNode : public BinaryNode
     {
-        std::unique_ptr<Node> lhs_, rhs_;
-        std::string op_;
-
     public:
-        llvm::Value *Codegen(CompilationContext &ctx) override
-        {
-            llvm::Value *lhs = this->lhs_->Codegen(ctx);
-            llvm::Value *rhs = this->rhs_->Codegen(ctx);
-
-            if(op_ == "+") return ctx.builder->CreateFAdd(lhs, rhs, "addtmp");
-            if(op_ == "-") return ctx.builder->CreateFSub(lhs, rhs, "subtmp");
-            if(op_ == "*") return ctx.builder->CreateFMul(lhs, rhs, "multmp");
-            if(op_ == "/") return ctx.builder->CreateFDiv(lhs, rhs, "divtmp");
-            if(op_ == "^")
-            {
-                llvm::Function *pow = ctx.module->getFunction("pow");
-
-                return ctx.builder->CreateCall(pow, {lhs, rhs}, "pow");
-            }
-
-            return nullptr;
-        }
-
         NodeType Type() const override
         {
-            return NodeType::BinaryOperation;
+            return NodeType::Division;
         }
 
-        BinaryOperationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs, std::string op) : lhs_(std::move(lhs)), rhs_(std::move(rhs)), op_(std::move(op)) {}
+        std::unique_ptr<Node> Derive() const override;
+        std::unique_ptr<Node> Copy() const override;
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+
+        PotentiationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
     };
 
     struct Prototype

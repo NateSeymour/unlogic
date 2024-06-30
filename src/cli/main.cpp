@@ -52,6 +52,12 @@ int main(int argc, char const **argv)
 
             switch(event.type)
             {
+                case sf::Event::Closed:
+                {
+                    window.close();
+                    return 0;
+                }
+
                 case sf::Event::MouseWheelScrolled:
                 {
                     scalar += (float)event.mouseWheelScroll.delta;
@@ -99,12 +105,6 @@ int main(int argc, char const **argv)
                     view.setSize(sf::Vector2f((float)event.size.width, (float)event.size.height) / scalar);
                     window.setView(view);
                     break;
-                }
-
-                case sf::Event::Closed:
-                {
-                    window.close();
-                    return 0;
                 }
             }
         }
