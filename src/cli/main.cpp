@@ -1,6 +1,4 @@
 #include <SFML/Graphics.hpp>
-#include <imgui-SFML.h>
-#include <imgui.h>
 #include "../graphic/Graph.h"
 
 int main(int argc, char const **argv)
@@ -10,16 +8,11 @@ int main(int argc, char const **argv)
     // Construct Graph
     unlogic::Graph graph;
 
-    // Parse Arguments
-    for(int i = 1; i < argc; i++)
-    {
-        graph.AddPlot(std::string(argv[i]));
-    }
-
     // Construct window
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    sf::RenderWindow window(sf::VideoMode(1000, 1000), "Unlogic", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(2000, 1000), "Unlogic", sf::Style::Default, settings);
+    window.setFramerateLimit(60);
 
     float scalar = 100.f;
 
@@ -27,12 +20,6 @@ int main(int argc, char const **argv)
     view.setCenter(0.f, 0.f);
     view.setSize(window.getDefaultView().getSize() / scalar);
     window.setView(view);
-
-    window.setFramerateLimit(60);
-    ImGui::SFML::Init(window);
-
-    ImGuiIO &io = ImGui::GetIO();
-    io.FontGlobalScale = 2.f;
 
     sf::Transform t;
     t.scale(1.0, -1.0);
@@ -48,8 +35,6 @@ int main(int argc, char const **argv)
         sf::Event event;
         while(window.pollEvent(event))
         {
-            ImGui::SFML::ProcessEvent(event);
-
             switch(event.type)
             {
                 case sf::Event::Closed:
@@ -109,44 +94,9 @@ int main(int argc, char const **argv)
             }
         }
 
-        ImGui::SFML::Update(window, delta.restart());
-
-        if(mouse_down)
-        {
-            sf::Cursor cross_cursor;
-            if(cross_cursor.loadFromSystem(sf::Cursor::Cross))
-            {
-                window.setMouseCursor(cross_cursor);
-            }
-        }
-        else
-        {
-            sf::Cursor cross_cursor;
-            if(cross_cursor.loadFromSystem(sf::Cursor::Arrow))
-            {
-                window.setMouseCursor(cross_cursor);
-            }
-        }
-
-        // Create Overlay
-        ImGui::SetNextWindowBgAlpha(0.35f);
-        bool show_overlay = true;
-        ImGui::Begin("Test", &show_overlay, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove);
-
-        ImGui::Text("Mouse Position: (%.1f,%.1f)px", io.MousePos.x, io.MousePos.y);
-
-        sf::Vector2f mouse_coordinates = window.mapPixelToCoords({(int)io.MousePos.x, (int)io.MousePos.y});
-        ImGui::Text("Coordinates: (%.1f,%.1f)", mouse_coordinates.x, mouse_coordinates.y);
-
-        ImGui::Text("Scalar: %.1f", scalar);
-
-        ImGui::End();
-        // End Overlay
-
         window.clear(sf::Color::White);
 
         window.draw(graph, t);
-        ImGui::SFML::Render(window);
 
         window.display();
     }
