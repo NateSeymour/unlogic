@@ -1,30 +1,33 @@
 #include <numbers>
 #include "Graph.h"
+#include "View.h"
+#include "Math.h"
+#include "Color.h"
 
 using namespace unlogic;
 
-void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Graph::Draw(mf::RenderTarget &target) const
 {
     // Create new view
-    sf::View const &view = target.getView();
+    mf::View const &view = target.getView();
     auto [width, height] = view.getSize();
 
-    sf::Vector2f const &center = view.getCenter();
-    sf::Vector2f domain(center.x - (width / 2), center.x + (width / 2));
-    sf::Vector2f range(center.y - (height / 2), center.y + (height / 2));
+    mf::Vector2f const &center = view.getCenter();
+    mf::Vector2f domain(center.x - (width / 2), center.x + (width / 2));
+    mf::Vector2f range(center.y - (height / 2), center.y + (height / 2));
 
     // Draw Axis
     sf::RectangleShape x_axis({width, this->axis_thickness_});
     x_axis.setFillColor(sf::Color::Black);
     x_axis.setPosition(domain.x, 0.f - this->axis_thickness_ / 2.f);
 
-    target.draw(x_axis, states);
+    target.Draw(x_axis);
 
     sf::RectangleShape y_axis({this->axis_thickness_, height});
-    y_axis.setFillColor(sf::Color::Black);
+    y_axis.setFillColor(mf::Color::Black);
     y_axis.setPosition(0.f - this->axis_thickness_ / 2.f, range.y * -1);
 
-    target.draw(y_axis, states);
+    target.Draw(y_axis);
 
     // Draw Gridlines
     auto grid_thickness = this->axis_thickness_ / 2.f;
@@ -33,10 +36,10 @@ void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
     for(int i = std::floor(domain.x); i < (int)std::ceil(domain.y); i++)
     {
         sf::RectangleShape gridline({grid_thickness, height});
-        gridline.setFillColor(sf::Color(0, 0, 0, 10));
+        gridline.setFillColor(mf::Color(0, 0, 0, 10));
         gridline.setPosition(i - (grid_thickness / 2.f), range.y * -1);
 
-        target.draw(gridline, states);
+        target.Draw(gridline);
     }
 
     // Y gridlines
@@ -46,19 +49,19 @@ void Graph::draw(sf::RenderTarget &target, sf::RenderStates states) const
         gridline.setFillColor(sf::Color(0, 0, 0, 10));
         gridline.setPosition(domain.x, (i*-1) - (this->axis_thickness_ / 2.f));
 
-        target.draw(gridline, states);
+        target.Draw(gridline);
     }
 
     // Draw Plots
     for(auto const &plot : this->plots_)
     {
-        target.draw(plot, states);
+        target.Draw(plot);
     }
 }
 
-void Plot::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Plot::Draw(mf::RenderTarget &target) const
 {
-    target.draw(this->vertices_.data(), this->vertices_.size(), sf::TrianglesStrip, states);
+    target.Draw(this->vertices_.data(), this->vertices_.size(), sf::TrianglesStrip);
 }
 
 void Plot::update()
@@ -75,7 +78,7 @@ void Plot::update()
         this->points_.emplace_back(x, y);
     }
 
-    // Calculate triangle fan
+    // Calculate triangle strip
     this->vertices_.clear();
     this->vertices_.reserve(point_count * 2);
     double dx = 0.0;
@@ -96,7 +99,7 @@ void Plot::update()
 
         auto const &point = this->points_[i];
 
-        this->vertices_.emplace_back(sf::Vector2f(point.x + tx, point.y - ty), this->color_); // a1
-        this->vertices_.emplace_back(sf::Vector2f(point.x - tx, point.y + ty), this->color_); // a2
+        this->vertices_.emplace_back(mf::Vector2f(point.x + tx, point.y - ty), this->color_); // a1
+        this->vertices_.emplace_back(mf::Vector2f(point.x - tx, point.y + ty), this->color_); // a2
     }
 }

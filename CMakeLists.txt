@@ -62,6 +62,9 @@ add_library(unlogic-graphic
         src/graphic/Drawable.h
         src/graphic/View.h
         src/graphic/Shape.h
+        src/graphic/Math.h
+        src/graphic/Color.h
+        src/graphic/Color.cpp
 )
 target_link_libraries(unlogic-graphic PUBLIC unlogic sfml-graphics)
 

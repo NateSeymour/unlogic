@@ -18,7 +18,7 @@ texture.create(1000, 1000);
 
 unlogic::Graph graph("f(x) := x^2");
 
-texture.draw(graph);
+texture.Draw(graph);
 
 sf::Image image = texture.getTexture().copyToImage();
 std::vector<sf::Uint8> buffer;

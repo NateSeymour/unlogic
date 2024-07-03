@@ -38,7 +38,7 @@ namespace unlogic
 
     protected:
         void update();
-        void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+        void Draw(mf::RenderTarget &target) const override;
 
     public:
         Plot(unlogic::Callable<double> function, sf::Vector2f domain, sf::Color color = sf::Color::Red) : function_(std::move(function)), domain_(domain), color_(color)
@@ -59,7 +59,7 @@ namespace unlogic
         int wheel_index_ = 0;
 
     protected:
-        void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+        void Draw(mf::RenderTarget &target) const override;
 
     public:
         void AddPlot(std::string const &function)

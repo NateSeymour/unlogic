@@ -5,12 +5,14 @@
 #ifndef UNLOGIC_SHAPE_H
 #define UNLOGIC_SHAPE_H
 
-namespace mf {
+#include "graphic/Drawable.h"
 
-    class Shape {
+namespace mf
+{
+    class Shape : public Drawable
+    {
 
     };
-
-} // mf
+}
 
 #endif //UNLOGIC_SHAPE_H
