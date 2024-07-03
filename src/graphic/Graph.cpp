@@ -9,13 +9,14 @@ using namespace unlogic;
 void Graph::Draw(mf::RenderTarget &target) const
 {
     // Create new view
-    mf::View const &view = target.getView();
-    auto [width, height] = view.getSize();
+    mf::View const &view = target.GetView();
+    auto [width, height] = view.GetSize();
 
-    mf::Vector2f const &center = view.getCenter();
+    mf::Vector2f const &center = view.GetCenter();
     mf::Vector2f domain(center.x - (width / 2), center.x + (width / 2));
     mf::Vector2f range(center.y - (height / 2), center.y + (height / 2));
 
+    /*
     // Draw Axis
     sf::RectangleShape x_axis({width, this->axis_thickness_});
     x_axis.setFillColor(sf::Color::Black);
@@ -51,6 +52,7 @@ void Graph::Draw(mf::RenderTarget &target) const
 
         target.Draw(gridline);
     }
+     */
 
     // Draw Plots
     for(auto const &plot : this->plots_)
@@ -61,7 +63,7 @@ void Graph::Draw(mf::RenderTarget &target) const
 
 void Plot::Draw(mf::RenderTarget &target) const
 {
-    target.Draw(this->vertices_.data(), this->vertices_.size(), sf::TrianglesStrip);
+    //target.Draw(this->vertices_.data(), this->vertices_.size(), sf::TrianglesStrip);
 }
 
 void Plot::update()

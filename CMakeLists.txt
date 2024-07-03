@@ -4,7 +4,6 @@ project(unlogic)
 set(CMAKE_CXX_STANDARD 23)
 
 # External Libs
-find_package(SFML 2.6.1 REQUIRED)
 find_package(GTest REQUIRED)
 find_package(BISON 3.8.2 REQUIRED)
 find_package(FLEX 2.6.4 REQUIRED)
@@ -64,16 +63,15 @@ add_library(unlogic-graphic
         src/graphic/Shape.h
         src/graphic/Math.h
         src/graphic/Color.h
-        src/graphic/Color.cpp
 )
-target_link_libraries(unlogic-graphic PUBLIC unlogic sfml-graphics)
+target_link_libraries(unlogic-graphic PUBLIC unlogic)
 
 add_executable(unlogic-calculator
         src/calculator/main.cpp
         src/calculator/ui/Window.cpp
         src/calculator/ui/Window.h
         src/calculator/ui/SourceEditor.h
-        src/calculator/ui/SFMLWidget.h
+        src/calculator/ui/GlAreaEx.h
 )
 target_link_libraries(unlogic-calculator PUBLIC unlogic unlogic-graphic ${GTKMM_LIBRARIES})
 target_link_directories(unlogic-calculator PUBLIC ${GTKMM_LIBRARY_DIRS})

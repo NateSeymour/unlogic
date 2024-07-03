@@ -1,10 +1,10 @@
 #ifndef UNLOGIC_DRAWABLE_H
 #define UNLOGIC_DRAWABLE_H
 
-#include "graphic/RenderTarget.h"
-
 namespace mf
 {
+    class RenderTarget;
+
     class Drawable
     {
     public:

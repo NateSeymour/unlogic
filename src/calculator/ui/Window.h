@@ -5,7 +5,7 @@
 #include <gtkmm.h>
 #include <epoxy/gl.h>
 #include "SourceEditor.h"
-#include "SFMLWidget.h"
+#include "GlAreaEx.h"
 #include "graphic/Graph.h"
 
 namespace unlogic
@@ -16,14 +16,14 @@ namespace unlogic
         Gtk::Paned divider_;
 
         SourceEditor source_editor_;
-        SFMLWidget renderer_;
+        GlAreaEx renderer_;
 
         Graph graph_;
 
         bool render(const Glib::RefPtr<Gdk::GLContext>& context)
         {
-            this->renderer_.clear(sf::Color::White);
-            this->renderer_.draw(this->graph_);
+            this->renderer_.Clear(mf::Color::White);
+            this->renderer_.Draw(this->graph_);
 
             return true;
         }
