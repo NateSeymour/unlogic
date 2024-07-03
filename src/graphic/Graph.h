@@ -47,19 +47,13 @@ namespace unlogic
         }
     };
 
-    class Graph : public mf::Drawable
+    class Graph
     {
         unlogic::Compiler compiler_;
         std::vector<Plot> plots_;
         mf::Vector2f domain_;
-        mf::View view_;
+        //mf::View view_;
         float axis_thickness_ = 0.1f;
-
-        mf::Color color_wheel_[3] = {mf::Color::Red, mf::Color::Blue, mf::Color::Green};
-        int wheel_index_ = 0;
-
-    protected:
-        void Draw(mf::RenderTarget &target) const override;
 
     public:
         void AddPlot(std::string const &function)

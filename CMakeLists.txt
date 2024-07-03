@@ -57,12 +57,7 @@ add_library(unlogic-graphic
         src/graphic/Graph.h
         src/gui/Widget.cpp
         src/gui/Widget.h
-        src/graphic/RenderTarget.h
         src/graphic/Drawable.h
-        src/graphic/View.h
-        src/graphic/Shape.h
-        src/graphic/Math.h
-        src/graphic/Color.h
 )
 target_link_libraries(unlogic-graphic PUBLIC unlogic)
 
