@@ -1,4 +1,0 @@
-#ifndef UNLOGIC_SFMLX_H
-#define UNLOGIC_SFMLX_H
-
-#endif //UNLOGIC_SFMLX_H

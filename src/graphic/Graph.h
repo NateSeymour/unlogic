@@ -5,9 +5,10 @@
 #ifndef UNLOGIC_GRAPH_H
 #define UNLOGIC_GRAPH_H
 
-#include <SFML/Graphics.hpp>
 #include <cmath>
-#include "../Compiler.h"
+#include "Compiler.h"
+#include "graphic/RenderTarget.h"
+#include "graphic/Drawable.h"
 
 namespace unlogic
 {
@@ -22,7 +23,7 @@ namespace unlogic
         }
     };
 
-    class Plot : public sf::Drawable, public sf::Transformable
+    class Plot : public mf::Drawable
     {
         unlogic::Callable<double> function_;
         sf::Color color_;
@@ -46,7 +47,7 @@ namespace unlogic
         }
     };
 
-    class Graph : public sf::Drawable, public sf::Transformable
+    class Graph : public mf::Drawable
     {
         unlogic::Compiler compiler_;
         std::vector<Plot> plots_;

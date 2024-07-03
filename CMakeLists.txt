@@ -13,6 +13,9 @@ find_package(LLVM 17 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM gtkmm-4.0 epoxy)
+
 # llvm_map_components_to_libnames is being a PAIN IN MY ASS. It keeps trying to include a non-existent "LLVMjit" library. So I just brute force all
 # libs into it because I am lazy.
 if(APPLE)
@@ -53,14 +56,25 @@ target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRE
 add_library(unlogic-graphic
         src/graphic/Graph.cpp
         src/graphic/Graph.h
-        src/graphic/SFMLX.h
+        src/gui/Widget.cpp
+        src/gui/Widget.h
+        src/graphic/RenderTarget.h
+        src/graphic/Drawable.h
+        src/graphic/View.h
+        src/graphic/Shape.h
 )
 target_link_libraries(unlogic-graphic PUBLIC unlogic sfml-graphics)
 
-add_executable(unlogic-cli
-        src/cli/main.cpp
+add_executable(unlogic-calculator
+        src/calculator/main.cpp
+        src/calculator/ui/Window.cpp
+        src/calculator/ui/Window.h
+        src/calculator/ui/SourceEditor.h
+        src/calculator/ui/SFMLWidget.h
 )
-target_link_libraries(unlogic-cli PUBLIC unlogic unlogic-graphic sfml-window)
+target_link_libraries(unlogic-calculator PUBLIC unlogic unlogic-graphic ${GTKMM_LIBRARIES})
+target_link_directories(unlogic-calculator PUBLIC ${GTKMM_LIBRARY_DIRS})
+target_include_directories(unlogic-calculator PUBLIC ${GTKMM_INCLUDE_DIRS})
 
 add_executable(unlogic-test
         test/unlogic.test.cpp
