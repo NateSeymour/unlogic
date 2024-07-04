@@ -13,7 +13,7 @@ separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTKMM gtkmm-4.0 epoxy)
+pkg_check_modules(GTKMM gtkmm-4.0 epoxy pango)
 
 include(FetchContent)
 FetchContent_Declare(

@@ -29,6 +29,8 @@ namespace unlogic
 
         GLuint plot_program_;
 
+        glm::vec3 camera_position;
+
         void realize_renderer()
         {
             // Load and compile shaders
@@ -44,7 +46,11 @@ namespace unlogic
             glLinkProgram(this->plot_program_);
 
             // Add example plot
-            this->graph_.AddPlot("f(x) := x^2");
+            this->graph_.AddPlot("a(x) := x^2");
+            this->graph_.AddPlot("b(x) := x^2 - 10");
+            this->graph_.AddPlot("c(x) := x");
+            this->graph_.AddPlot("d(x) := 0");
+            this->graph_.AddPlot("e(x) := 1");
         }
 
         void unrealize_renderer()
@@ -52,21 +58,25 @@ namespace unlogic
             this->renderer_.make_current();
         }
 
+        void mousewheel_renderer()
+        {
+
+        }
+
         bool render(const Glib::RefPtr<Gdk::GLContext>& context)
         {
             glClearColor(1.f, 1.f, 1.f, 1.f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             // Generate view and projection matrices
-            glm::vec2 center(0.f, 0.f);
             glm::mat4 view(1.f);
-            view = glm::translate(view, glm::vec3(center, 0.f));
+            view = glm::translate(view, this->camera_position);
 
             float height = (float)this->renderer_.get_height();
             float width = (float)this->renderer_.get_width();
 
             // TODO: Change to perspective projection to more easily "zoom" in and out by moving camera representation
-            glm::mat4 projection = glm::ortho(width / -2.f, width / 2.f, height / -2.f, height / 2.f);
+            glm::mat4 projection = glm::perspective(glm::radians(45.f), width / height, 0.f, 100.f);
 
             // Setup shader
             glUseProgram(this->plot_program_);
