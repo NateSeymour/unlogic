@@ -39,7 +39,7 @@ namespace unlogic
         }
 
     public:
-        double operator()(Args... args)
+        double operator()(Args... args) const
         {
             return this->function_(args...);
         }

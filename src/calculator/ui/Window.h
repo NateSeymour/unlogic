@@ -4,8 +4,13 @@
 #include <string>
 #include <fstream>
 #include <cstdint>
+#include <cstddef>
 #include <gtkmm.h>
 #include <epoxy/gl.h>
+#include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "SourceEditor.h"
 #include "GlAreaEx.h"
 #include "graphic/Graph.h"
@@ -22,6 +27,8 @@ namespace unlogic
 
         Graph graph_;
 
+        GLuint plot_program_;
+
         void realize_renderer()
         {
             // Load and compile shaders
@@ -31,16 +38,13 @@ namespace unlogic
             GLuint vertex_shader = this->renderer_.LoadShaderFromFile("resource/shaders/plot.vert");
             GLuint fragment_shader = this->renderer_.LoadShaderFromFile("resource/shaders/plot.frag");
 
-            GLuint program = glCreateProgram();
-            glAttachShader(program, vertex_shader);
-            glAttachShader(program, fragment_shader);
-            glLinkProgram(program);
+            this->plot_program_ = glCreateProgram();
+            glAttachShader(this->plot_program_, vertex_shader);
+            glAttachShader(this->plot_program_, fragment_shader);
+            glLinkProgram(this->plot_program_);
 
-            glUseProgram(program);
-
-            // Setup inputs
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(0);
+            // Add example plot
+            this->graph_.AddPlot("f(x) := x^2");
         }
 
         void unrealize_renderer()
@@ -52,6 +56,30 @@ namespace unlogic
         {
             glClearColor(1.f, 1.f, 1.f, 1.f);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            // Generate view and projection matrices
+            glm::vec2 center(0.f, 0.f);
+            glm::mat4 view(1.f);
+            view = glm::translate(view, glm::vec3(center, 0.f));
+
+            float height = (float)this->renderer_.get_height();
+            float width = (float)this->renderer_.get_width();
+
+            glm::mat4 projection = glm::ortho(width / -2.f, width / 2.f, height / -2.f, height / 2.f);
+
+            // Setup shader
+            glUseProgram(this->plot_program_);
+
+            GLint view_uniform = glGetUniformLocation(this->plot_program_, "view");
+            glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(view));
+
+            GLint projection_uniform = glGetUniformLocation(this->plot_program_, "projection");
+            glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
+
+            for(auto &plot : this->graph_.GetPlots())
+            {
+                plot.Draw();
+            }
 
             return true;
         }

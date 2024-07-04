@@ -12,7 +12,6 @@
 #include <epoxy/gl.h>
 #include <filesystem>
 #include <vector>
-#include "graphic/RenderTarget.h"
 
 namespace unlogic
 {

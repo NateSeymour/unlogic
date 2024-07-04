@@ -1,31 +1,34 @@
 #include <numbers>
+#include <glm/vec2.hpp>
 #include "Graph.h"
 
-void Plot::update()
+void unlogic::Plot::Update(std::vector<Vertex> &vertices) const
 {
     // Calculate points
+    std::vector<glm::vec2> points;
+
     std::size_t point_count = std::ceil((this->domain_.y - this->domain_.x) / this->precision_);
-    this->points_.clear();
-    this->points_.reserve(point_count);
+    points.clear();
+    points.reserve(point_count);
     for (std::size_t i = 0; i < point_count; i++)
     {
         double x = this->domain_.x + ((double)i * this->precision_);
         double y = this->function_(x);
 
-        this->points_.emplace_back(x, y);
+        points.emplace_back(x, y);
     }
 
     // Calculate triangle strip
-    this->vertices_.clear();
-    this->vertices_.reserve(point_count * 2);
+    vertices.clear();
+    vertices.reserve(point_count * 2);
     double dx = 0.0;
     double dy = 0.0;
     for(std::size_t i = 0; i < point_count; i++)
     {
         if(i < point_count - 1)
         {
-            dx = this->points_[i + 1].x - this->points_[i].x;
-            dy = this->points_[i + 1].y - this->points_[i].y;
+            dx = points[i + 1].x - points[i].x;
+            dy = points[i + 1].y - points[i].y;
         }
 
         double theta1 = std::atan2(dy, dx);
@@ -34,9 +37,9 @@ void Plot::update()
         double tx = (this->thickness_ / 2) * std::cos(theta2);
         double ty = (this->thickness_ / 2) * std::sin(theta2);
 
-        auto const &point = this->points_[i];
+        auto const &point = points[i];
 
-        this->vertices_.emplace_back(mf::Vector2f(point.x + tx, point.y - ty), this->color_); // a1
-        this->vertices_.emplace_back(mf::Vector2f(point.x - tx, point.y + ty), this->color_); // a2
+        vertices.emplace_back(glm::vec2(point.x + tx, point.y - ty), this->color_); // a1
+        vertices.emplace_back(glm::vec2(point.x - tx, point.y + ty), this->color_); // a2
     }
 }

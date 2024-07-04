@@ -15,6 +15,14 @@ add_definitions(${LLVM_DEFINITIONS_LIST})
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM gtkmm-4.0 epoxy)
 
+include(FetchContent)
+FetchContent_Declare(
+        glm
+        GIT_REPOSITORY https://github.com/g-truc/glm.git
+        GIT_TAG 1.0.1
+)
+FetchContent_MakeAvailable(glm)
+
 # llvm_map_components_to_libnames is being a PAIN IN MY ASS. It keeps trying to include a non-existent "LLVMjit" library. So I just brute force all
 # libs into it because I am lazy.
 if(APPLE)
@@ -59,7 +67,7 @@ add_library(unlogic-graphic
         src/gui/Widget.h
         src/graphic/Drawable.h
 )
-target_link_libraries(unlogic-graphic PUBLIC unlogic)
+target_link_libraries(unlogic-graphic PUBLIC unlogic glm::glm)
 
 add_executable(unlogic-calculator
         src/calculator/main.cpp
