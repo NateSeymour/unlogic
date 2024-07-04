@@ -65,6 +65,7 @@ namespace unlogic
             float height = (float)this->renderer_.get_height();
             float width = (float)this->renderer_.get_width();
 
+            // TODO: Change to perspective projection to more easily "zoom" in and out by moving camera representation
             glm::mat4 projection = glm::ortho(width / -2.f, width / 2.f, height / -2.f, height / 2.f);
 
             // Setup shader
