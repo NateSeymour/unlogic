@@ -4,7 +4,6 @@ project(unlogic)
 set(CMAKE_CXX_STANDARD 23)
 
 # External Libs
-find_package(GTest REQUIRED)
 find_package(BISON 3.8.2 REQUIRED)
 find_package(FLEX 2.6.4 REQUIRED)
 
@@ -22,6 +21,13 @@ FetchContent_Declare(
         GIT_TAG 1.0.1
 )
 FetchContent_MakeAvailable(glm)
+
+FetchContent_Declare(
+        GTEST
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG main
+)
+FetchContent_MakeAvailable(GTEST)
 
 # llvm_map_components_to_libnames is being a PAIN IN MY ASS. It keeps trying to include a non-existent "LLVMjit" library. So I just brute force all
 # libs into it because I am lazy.
