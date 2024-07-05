@@ -2,12 +2,16 @@
 #define UNLOGIC_DRAWABLE_H
 
 #include <vector>
+#include <atomic>
 #include <epoxy/gl.h>
 #include <glm/vec2.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
 namespace unlogic
 {
+    // Forward decls
+    class Canvas;
+
     struct Vertex
     {
         glm::vec2 position;
@@ -16,57 +20,40 @@ namespace unlogic
         Vertex(glm::vec2 const &position, glm::vec4 const &color = {1.f, 0.f, 0.f, 1.f}) : position(position), color(color) {}
     };
 
+    enum class PrimitiveType : GLenum
+    {
+        kTriangles = GL_TRIANGLES,
+        kTriangleStrip = GL_TRIANGLE_STRIP,
+        kTriangleFan = GL_TRIANGLE_FAN,
+    };
+
     class Drawable
     {
+    public:
+        virtual void DrawOnto(Canvas &canvas) = 0;
+    };
+
+    class Shape : public Drawable
+    {
         std::vector<Vertex> vertices_;
-        bool fresh_ = false;
-
-        bool initialized_ = false;
-
-        GLuint vbo_, vao_;
 
     protected:
-        void Invalidate()
-        {
-            this->fresh_ = false;
-        }
-
-        virtual void Update(std::vector<Vertex> &vertices) const = 0;
+        virtual void GenerateVertices(std::vector<Vertex> &vertices) = 0;
 
     public:
-        void Draw()
+        const PrimitiveType primitive_type = PrimitiveType::kTriangleStrip;
+
+        std::vector<Vertex> const &GetVertices()
         {
-            // Generate object buffers if not already exist
-            if(!this->initialized_)
+            if(this->vertices_.empty())
             {
-                glGenBuffers(1, &this->vbo_);
-                glGenVertexArrays(1, &this->vao_);
-
-                this->initialized_ = true;
+                this->GenerateVertices(this->vertices_);
             }
 
-            // Bind vertex array
-            glBindVertexArray(this->vao_);
-
-            // Regenerate vertices if deemed necessary
-            if(!this->fresh_)
-            {
-                this->Update(this->vertices_);
-
-                // Bind data to buffers
-                glBindBuffer(GL_ARRAY_BUFFER, this->vbo_);
-                glBufferData(GL_ARRAY_BUFFER, this->vertices_.size() * sizeof(Vertex), this->vertices_.data(), GL_STATIC_DRAW);
-
-                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); // Position
-                glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color)); // Color
-                glEnableVertexAttribArray(0);
-                glEnableVertexAttribArray(1);
-
-                this->fresh_ = true;
-            }
-
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, this->vertices_.size());
+            return this->vertices_;
         }
+
+        void DrawOnto(Canvas &canvas) override;
     };
 }
 

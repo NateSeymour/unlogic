@@ -56,27 +56,28 @@ add_library(unlogic STATIC
         src/std/StandardLibrary.h
         src/Library.cpp
         src/Library.h
+        src/util/io.cpp
+        src/util/io.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} ${FLEX_LIBRARIES})
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRENT_BINARY_DIR})
-
-add_library(unlogic-graphic
-        src/graphic/Graph.cpp
-        src/graphic/Graph.h
-        src/gui/Widget.cpp
-        src/gui/Widget.h
-        src/graphic/Drawable.h
-)
-target_link_libraries(unlogic-graphic PUBLIC unlogic glm::glm)
 
 add_executable(unlogic-calculator
         src/calculator/main.cpp
         src/calculator/ui/Window.cpp
         src/calculator/ui/Window.h
         src/calculator/ui/SourceEditor.h
-        src/calculator/ui/GlAreaEx.h
+        src/calculator/ui/CanvasArea.h
+        src/graphic/Graph.cpp
+        src/graphic/Graph.h
+        src/gui/Widget.cpp
+        src/gui/Widget.h
+        src/graphic/Drawable.h
+        src/graphic/Drawable.cpp
+        src/graphic/shapes/Plot.cpp
+        src/graphic/shapes/Plot.h
 )
-target_link_libraries(unlogic-calculator PUBLIC unlogic unlogic-graphic ${GTKMM_LIBRARIES})
+target_link_libraries(unlogic-calculator PUBLIC unlogic glm::glm ${GTKMM_LIBRARIES})
 target_link_directories(unlogic-calculator PUBLIC ${GTKMM_LIBRARY_DIRS})
 target_include_directories(unlogic-calculator PUBLIC ${GTKMM_INCLUDE_DIRS})
 

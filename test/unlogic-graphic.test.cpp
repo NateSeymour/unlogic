@@ -13,7 +13,7 @@ TEST(UnlogicGraphic, PolynomialRender100x100)
 
     unlogic::Graph graph("f(x) := x^2");
 
-    texture.Draw(graph);
+    texture.DrawOnto(graph);
 
     sf::Image image = texture.getTexture().copyToImage();
     std::vector<sf::Uint8> buffer;
@@ -27,7 +27,7 @@ TEST(UnlogicGraphic, PolynomialRender1000x1000)
 
     unlogic::Graph graph("f(x) := x^2");
 
-    texture.Draw(graph);
+    texture.DrawOnto(graph);
 
     sf::Image image = texture.getTexture().copyToImage();
     std::vector<sf::Uint8> buffer;
@@ -41,7 +41,7 @@ TEST(UnlogicGraphic, ExponentialRender100x100)
 
     unlogic::Graph graph("f(x) := 2^x");
 
-    texture.Draw(graph);
+    texture.DrawOnto(graph);
 
     sf::Image image = texture.getTexture().copyToImage();
     std::vector<sf::Uint8> buffer;
