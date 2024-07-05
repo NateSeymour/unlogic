@@ -13,7 +13,7 @@ jobs:
     - name: Install System Dependencies
       run: sudo apt install -y build-essential cmake llvm-17-dev wget ninja-build bison flex libgtkmm-4.0-dev
     - name: Configure Project
-      run: mkdir cmake-build-release && cd cmake-build-release && cmake .. -DBUILD_TYPE=Release -G "Ninja"
+      run: mkdir cmake-build-release && cd cmake-build-release && cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..
     - name: Build Tests
       run: cd cmake-build-release && cmake --build . --target unlogic-test
     - name: Run Tests
