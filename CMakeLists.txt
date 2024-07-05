@@ -41,11 +41,6 @@ endif()
 FLEX_TARGET(unlogic-scanner src/parser/Scanner.l ${CMAKE_CURRENT_BINARY_DIR}/parser/Scanner.cpp)
 BISON_TARGET(unlogic-parser src/parser/Parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser/Parser.cpp)
 
-# Workaround for strange flex packaging on MacOS
-if(APPLE)
-    unset(FLEX_LIBRARIES)
-endif()
-
 # Unlogic
 add_library(unlogic STATIC
         src/parser/Node.cpp
@@ -65,7 +60,7 @@ add_library(unlogic STATIC
         src/util/io.cpp
         src/util/io.h
 )
-target_link_libraries(unlogic PUBLIC ${llvm_libs} ${FLEX_LIBRARIES})
+target_link_libraries(unlogic PUBLIC ${llvm_libs})
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(unlogic-calculator
