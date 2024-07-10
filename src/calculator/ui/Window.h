@@ -5,6 +5,8 @@
 #include <fstream>
 #include <cstdint>
 #include <gtkmm.h>
+#include <iostream>
+#include "util/format.h"
 #include "SourceEditor.h"
 #include "CanvasArea.h"
 #include "graphic/Graph.h"
@@ -21,7 +23,7 @@ namespace unlogic
 
         Graph graph_;
 
-        void realize_renderer()
+        void on_renderer_realize()
         {
             // Add example plot
             this->graph_.AddPlot("a(x) := x^2");
@@ -31,13 +33,24 @@ namespace unlogic
             this->graph_.AddPlot("e(x) := 1");
         }
 
-        bool render(const Glib::RefPtr<Gdk::GLContext>& context)
+        bool on_renderer_render(const Glib::RefPtr<Gdk::GLContext>& context)
         {
             this->canvas_.Clear();
             this->graph_.DrawOnto(this->canvas_);
 
             return true;
         }
+
+        void on_renderer_mouse_pressed(int press_count, double x, double y)
+        {
+            std::cout << x << ", " << y << std::endl;
+        }
+
+        void on_renderer_drag_begin(double x, double y) {}
+
+        void on_renderer_drag_update(double x, double y) {}
+
+        void on_renderer_drag_end(double x, double y) {}
 
     public:
         Window()
@@ -53,9 +66,18 @@ namespace unlogic
 
             // Renderer
             this->divider_.set_end_child(this->canvas_);
-            this->canvas_.signal_realize().connect(sigc::mem_fun(*this, &Window::realize_renderer));
-            // this->canvas_.signal_unrealize().connect(sigc::mem_fun(*this, &Window::unrealize_renderer), false);
-            this->canvas_.signal_render().connect(sigc::mem_fun(*this, &Window::render), false);
+
+            auto renderer_mouse_press_controller = Gtk::GestureClick::create();
+            renderer_mouse_press_controller->signal_pressed().connect(sigc::mem_fun(*this, &Window::on_renderer_mouse_pressed), false);
+            this->canvas_.add_controller(renderer_mouse_press_controller);
+
+            auto renderer_drag_controller = Gtk::GestureDrag::create();
+            renderer_drag_controller->signal_drag_begin().connect(sigc::mem_fun(*this, &Window::on_renderer_drag_begin), false);
+            renderer_drag_controller->signal_drag_update().connect(sigc::mem_fun(*this, &Window::on_renderer_drag_update), false);
+            renderer_drag_controller->signal_drag_end().connect(sigc::mem_fun(*this, &Window::on_renderer_drag_end), false);
+
+            this->canvas_.signal_realize().connect(sigc::mem_fun(*this, &Window::on_renderer_realize));
+            this->canvas_.signal_render().connect(sigc::mem_fun(*this, &Window::on_renderer_render), false);
         }
     };
 }

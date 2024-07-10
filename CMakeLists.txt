@@ -71,12 +71,12 @@ add_executable(unlogic-calculator
         src/calculator/ui/CanvasArea.h
         src/graphic/Graph.cpp
         src/graphic/Graph.h
-        src/gui/Widget.cpp
-        src/gui/Widget.h
         src/graphic/Drawable.h
         src/graphic/Drawable.cpp
         src/graphic/shapes/Plot.cpp
         src/graphic/shapes/Plot.h
+        src/graphic/ugl/Canvas.cpp
+        src/graphic/ugl/Canvas.h
 )
 target_link_libraries(unlogic-calculator PUBLIC unlogic glm::glm ${GTKMM_LIBRARIES})
 target_link_directories(unlogic-calculator PUBLIC ${GTKMM_LIBRARY_DIRS})
