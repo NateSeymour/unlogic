@@ -6,7 +6,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include "Compiler.h"
-#include "graphic/Drawable.h"
+#include "graphic/ugl/Drawable.h"
 
 namespace unlogic
 {
@@ -20,10 +20,13 @@ namespace unlogic
         glm::vec2 domain_;
 
     protected:
-        void GenerateVertices(std::vector<Vertex> &vertices) override;
+        [[nodiscard]] std::shared_ptr<VertexBuffer> GenerateVertexBuffer() const override;
 
     public:
-        Plot(unlogic::Callable<double> function, glm::vec2 domain, glm::vec4 color = {1.f, 0.f, 0.f, 1.f}) : function_(function), domain_(domain), color_(color) {}
+        Plot(unlogic::Callable<double> function, glm::vec2 domain, glm::vec4 color = {1.f, 0.f, 0.f, 1.f}) : function_(function), domain_(domain), color_(color)
+        {
+            this->Update();
+        }
     };
 }
 

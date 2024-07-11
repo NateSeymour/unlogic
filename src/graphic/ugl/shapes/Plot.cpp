@@ -1,6 +1,6 @@
 #include "Plot.h"
 
-void unlogic::Plot::GenerateVertices(std::vector<Vertex> &vertices)
+std::shared_ptr<unlogic::VertexBuffer> unlogic::Plot::GenerateVertexBuffer() const
 {
     // Calculate points
     std::vector<glm::vec2> points;
@@ -17,7 +17,7 @@ void unlogic::Plot::GenerateVertices(std::vector<Vertex> &vertices)
     }
 
     // Calculate triangle strip
-    vertices.clear();
+    std::vector<Vertex> vertices;
     vertices.reserve(point_count * 2);
     double dx = 0.0;
     double dy = 0.0;
@@ -40,4 +40,6 @@ void unlogic::Plot::GenerateVertices(std::vector<Vertex> &vertices)
         vertices.emplace_back(glm::vec2(point.x + tx, point.y - ty), this->color_); // a1
         vertices.emplace_back(glm::vec2(point.x - tx, point.y + ty), this->color_); // a2
     }
+
+    return std::make_shared<unlogic::VertexBuffer>(vertices);
 }

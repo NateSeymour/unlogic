@@ -16,7 +16,8 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "graphic/Drawable.h"
+#include "graphic/ugl/VertexBuffer.h"
+#include "Drawable.h"
 #include "util/io.h"
 #include "util/format.h"
 
@@ -78,10 +79,11 @@ namespace unlogic
             this->screen_ = size;
         }
 
-        glm::vec3 &GetCamera()
-        {
-            return this->camera_;
-        }
+        [[nodiscard]] glm::vec3 const &GetCamera() const { return this->camera_; }
+        void SetCamera(glm::vec3 const &camera) { this->camera_ = camera; }
+
+        [[nodiscard]] glm::ivec2 const &GetScreen() const { return this->screen_; }
+        void SetScreen(glm::ivec2 const &screen) { this->screen_ = screen; }
 
         void Clear(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f)
         {
@@ -89,7 +91,7 @@ namespace unlogic
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
 
-        void DrawPrimitive(std::vector<Vertex> const &vertices, PrimitiveType type)
+        void DrawPrimitive(VertexBuffer const &vbo)
         {
             // Setup camera and transformation matrices
             glm::mat4 view(1.f);
@@ -108,16 +110,14 @@ namespace unlogic
             glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
             // Generate object buffers
-            GLuint vao, vbo = -1;
-            glGenBuffers(1, &vbo);
+            GLuint vao = -1;
             glGenVertexArrays(1, &vao);
 
             // Bind vertex array
             glBindVertexArray(vao);
 
             // Bind data to buffers
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo.vbo_);
 
             glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); // Position
             glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color)); // Color
@@ -125,10 +125,9 @@ namespace unlogic
             glEnableVertexAttribArray(1);
 
             // Draw
-            glDrawArrays((GLenum)type, 0, vertices.size());
+            glDrawArrays((GLenum)vbo.primitive_type_, 0, vbo.size_);
 
             // Cleanup
-            glDeleteBuffers(1, &vbo);
             glDeleteVertexArrays(1, &vao);
         }
 

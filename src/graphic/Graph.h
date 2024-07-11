@@ -9,8 +9,8 @@
 #include <glm/vec2.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 #include "Compiler.h"
-#include "graphic/Drawable.h"
-#include "graphic/shapes/Plot.h"
+#include "graphic/ugl/Drawable.h"
+#include "graphic/ugl/shapes/Plot.h"
 
 namespace unlogic
 {
