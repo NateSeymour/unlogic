@@ -1,3 +1,4 @@
+#include <numbers>
 #include "Plot.h"
 
 std::shared_ptr<unlogic::VertexBuffer> unlogic::Plot::GenerateVertexBuffer() const
