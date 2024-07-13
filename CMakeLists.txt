@@ -42,6 +42,13 @@ else()
 endif()
 
 # Unlogic
+add_library(unlogic-parser
+        src/parser/Lex.h
+        src/parser/Lex.cpp
+)
+target_link_libraries(unlogic-parser PUBLIC ctre::ctre)
+target_include_directories(unlogic-parser PUBLIC src)
+
 add_library(unlogic STATIC
         src/parser/Node.cpp
         src/parser/Node.h
@@ -57,8 +64,8 @@ add_library(unlogic STATIC
         src/Error.h
         src/parser/Unlogic.cpp
 )
-target_link_libraries(unlogic PUBLIC ${llvm_libs} ctre::ctre)
-target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(unlogic PUBLIC ${llvm_libs})
+target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
 
 add_executable(unlogic-calculator
         src/calculator/main.cpp
@@ -87,4 +94,8 @@ add_executable(unlogic-test
         test/main.test.cpp
 )
 target_link_libraries(unlogic-test PUBLIC unlogic unlogic-graphic GTest::gtest)
-target_include_directories(unlogic-test PUBLIC src)
+
+add_executable(unlogic-parser-test
+        test/parser.test.cpp
+)
+target_link_libraries(unlogic-parser-test PUBLIC unlogic-parser GTest::gtest_main)
