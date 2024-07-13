@@ -23,15 +23,7 @@ namespace unlogic
 
         Graph graph_;
 
-        void on_renderer_realize()
-        {
-            // Add example plot
-            this->graph_.AddPlot("a(x) := x^2");
-            this->graph_.AddPlot("b(x) := x^2 - 10");
-            this->graph_.AddPlot("c(x) := x");
-            this->graph_.AddPlot("d(x) := 0");
-            this->graph_.AddPlot("e(x) := 1");
-        }
+        void on_renderer_realize() { /* Empty */ }
 
         bool on_renderer_render(const Glib::RefPtr<Gdk::GLContext>& context)
         {
@@ -57,6 +49,8 @@ namespace unlogic
         {
             this->set_title("Unlogic");
             this->set_default_size(1000, 500);
+
+            this->divider_.set_position(500);
 
             // Divider
             this->set_child(this->divider_);
