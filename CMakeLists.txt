@@ -73,13 +73,12 @@ add_executable(unlogic-calculator
         src/graphic/Graph.h
         src/graphic/ugl/Drawable.h
         src/graphic/ugl/Drawable.cpp
-        src/graphic/ugl/shapes/Plot.cpp
-        src/graphic/ugl/shapes/Plot.h
+        src/graphic/ugl/shapes/Line.cpp
+        src/graphic/ugl/shapes/Line.h
         src/graphic/ugl/Canvas.cpp
         src/graphic/ugl/Canvas.h
         src/graphic/ugl/VertexBuffer.cpp
         src/graphic/ugl/VertexBuffer.h
-        src/graphic/ugl/shapes/Line.h
 )
 target_link_libraries(unlogic-calculator PUBLIC unlogic glm::glm ${GTKMM_LIBRARIES})
 target_link_directories(unlogic-calculator PUBLIC ${GTKMM_LIBRARY_DIRS})
