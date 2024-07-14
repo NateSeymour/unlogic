@@ -45,6 +45,7 @@ endif()
 add_library(unlogic-parser
         src/parser/Lex.h
         src/parser/Lex.cpp
+        src/parser/Parser.h
 )
 target_link_libraries(unlogic-parser PUBLIC ctre::ctre)
 target_include_directories(unlogic-parser PUBLIC src)

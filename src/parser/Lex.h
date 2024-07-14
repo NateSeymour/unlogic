@@ -6,6 +6,7 @@
 #include <string_view>
 #include <functional>
 #include <vector>
+#include <cctype>
 #include <ctre.hpp>
 #include "Error.h"
 
@@ -21,7 +22,7 @@ namespace unlogic
     class LexError : public Error
     {
     public:
-        const LexPosition position;
+        //const LexPosition position;
     };
 
     template<typename T>
@@ -41,6 +42,8 @@ namespace unlogic
     template<typename T>
     class Lex
     {
+        int index_;
+        std::optional<std::string_view> input_;
         std::vector<TerminalInterface<T> *> terminals_;
 
     public:
@@ -49,13 +52,48 @@ namespace unlogic
             this->terminals_.push_back(terminal);
         }
 
-        std::expected<LexReturnValue<T>, LexError> Next() {}
+        void SetInput(std::string_view input)
+        {
+            this->input_ = input;
+            this->index_ = 0;
+        }
+
+        std::expected<LexReturnValue<T>, LexError> Next()
+        {
+            if(!this->input_)
+            {
+                return std::unexpected(LexError{});
+            }
+
+            while(std::isspace(this->input_.value()[0]))
+            {
+                this->input_ = this->input_->substr(1);
+                this->index_++;
+            }
+
+            for(auto terminal : this->terminals_)
+            {
+                if(auto match = terminal->Match(this->input_.value()))
+                {
+                    this->input_ = this->input_->substr(match->position.end);
+
+                    match->position.begin += this->index_;
+                    match->position.end += this->index_;
+                    int match_length = match->position.end - match->position.begin;
+                    this->index_ += match_length;
+
+                    return *match;
+                }
+            }
+
+            return std::unexpected(LexError{});
+        }
     };
 
     template<typename T, T type, ctll::fixed_string pattern, typename ValueType>
     class Terminal : public TerminalInterface<T>
     {
-        std::function<std::expected<ValueType, LexError>(LexPosition)> semantic_reasoner;
+        std::function<ValueType(LexPosition)> semantic_reasoner;
 
     public:
         static const T terminal_type = type;
@@ -65,12 +103,14 @@ namespace unlogic
             auto match = ctre::starts_with<pattern>(input);
             if(match)
             {
-                LexReturnValue<T> return_value {
+                auto raw = match.to_view();
+
+                return LexReturnValue<T> {
                     .type = this->terminal_type,
                     .position = {
-                        .raw = match.to_view(),
+                        .raw = raw,
                         .begin = 0,
-                        .end = 0,
+                        .end = (int)raw.size(),
                     },
                 };
             }
@@ -78,7 +118,12 @@ namespace unlogic
             return std::nullopt;
         }
 
-        Terminal(Lex<T> &lex, std::function<std::expected<ValueType, LexError>(LexPosition)> semantic_reasoner) : semantic_reasoner(semantic_reasoner)
+        constexpr ValueType SemanticValue(LexPosition position)
+        {
+            return this->semantic_reasoner(position);
+        }
+
+        Terminal(Lex<T> &lex, std::function<ValueType(LexPosition)> semantic_reasoner) : semantic_reasoner(semantic_reasoner)
         {
             lex.RegisterTerminal(this);
         }
