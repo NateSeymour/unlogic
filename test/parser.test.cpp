@@ -1,28 +1,38 @@
 #include <gtest/gtest.h>
 #include "parser/Lex.h"
 #include "parser/Parser.h"
-#include "parser/Node.h"
 
 enum class TerminalType
 {
     NUMBER,
     KEYWORD,
+    OPERATOR,
+    SYMBOL,
+    UNKNOWN,
 };
 
 unlogic::Lex<TerminalType> lex;
 
-unlogic::Terminal<TerminalType, TerminalType::NUMBER, R"(\-?\d*\.\d*)", double> NUMBER(lex, [](auto position) {
-    return std::stod(std::string(position.raw));
+unlogic::Terminal<TerminalType, TerminalType::NUMBER, R"(\-?\d*\.\d*)", double> NUMBER(lex, [](auto pos) {
+    return std::stod(std::string(pos.raw));
 });
 
 unlogic::Terminal<TerminalType, TerminalType::KEYWORD, R"(given|plot|calculate|for|on)", std::string_view> KEYWORD(lex, [](auto pos) {
     return pos.raw;
 });
 
-unlogic::NonTerminal<std::unique_ptr<unlogic::Node>> expression
-        = NUMBER
-        | KEYWORD
-        ;
+unlogic::Terminal<TerminalType, TerminalType::OPERATOR, R"(\+|\-|\*|\/)", char> OPERATOR(lex, [](auto pos) {
+    return pos.raw[0];
+});
+
+unlogic::Terminal<TerminalType, TerminalType::SYMBOL, R"(;|\(|\))", std::string_view> SYMBOL(lex, [](auto pos) {
+    return pos.raw;
+});
+
+unlogic::NonTerminal<double> program;
+
+unlogic::NonTerminal<double> expression
+    = *(&expression);
 
 TEST(Lex, TerminalMatching)
 {
@@ -54,4 +64,9 @@ TEST(Lex, BasicLexxing)
 
     next = lex.Next();
     ASSERT_EQ(next->type, TerminalType::NUMBER);
+}
+
+TEST(Parser, BasicCalculation)
+{
+    std::string input_string = "calculate 3 * 3;";
 }
