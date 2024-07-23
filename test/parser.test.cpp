@@ -29,10 +29,28 @@ unlogic::Terminal<TerminalType, TerminalType::SYMBOL, R"(;|\(|\))", std::string_
     return pos.raw;
 });
 
-unlogic::NonTerminal<double> program;
+unlogic::NonTerminal<TerminalType, double> expression
+    = (NUMBER + OPERATOR + NUMBER)<=>[](auto &$) -> double
+    {
+        return NUMBER($[0]) + NUMBER($[2]);
+    }
+    /*
+    | (SYMBOL + expression + SYMBOL)<=>[](auto a)
+    {
+        return a[1];
+    }
+     */
+/*
+| (NUMBER + OPERATOR["+"] + NUMBER)<=>[](auto a) { return a[0] + a[2]; }
+| (NUMBER + OPERATOR["-"] + NUMBER)<=>[](auto a) { return a[0] - a[2]; }
+| (NUMBER + OPERATOR["/"] + NUMBER)<=>[](auto a) { return a[0] / a[2]; }
+| (NUMBER + OPERATOR["*"] + NUMBER)<=>[](auto a) { return a[0] * a[2]; }
+*/
+    ;
 
-unlogic::NonTerminal<double> expression
-    = *(&expression);
+unlogic::NonTerminal<TerminalType, double> program
+    = expression
+    ;
 
 TEST(Lex, TerminalMatching)
 {
@@ -68,5 +86,11 @@ TEST(Lex, BasicLexxing)
 
 TEST(Parser, BasicCalculation)
 {
-    std::string input_string = "calculate 3 * 3;";
+    std::string input_string = "calculate 3 + 3";
+
+    lex.SetInput(input_string);
+
+    auto result = program.Parse(lex);
+
+    ASSERT_EQ(result, 6.0);
 }

@@ -36,13 +36,14 @@ namespace unlogic
     class TerminalInterface
     {
     public:
+        virtual constexpr T Type() const = 0;
         virtual constexpr std::optional<LexReturnValue<T>> Match(std::string_view input) const = 0;
     };
 
     template<typename T>
     class Lex
     {
-        int index_;
+        int index_ = -1;
         std::optional<std::string_view> input_;
         std::vector<TerminalInterface<T> *> terminals_;
 
@@ -58,7 +59,7 @@ namespace unlogic
             this->index_ = 0;
         }
 
-        std::expected<LexReturnValue<T>, LexError> Next()
+        std::expected<LexReturnValue<T>, LexError> Next(bool peak = false)
         {
             if(!this->input_)
             {
@@ -80,7 +81,11 @@ namespace unlogic
                     match->position.begin += this->index_;
                     match->position.end += this->index_;
                     int match_length = match->position.end - match->position.begin;
-                    this->index_ += match_length;
+
+                    if(!peak)
+                    {
+                        this->index_ += match_length;
+                    }
 
                     return *match;
                 }
@@ -96,7 +101,8 @@ namespace unlogic
         std::function<ValueType(LexPosition)> semantic_reasoner;
 
     public:
-        static const T terminal_type = type;
+        typedef ValueType value_type;
+        const T terminal_type = type;
 
         constexpr std::optional<LexReturnValue<T>> Match(std::string_view input) const override
         {
@@ -118,9 +124,19 @@ namespace unlogic
             return std::nullopt;
         }
 
+        constexpr T Type() const override
+        {
+            return this->terminal_type;
+        }
+
         constexpr ValueType SemanticValue(LexPosition position)
         {
             return this->semantic_reasoner(position);
+        }
+
+        constexpr ValueType operator()(LexPosition position)
+        {
+            return this->SemanticValue(position);
         }
 
         Terminal(Lex<T> &lex, std::function<ValueType(LexPosition)> semantic_reasoner) : semantic_reasoner(semantic_reasoner)
