@@ -1,12 +1,12 @@
-#include "parser/Lex.h"
+#include "parser/Tokenizer.h"
 
 enum class TerminalType
 {
     NUMBER,
 };
 
-unlogic::Lex<TerminalType> lex;
+unlogic::Tokenizer<TerminalType> tokenizer;
 
-unlogic::Terminal<TerminalType, TerminalType::NUMBER, "\-?\d*\.\d*", double> number(lex, [](auto position) {
+unlogic::Terminal<TerminalType, TerminalType::NUMBER, "\-?\d*\.\d*", double> number(tokenizer, [](auto position) {
     return 0.0;
 });

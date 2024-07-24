@@ -43,8 +43,8 @@ endif()
 
 # Unlogic
 add_library(unlogic-parser
-        src/parser/Lex.h
-        src/parser/Lex.cpp
+        src/parser/Tokenizer.h
+        src/parser/Tokenizer.cpp
         src/parser/Parser.h
 )
 target_link_libraries(unlogic-parser PUBLIC ctre::ctre)
@@ -61,7 +61,7 @@ add_library(unlogic STATIC
         src/Library.h
         src/util/io.cpp
         src/util/io.h
-        src/parser/Lex.h
+        src/parser/Tokenizer.h
         src/Error.h
         src/parser/Unlogic.cpp
 )
