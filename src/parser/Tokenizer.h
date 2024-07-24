@@ -31,20 +31,15 @@ namespace unlogic
     class Terminal
     {
     protected:
-        typedef ValueType value_type;
-        const T terminal_type_;
-
         std::function<ValueType(Token<T>&)> semantic_reasoner_;
 
-        Terminal(T terminal_type, std::function<ValueType(Token<T>&)> semantic_reasoner) : terminal_type_(terminal_type), semantic_reasoner_(semantic_reasoner) {}
-
     public:
+        typedef ValueType value_type;
+        const T terminal_type;
+
         virtual constexpr std::optional<Token<T>> Match(std::string_view input) const = 0;
 
-        constexpr ValueType operator()(Token<T> &token)
-        {
-            return this->semantic_reasoner_(token);
-        }
+        Terminal(T terminal_type, std::function<ValueType(Token<T>&)> semantic_reasoner) : terminal_type(terminal_type), semantic_reasoner_(semantic_reasoner) {}
     };
 
     template<typename T, typename ValueType>
@@ -102,7 +97,7 @@ namespace unlogic
         }
     };
 
-    template<typename T, typename ValueType, ctll::fixed_string pattern>
+    template<typename T, typename ValueType, ctll::fixed_string pattern, typename SemanticType>
     class DefineTerminal : public Terminal<T, ValueType>
     {
     public:
@@ -114,7 +109,7 @@ namespace unlogic
                 auto raw = match.to_view();
 
                 return Token<T> {
-                        .type = this->terminal_type_,
+                        .type = this->terminal_type,
                         .begin = 0,
                         .end = (int)raw.size(),
                         .raw = raw,
@@ -122,6 +117,11 @@ namespace unlogic
             }
 
             return std::nullopt;
+        }
+
+        SemanticType operator()(Token<T> &token)
+        {
+            return std::get<SemanticType>(this->semantic_reasoner_(token));
         }
 
         DefineTerminal(Tokenizer<T, ValueType> &tokenizer, T terminal_type, std::function<ValueType(Token<T> &)> semantic_reasoner) : Terminal<T, ValueType>(terminal_type, semantic_reasoner)
