@@ -4,9 +4,6 @@ project(unlogic)
 set(CMAKE_CXX_STANDARD 23)
 
 # External Libs
-find_package(BISON 3.8.2 REQUIRED)
-find_package(FLEX 2.6.4 REQUIRED)
-
 find_package(LLVM 17 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
@@ -15,6 +12,13 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM gtkmm-4.0 epoxy pango)
 
 include(FetchContent)
+FetchContent_Declare(
+        ctre
+        GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git
+        GIT_TAG v3.9.0
+)
+FetchContent_MakeAvailable(ctre)
+
 FetchContent_Declare(
         glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
@@ -37,31 +41,32 @@ else()
     set(llvm_libs -lLLVM-17)
 endif()
 
-# Parser
-FLEX_TARGET(unlogic-scanner src/parser/Scanner.l ${CMAKE_CURRENT_BINARY_DIR}/parser/Scanner.cpp)
-BISON_TARGET(unlogic-parser src/parser/Parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser/Parser.cpp)
-
 # Unlogic
+add_library(unlogic-parser
+        src/parser/Tokenizer.h
+        src/parser/Tokenizer.cpp
+        src/parser/Parser.h
+)
+target_link_libraries(unlogic-parser PUBLIC ctre::ctre)
+target_include_directories(unlogic-parser PUBLIC src)
+
 add_library(unlogic STATIC
         src/parser/Node.cpp
         src/parser/Node.h
-        src/Exception.cpp
-        src/Exception.h
         src/Compiler.cpp
         src/Compiler.h
-        ${FLEX_unlogic-scanner_OUTPUTS}
-        ${BISON_unlogic-parser_OUTPUTS}
-        src/parser/ParserInterface.h
-        src/parser/ParserInterface.cpp
         src/std/StandardLibrary.cpp
         src/std/StandardLibrary.h
         src/Library.cpp
         src/Library.h
         src/util/io.cpp
         src/util/io.h
+        src/parser/Tokenizer.h
+        src/Error.h
+        src/parser/Unlogic.cpp
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs})
-target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
 
 add_executable(unlogic-calculator
         src/calculator/main.cpp
@@ -90,4 +95,8 @@ add_executable(unlogic-test
         test/main.test.cpp
 )
 target_link_libraries(unlogic-test PUBLIC unlogic unlogic-graphic GTest::gtest)
-target_include_directories(unlogic-test PUBLIC src)
+
+add_executable(unlogic-parser-test
+        test/parser.test.cpp
+)
+target_link_libraries(unlogic-parser-test PUBLIC unlogic-parser GTest::gtest_main)
