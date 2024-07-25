@@ -31,7 +31,7 @@ namespace unlogic
     class Terminal
     {
     protected:
-        std::function<ValueType(Token<T>&)> semantic_reasoner_;
+        std::function<ValueType(Token<T> const&)> semantic_reasoner_;
 
     public:
         typedef ValueType value_type;
@@ -39,14 +39,12 @@ namespace unlogic
 
         virtual constexpr std::optional<Token<T>> Match(std::string_view input) const = 0;
 
-        Terminal(T terminal_type, std::function<ValueType(Token<T>&)> semantic_reasoner) : terminal_type(terminal_type), semantic_reasoner_(semantic_reasoner) {}
+        Terminal(T terminal_type, std::function<ValueType(Token<T> const&)> semantic_reasoner) : terminal_type(terminal_type), semantic_reasoner_(semantic_reasoner) {}
     };
 
     template<typename T, typename ValueType>
     class Tokenizer
     {
-        int index_ = -1;
-        std::optional<std::string_view> input_;
         std::vector<Terminal<T, ValueType> *> terminals_;
 
     public:
@@ -55,45 +53,46 @@ namespace unlogic
             this->terminals_.push_back(terminal);
         }
 
-        void SetInput(std::string_view input)
+        std::expected<std::vector<Token<T>>, Error> Tokenize(std::string_view input)
         {
-            this->input_ = input;
-            this->index_ = 0;
-        }
+            std::vector<Token<T>> tokens;
+            int index = 0;
 
-        std::expected<Token<T>, LexError> Next(bool peak = false)
-        {
-            if(!this->input_)
+            while(!input.empty())
             {
-                return std::unexpected("No input provided!");
-            }
-
-            while(std::isspace(this->input_.value()[0]))
-            {
-                this->input_ = this->input_->substr(1);
-                this->index_++;
-            }
-
-            for(auto terminal : this->terminals_)
-            {
-                if(auto match = terminal->Match(this->input_.value()))
+                // Clear whitespace
+                while(std::isspace(input[0]))
                 {
-                    this->input_ = this->input_->substr(match->end);
+                    input = input.substr(1);
+                    index++;
+                }
 
-                    match->begin += this->index_;
-                    match->end += this->index_;
-                    int match_length = match->end - match->begin;
-
-                    if(!peak)
+                // Do terminal matching
+                bool matched = false;
+                for(auto terminal : this->terminals_)
+                {
+                    if(auto match = terminal->Match(input))
                     {
-                        this->index_ += match_length;
-                    }
+                        input = input.substr(match->end);
 
-                    return *match;
+                        match->begin += index;
+                        match->end += index;
+                        int match_length = match->end - match->begin;
+
+                        tokens.push_back(*match);
+
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if(!matched)
+                {
+                    return std::unexpected("Could not match token to any pattern!");
                 }
             }
 
-            return std::unexpected("Unknown error!");
+            return tokens;
         }
     };
 
@@ -119,12 +118,12 @@ namespace unlogic
             return std::nullopt;
         }
 
-        SemanticType operator()(Token<T> &token)
+        SemanticType operator()(Token<T> const &token)
         {
             return std::get<SemanticType>(this->semantic_reasoner_(token));
         }
 
-        DefineTerminal(Tokenizer<T, ValueType> &tokenizer, T terminal_type, std::function<ValueType(Token<T> &)> semantic_reasoner) : Terminal<T, ValueType>(terminal_type, semantic_reasoner)
+        DefineTerminal(Tokenizer<T, ValueType> &tokenizer, T terminal_type, std::function<ValueType(Token<T> const&)> semantic_reasoner) : Terminal<T, ValueType>(terminal_type, semantic_reasoner)
         {
             tokenizer.RegisterTerminal(this);
         }
