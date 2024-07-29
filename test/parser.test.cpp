@@ -35,21 +35,19 @@ unlogic::NonTerminal<TerminalType, ValueType> expression
     {
         return NUMBER($[0]);
     }
-    | (&expression + OPERATOR + &expression)<=>[](auto &$)
+    | unlogic::ProductionRule(IDENTIFIER)<=>[](auto &$)
     {
         return 0.0;
+    }
+    | (expression + OPERATOR + expression)<=>[](auto &$)
+    {
+        return std::get<double>($[0]) + std::get<double>($[2]);
     }
     ;
 
 TEST(Tokenizer, TerminalMatching)
 {
     ASSERT_TRUE(NUMBER.Match("-406.78"));
-}
-
-TEST(Tokenizer, TerminalValues)
-{
-    auto token = *NUMBER.Match("104.23");
-    ASSERT_EQ(NUMBER(token), 104.23);
 }
 
 TEST(Tokenizer, BasicTokenizing)

@@ -6,34 +6,155 @@
 #include <expected>
 #include <span>
 #include <ranges>
+#include <string_view>
+#include <functional>
+#include <cctype>
+#include <variant>
+#include <ctre.hpp>
 #include "Error.h"
-#include "parser/Tokenizer.h"
 
 namespace unlogic
 {
-    class ParseError : public Error {};
-
     // Forward decls
     template<typename T, typename ValueType>
     class NonTerminal;
 
     template<typename T, typename ValueType>
+    class ProductionRule;
+
+    // Error types
+    class ParseError : public Error {};
+    class LexError : public Error
+    {
+    public:
+        //const LexPosition position;
+    };
+
+    template<typename T>
+    struct Token
+    {
+        T type;
+        int begin = -1;
+        int end = -1;
+        std::string_view raw;
+    };
+
+    template<typename T, typename ValueType>
+    class Terminal
+    {
+        friend class ProductionRule<T, ValueType>;
+
+    protected:
+        std::function<ValueType(Token<T> const&)> semantic_reasoner_;
+
+    public:
+        typedef ValueType value_type;
+        const T terminal_type;
+
+        virtual constexpr std::optional<Token<T>> Match(std::string_view input) const = 0;
+
+        Terminal(T terminal_type, std::function<ValueType(Token<T> const&)> semantic_reasoner) : terminal_type(terminal_type), semantic_reasoner_(semantic_reasoner) {}
+    };
+
+    template<typename T, typename ValueType>
+    class Tokenizer
+    {
+        std::vector<Terminal<T, ValueType> *> terminals_;
+
+    public:
+        void RegisterTerminal(Terminal<T, ValueType> *terminal)
+        {
+            this->terminals_.push_back(terminal);
+        }
+
+        std::expected<std::vector<Token<T>>, Error> Tokenize(std::string_view input)
+        {
+            std::vector<Token<T>> tokens;
+            int index = 0;
+
+            while(!input.empty())
+            {
+                // Clear whitespace
+                while(std::isspace(input[0]))
+                {
+                    input = input.substr(1);
+                    index++;
+                }
+
+                // Do terminal matching
+                bool matched = false;
+                for(auto terminal : this->terminals_)
+                {
+                    if(auto match = terminal->Match(input))
+                    {
+                        input = input.substr(match->end);
+
+                        match->begin += index;
+                        match->end += index;
+                        int match_length = match->end - match->begin;
+
+                        tokens.push_back(*match);
+
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if(!matched)
+                {
+                    return std::unexpected("Could not match token to any pattern!");
+                }
+            }
+
+            return tokens;
+        }
+    };
+
+    template<typename T, typename ValueType, ctll::fixed_string pattern, typename SemanticType>
+    class DefineTerminal : public Terminal<T, ValueType>
+    {
+    public:
+        constexpr std::optional<Token<T>> Match(std::string_view input) const override
+        {
+            auto match = ctre::starts_with<pattern>(input);
+            if(match)
+            {
+                auto raw = match.to_view();
+
+                return Token<T> {
+                        .type = this->terminal_type,
+                        .begin = 0,
+                        .end = (int)raw.size(),
+                        .raw = raw,
+                };
+            }
+
+            return std::nullopt;
+        }
+
+        SemanticType operator()(ValueType const &value)
+        {
+            return std::get<SemanticType>(value);
+        }
+
+        DefineTerminal(Tokenizer<T, ValueType> &tokenizer, T terminal_type, std::function<ValueType(Token<T> const&)> semantic_reasoner) : Terminal<T, ValueType>(terminal_type, semantic_reasoner)
+        {
+            tokenizer.RegisterTerminal(this);
+        }
+    };
+
+    template<typename T, typename ValueType>
     class ProductionRule
     {
         friend class NonTerminal<T, ValueType>;
-        typedef std::function<ValueType(std::vector<Token<T>> const&)> transductor_t;
+        typedef std::function<ValueType(std::vector<ValueType> const&)> transductor_t;
 
     protected:
         std::optional<transductor_t> tranductor_ = std::nullopt;
 
-        std::vector<std::variant<T, NonTerminal<T, ValueType>*>> parse_sequence_;
+        std::vector<std::variant<Terminal<T, ValueType>*, NonTerminal<T, ValueType>*>> parse_sequence_;
 
     public:
-        std::vector<ProductionRule<T, ValueType>> operator|(ProductionRule<T, ValueType> &rhs)
-        {
-            return {*this, rhs};
-        }
-
         template<typename F>
         ProductionRule<T, ValueType> &operator<=>(F transductor)
         {
@@ -43,14 +164,14 @@ namespace unlogic
 
         ProductionRule<T, ValueType> &operator+(Terminal<T, ValueType> &rhs)
         {
-            this->parse_sequence_.push_back(rhs.terminal_type);
+            this->parse_sequence_.push_back(&rhs);
 
             return *this;
         }
 
-        ProductionRule<T, ValueType> &operator+(NonTerminal<T, ValueType> *rhs)
+        ProductionRule<T, ValueType> &operator+(NonTerminal<T, ValueType> &rhs)
         {
-            this->parse_sequence_.push_back(rhs);
+            this->parse_sequence_.push_back(&rhs);
 
             return *this;
         }
@@ -69,32 +190,82 @@ namespace unlogic
                 return std::nullopt;
             }
 
+            std::vector<ValueType> values;
             for(int i = 0; i < this->parse_sequence_.size(); i++)
             {
-                if(this->parse_sequence_[i] != tokens[index + i].type)
+                std::optional<ValueType> value = std::visit([&](auto &&val) -> std::optional<ValueType>
+                {
+                    using VariantType = std::decay_t<decltype(val)>;
+
+                    if constexpr (std::is_same_v<VariantType, Terminal<T, ValueType>*>)
+                    {
+                        Terminal<T, ValueType> *terminal = val;
+
+                        auto &token = tokens[i + index];
+                        if(token.type == terminal->terminal_type)
+                        {
+                            return terminal->semantic_reasoner_(token);
+                        }
+
+                        return std::nullopt;
+                    }
+                    else
+                    {
+                        NonTerminal<T, ValueType> *nonterminal = val;
+                        return *nonterminal->Parse(tokens, index + i);
+                    }
+                }, this->parse_sequence_[i]);
+
+                if(value)
+                {
+                    values.push_back(*value);
+                }
+                else
                 {
                     return std::nullopt;
                 }
             }
 
-            auto &transductor = *this->tranductor_;
-            std::vector<Token<T>> temporary(tokens.begin() + index, tokens.end());
-            return transductor(temporary);
+            return (*this->tranductor_)(values);
         }
 
         ProductionRule(Terminal<T, ValueType> &start)
         {
-            this->parse_sequence_.push_back(start.terminal_type);
+            this->parse_sequence_.push_back(&start);
         }
 
-        ProductionRule(NonTerminal<T, ValueType> *start)
+        ProductionRule(NonTerminal<T, ValueType> &start)
         {
-            this->parse_sequence_.push_back(start);
+            this->parse_sequence_.push_back(&start);
         }
     };
 
     template<typename T, typename ValueType>
-    ProductionRule<T, ValueType> operator+(Terminal<T, ValueType> &lhs, Terminal<T, ValueType> &rhs)
+    class ProductionRuleList
+    {
+        friend class NonTerminal<T, ValueType>;
+
+    protected:
+        std::vector<ProductionRule<T, ValueType>> rules_;
+
+    public:
+        ProductionRuleList<T, ValueType> &operator|(ProductionRule<T, ValueType> const &rhs)
+        {
+            this->rules_.push_back(rhs);
+            return *this;
+        }
+
+        ProductionRuleList(std::initializer_list<ProductionRule<T, ValueType>> const &rules)
+        {
+            for(auto const &rule : rules)
+            {
+                this->rules_.push_back(rule);
+            }
+        }
+    };
+
+    template<typename T, typename ValueType>
+    ProductionRuleList<T, ValueType> operator+(Terminal<T, ValueType> &lhs, Terminal<T, ValueType> &rhs)
     {
         return ProductionRule(lhs) + rhs;
     }
@@ -106,34 +277,33 @@ namespace unlogic
     }
 
     template<typename T, typename ValueType>
-    ProductionRule<T, ValueType> operator+(NonTerminal<T, ValueType> *lhs, NonTerminal<T, ValueType> *rhs)
+    ProductionRule<T, ValueType> operator+(NonTerminal<T, ValueType> &lhs, NonTerminal<T, ValueType> &rhs)
     {
         return ProductionRule(lhs) + rhs;
     }
 
     template<typename T, typename ValueType>
-    ProductionRule<T, ValueType> operator+(NonTerminal<T, ValueType> *lhs, Terminal<T, ValueType> &rhs)
+    ProductionRule<T, ValueType> operator+(NonTerminal<T, ValueType> &lhs, Terminal<T, ValueType> &rhs)
     {
         return ProductionRule(lhs) + rhs;
     }
 
     template<typename T, typename ValueType>
-    std::vector<ProductionRule<T, ValueType>> &operator|(std::vector<ProductionRule<T, ValueType>> &list, ProductionRule<T, ValueType> &rhs)
+    ProductionRuleList<T, ValueType> operator|(ProductionRule<T, ValueType> const &lhs, ProductionRule<T, ValueType> const &rhs)
     {
-        list.push_back(rhs);
-        return list;
+        return {lhs, rhs};
     }
 
     template<typename T, typename ValueType>
     class NonTerminal
     {
         int const lookahead_ = 1;
-        std::vector<ProductionRule<T, ValueType>> production_rules_;
+        ProductionRuleList<T, ValueType> production_rules_;
 
     public:
         std::expected<ValueType, Error> Parse(std::vector<Token<T>> const &tokens, int index = 0)
         {
-            for(auto &rule : production_rules_)
+            for(auto &rule : production_rules_.rules_)
             {
                 auto value = rule.Produce(tokens, index);
 
@@ -147,7 +317,7 @@ namespace unlogic
         }
 
         NonTerminal(ProductionRule<T, ValueType> const &production_rule) : production_rules_({ production_rule }) {}
-        NonTerminal(std::vector<ProductionRule<T, ValueType>> const &production_rules) : production_rules_(production_rules) {}
+        NonTerminal(ProductionRuleList<T, ValueType> const &production_rules) : production_rules_(production_rules) {}
     };
 
     template<typename T, typename ValueType>

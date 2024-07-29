@@ -42,13 +42,11 @@ else()
 endif()
 
 # Unlogic
-add_library(unlogic-parser
-        src/parser/Tokenizer.h
-        src/parser/Tokenizer.cpp
+add_library(unlogic-parser INTERFACE
         src/parser/Parser.h
 )
-target_link_libraries(unlogic-parser PUBLIC ctre::ctre)
-target_include_directories(unlogic-parser PUBLIC src)
+target_link_libraries(unlogic-parser INTERFACE ctre::ctre)
+target_include_directories(unlogic-parser INTERFACE src)
 
 add_library(unlogic STATIC
         src/parser/Node.cpp
@@ -61,7 +59,6 @@ add_library(unlogic STATIC
         src/Library.h
         src/util/io.cpp
         src/util/io.h
-        src/parser/Tokenizer.h
         src/Error.h
         src/parser/Unlogic.cpp
 )
