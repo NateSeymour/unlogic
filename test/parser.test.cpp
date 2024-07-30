@@ -9,6 +9,7 @@ enum class TerminalType
     KEYWORD,
     OPERATOR,
     SYMBOL,
+    END,
 };
 
 typedef std::variant<double, std::string> ValueType;
@@ -30,41 +31,32 @@ unlogic::DefineTerminal<TerminalType, ValueType, R"([a-zA-Z\d]+)", std::string> 
     return std::string(tok.raw);
 });
 
+unlogic::DefineTerminal<TerminalType, ValueType, R"(\s*$)", double> END(tokenizer, TerminalType::END, [](auto tok) {
+    return 0.0;
+});
+
 unlogic::NonTerminal<TerminalType, ValueType> expression
-    = unlogic::ProductionRule(NUMBER)<=>[](auto &$)
-    {
-        return NUMBER($[0]);
-    }
-    | unlogic::ProductionRule(IDENTIFIER)<=>[](auto &$)
-    {
-        return 0.0;
-    }
-    | (expression + OPERATOR + expression)<=>[](auto &$)
+    = (expression + OPERATOR + expression)<=>[](auto &$)
     {
         return std::get<double>($[0]) + std::get<double>($[2]);
     }
+    | unlogic::ProductionRule(NUMBER)<=>[](auto &$)
+    {
+        return std::get<double>($[0]);
+    }
     ;
 
-TEST(Tokenizer, TerminalMatching)
-{
-    ASSERT_TRUE(NUMBER.Match("-406.78"));
-}
-
-TEST(Tokenizer, BasicTokenizing)
-{
-    auto tokens = *tokenizer.Tokenize("39.2 + 45 * 6");
-
-    ASSERT_EQ(tokens[0].type, TerminalType::NUMBER);
-    ASSERT_EQ(tokens[1].type, TerminalType::OPERATOR);
-    ASSERT_EQ(tokens[2].type, TerminalType::NUMBER);
-    ASSERT_EQ(tokens[3].type, TerminalType::OPERATOR);
-    ASSERT_EQ(tokens[4].type, TerminalType::NUMBER);
-}
+unlogic::NonTerminal<TerminalType, ValueType> program
+    = (expression + END)<=>[](auto &$)
+    {
+        return std::get<double>($[0]);
+    }
+    ;
 
 TEST(Parser, BasicParsing)
 {
-    auto tokens = *tokenizer.Tokenize("39.5 + 42");
-    auto result = *expression.Parse(tokens);
+    auto stream = tokenizer.Stream("39.5 + 42");
+    auto result = *expression.Parse(stream);
 
     ASSERT_EQ(81.5, std::get<double>(result));
 }

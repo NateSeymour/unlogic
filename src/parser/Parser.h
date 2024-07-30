@@ -2,6 +2,7 @@
 #define UNLOGIC_PARSER_H
 
 #include <vector>
+#include <deque>
 #include <optional>
 #include <expected>
 #include <span>
@@ -10,12 +11,16 @@
 #include <functional>
 #include <cctype>
 #include <variant>
+#include <stack>
 #include <ctre.hpp>
 #include "Error.h"
 
 namespace unlogic
 {
     // Forward decls
+    template<typename T, typename ValueType>
+    class Parser;
+
     template<typename T, typename ValueType>
     class NonTerminal;
 
@@ -27,7 +32,7 @@ namespace unlogic
     class LexError : public Error
     {
     public:
-        //const LexPosition position;
+        LexError(char const *error) : Error(error) {}
     };
 
     template<typename T>
@@ -59,54 +64,82 @@ namespace unlogic
     template<typename T, typename ValueType>
     class Tokenizer
     {
+    protected:
         std::vector<Terminal<T, ValueType> *> terminals_;
 
     public:
+        class TokenStream
+        {
+            Tokenizer<T, ValueType> const &tokenizer_;
+            std::string_view input_;
+            std::deque<Token<T>> buffer_;
+            std::size_t index_ = 0;
+
+        public:
+            std::expected<Token<T>, LexError> ReadNext()
+            {
+                // Clear whitespace
+                while(std::isspace(this->input_[0]))
+                {
+                    this->input_ = this->input_.substr(1);
+                    this->index_++;
+                }
+
+                // Do terminal matching
+                for(auto terminal : this->tokenizer_.terminals_)
+                {
+                    if(auto match = terminal->Match(this->input_))
+                    {
+                        this->input_ = this->input_.substr(match->end);
+
+                        match->begin += this->index_;
+                        match->end += this->index_;
+                        int match_length = match->end - match->begin;
+
+                        return *match;
+                    }
+                }
+
+                return std::unexpected("End of token stream!");
+            }
+
+            std::expected<Token<T>, LexError> Consume()
+            {
+                if(!this->buffer_.empty())
+                {
+                    Token<T> token = this->buffer_[0];
+                    this->buffer_.pop_front();
+
+                    return token;
+                }
+
+                return this->ReadNext();
+            }
+
+            std::expected<Token<T>, LexError> Peek(std::size_t lookahead = 0)
+            {
+                // Fill buffer to desired location
+                while(this->buffer_.size() <= lookahead)
+                {
+                    this->buffer_.push_back(*this->ReadNext());
+                }
+
+                return this->buffer_[lookahead];
+            }
+
+            TokenStream(Tokenizer<T, ValueType> const &tokenizer, std::string_view input) : tokenizer_(tokenizer), input_(input) {}
+        };
+
+        friend class Tokenizer<T, ValueType>::TokenStream;
+
         void RegisterTerminal(Terminal<T, ValueType> *terminal)
         {
             this->terminals_.push_back(terminal);
         }
 
-        std::expected<std::vector<Token<T>>, Error> Tokenize(std::string_view input)
+        TokenStream Stream(std::string input)
         {
-            std::vector<Token<T>> tokens;
-            int index = 0;
-
-            while(!input.empty())
-            {
-                // Clear whitespace
-                while(std::isspace(input[0]))
-                {
-                    input = input.substr(1);
-                    index++;
-                }
-
-                // Do terminal matching
-                bool matched = false;
-                for(auto terminal : this->terminals_)
-                {
-                    if(auto match = terminal->Match(input))
-                    {
-                        input = input.substr(match->end);
-
-                        match->begin += index;
-                        match->end += index;
-                        int match_length = match->end - match->begin;
-
-                        tokens.push_back(*match);
-
-                        matched = true;
-                        break;
-                    }
-                }
-
-                if(!matched)
-                {
-                    return std::unexpected("Could not match token to any pattern!");
-                }
-            }
-
-            return tokens;
+            return TokenStream(*this, input);
         }
     };
 
@@ -176,16 +209,10 @@ namespace unlogic
             return *this;
         }
 
-        std::optional<ValueType> Produce(std::vector<Token<T>> const &tokens, int index = 0)
+        std::optional<ValueType> Produce(Tokenizer<T, ValueType>::TokenStream &stream)
         {
             // If we have no transductor then there is no point in attempting parse.
             if(!this->tranductor_)
-            {
-                return std::nullopt;
-            }
-
-            // Not enough tokens to complete parse
-            if(tokens.size() - index < this->parse_sequence_.size())
             {
                 return std::nullopt;
             }
@@ -201,10 +228,9 @@ namespace unlogic
                     {
                         Terminal<T, ValueType> *terminal = val;
 
-                        auto &token = tokens[i + index];
-                        if(token.type == terminal->terminal_type)
+                        if(stream.Peek()->type == terminal->terminal_type)
                         {
-                            return terminal->semantic_reasoner_(token);
+                            return terminal->semantic_reasoner_(*stream.Consume());
                         }
 
                         return std::nullopt;
@@ -212,7 +238,7 @@ namespace unlogic
                     else
                     {
                         NonTerminal<T, ValueType> *nonterminal = val;
-                        return *nonterminal->Parse(tokens, index + i);
+                        return *nonterminal->Parse(stream);
                     }
                 }, this->parse_sequence_[i]);
 
@@ -264,6 +290,7 @@ namespace unlogic
         }
     };
 
+#pragma region ProductionRule Composition Functions
     template<typename T, typename ValueType>
     ProductionRuleList<T, ValueType> operator+(Terminal<T, ValueType> &lhs, Terminal<T, ValueType> &rhs)
     {
@@ -293,19 +320,25 @@ namespace unlogic
     {
         return {lhs, rhs};
     }
+#pragma endregion
 
     template<typename T, typename ValueType>
     class NonTerminal
     {
-        int const lookahead_ = 1;
         ProductionRuleList<T, ValueType> production_rules_;
 
     public:
-        std::expected<ValueType, Error> Parse(std::vector<Token<T>> const &tokens, int index = 0)
+        std::expected<ValueType, Error> Parse(Tokenizer<T, ValueType>::TokenStream &stream)
         {
-            for(auto &rule : production_rules_.rules_)
+            auto start = stream.Peek();
+            if(!start)
             {
-                auto value = rule.Produce(tokens, index);
+                return std::unexpected("Unexpected end of token stream!");
+            }
+
+            for(auto &rule : this->production_rules_.rules_)
+            {
+                auto value = rule.Produce(stream);
 
                 if(value)
                 {
@@ -313,7 +346,7 @@ namespace unlogic
                 }
             }
 
-            return std::unexpected("Failed to parse sequence of tokens!");
+            return std::unexpected("No matching rules!");
         }
 
         NonTerminal(ProductionRule<T, ValueType> const &production_rule) : production_rules_({ production_rule }) {}
@@ -326,14 +359,23 @@ namespace unlogic
         Tokenizer<T, ValueType> const &tokenizer_;
         NonTerminal<T, ValueType> const &start_;
 
+        // void first_;
+        // void follow_;
+        // void action_;
+        // void goto_;
+
     public:
-        std::optional<ValueType> Parse(std::string_view input)
+        std::expected<ValueType, ParseError> Parse(std::string_view input) const
         {
-            auto tokens = this->tokenizer_.Tokenize(input);
-            return this->start_.Parse(*tokens);
+            auto stream = this->tokenizer_.Stream(input);
+
         }
 
-        Parser(Tokenizer<T, ValueType> const &tokenizer, NonTerminal<T, ValueType> const &start) : tokenizer_(tokenizer), start_(start) {}
+        Parser(Tokenizer<T, ValueType> const &tokenizer, NonTerminal<T, ValueType> const &start) : tokenizer_(tokenizer), start_(start)
+        {
+            // Generate LR(0) automaton states
+
+        }
     };
 }
 
