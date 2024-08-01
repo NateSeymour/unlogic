@@ -44,6 +44,10 @@ unlogic::NonTerminal<TerminalType, ValueType> expression
     {
         return std::get<double>($[0]);
     }
+    | unlogic::ProductionRule(IDENTIFIER)<=>[](auto &$)
+    {
+        return 0.0;
+    }
     ;
 
 unlogic::NonTerminal<TerminalType, ValueType> program

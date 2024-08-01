@@ -17,7 +17,7 @@
 
 namespace unlogic
 {
-    // Forward decls
+#pragma region Forwards Decls
     template<typename T, typename ValueType>
     class Parser;
 
@@ -26,6 +26,33 @@ namespace unlogic
 
     template<typename T, typename ValueType>
     class ProductionRule;
+#pragma endregion
+#pragma region std::visit Hackery
+    /**
+     * Helper for std::visit provided by Andreas Fertig.
+     * Apple-Clang 15 isn't C++23 compliant enough for the prettier solution, so C++17 style it is.
+     * https://andreasfertig.blog/2023/07/visiting-a-stdvariant-safely/
+     * @tparam Ts
+     */
+    template<class...>
+    constexpr bool always_false_v = false;
+
+    template<class... Ts>
+    struct overload : Ts...
+    {
+        using Ts::operator()...;
+
+        // Prevent implicit type conversions
+        template<typename T>
+        constexpr void operator()(T) const
+        {
+            static_assert(always_false_v<T>, "Unsupported type");
+        }
+    };
+
+    template<class... Ts>
+    overload(Ts...) -> overload<Ts...>;
+#pragma endregion
 
     // Error types
     class ParseError : public Error {};
@@ -325,7 +352,35 @@ namespace unlogic
     template<typename T, typename ValueType>
     class NonTerminal
     {
+    protected:
         ProductionRuleList<T, ValueType> production_rules_;
+
+        std::vector<T> first_;
+        std::vector<T> follow_;
+
+        std::vector<T> GenerateFirstSet() const
+        {
+            std::vector<T> first;
+
+            for(auto const &rule : this->production_rules_.rules_)
+            {
+                std::visit(overload{
+                    [&](Terminal<T, ValueType> *terminal)
+                    {
+                        first.push_back(terminal->terminal_type);
+                    },
+                    [&](NonTerminal<T, ValueType> *nonterminal)
+                    {
+                        // Normally really dumb, but _should_ work within the constraints of the project.
+                        if(nonterminal == this) return;
+
+                        first.insert_range(first.end(), nonterminal->first_);
+                    },
+                }, rule.parse_sequence_[0]);
+            }
+
+            return first;
+        }
 
     public:
         std::expected<ValueType, Error> Parse(Tokenizer<T, ValueType>::TokenStream &stream)
@@ -349,8 +404,8 @@ namespace unlogic
             return std::unexpected("No matching rules!");
         }
 
-        NonTerminal(ProductionRule<T, ValueType> const &production_rule) : production_rules_({ production_rule }) {}
-        NonTerminal(ProductionRuleList<T, ValueType> const &production_rules) : production_rules_(production_rules) {}
+        NonTerminal(ProductionRuleList<T, ValueType> const &production_rules) : production_rules_(production_rules), first_(std::move(this->GenerateFirstSet())) {}
+        NonTerminal(ProductionRule<T, ValueType> const &production_rule) : production_rules_({ production_rule }), first_(std::move(this->GenerateFirstSet())) {}
     };
 
     template<typename T, typename ValueType>
@@ -359,21 +414,27 @@ namespace unlogic
         Tokenizer<T, ValueType> const &tokenizer_;
         NonTerminal<T, ValueType> const &start_;
 
-        // void first_;
-        // void follow_;
-        // void action_;
         // void goto_;
+        // void action_;
 
     public:
+        /**
+         * @param input
+         * @return
+         */
         std::expected<ValueType, ParseError> Parse(std::string_view input) const
         {
-            auto stream = this->tokenizer_.Stream(input);
+            using StackType = std::variant<Token<T>, NonTerminal<T, ValueType>>;
 
+            auto stream = this->tokenizer_.Stream(input);
+            std::stack<StackType> stack;
+
+            // to shift we call stream.Next();
         }
 
         Parser(Tokenizer<T, ValueType> const &tokenizer, NonTerminal<T, ValueType> const &start) : tokenizer_(tokenizer), start_(start)
         {
-            // Generate LR(0) automaton states
+            // Generate LR(1) automaton
 
         }
     };
