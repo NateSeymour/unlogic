@@ -15,6 +15,8 @@
 #include <ctre.hpp>
 #include "Error.h"
 
+// TODO: append_range instead of insert_range
+
 namespace unlogic
 {
 #pragma region Forwards Decls
@@ -206,6 +208,7 @@ namespace unlogic
     template<typename T, typename ValueType>
     class ProductionRule
     {
+        friend class Parser<T, ValueType>;
         friend class NonTerminal<T, ValueType>;
         typedef std::function<ValueType(std::vector<ValueType> const&)> transductor_t;
 
@@ -238,48 +241,7 @@ namespace unlogic
 
         std::optional<ValueType> Produce(Tokenizer<T, ValueType>::TokenStream &stream)
         {
-            // If we have no transductor then there is no point in attempting parse.
-            if(!this->tranductor_)
-            {
-                return std::nullopt;
-            }
-
-            std::vector<ValueType> values;
-            for(int i = 0; i < this->parse_sequence_.size(); i++)
-            {
-                std::optional<ValueType> value = std::visit([&](auto &&val) -> std::optional<ValueType>
-                {
-                    using VariantType = std::decay_t<decltype(val)>;
-
-                    if constexpr (std::is_same_v<VariantType, Terminal<T, ValueType>*>)
-                    {
-                        Terminal<T, ValueType> *terminal = val;
-
-                        if(stream.Peek()->type == terminal->terminal_type)
-                        {
-                            return terminal->semantic_reasoner_(*stream.Consume());
-                        }
-
-                        return std::nullopt;
-                    }
-                    else
-                    {
-                        NonTerminal<T, ValueType> *nonterminal = val;
-                        return *nonterminal->Parse(stream);
-                    }
-                }, this->parse_sequence_[i]);
-
-                if(value)
-                {
-                    values.push_back(*value);
-                }
-                else
-                {
-                    return std::nullopt;
-                }
-            }
-
-            return (*this->tranductor_)(values);
+            static_assert(false, "unimplemented");
         }
 
         ProductionRule(Terminal<T, ValueType> &start)
@@ -296,6 +258,7 @@ namespace unlogic
     template<typename T, typename ValueType>
     class ProductionRuleList
     {
+        friend class Parser<T, ValueType>;
         friend class NonTerminal<T, ValueType>;
 
     protected:
@@ -352,35 +315,10 @@ namespace unlogic
     template<typename T, typename ValueType>
     class NonTerminal
     {
+        friend class Parser<T, ValueType>;
+
     protected:
         ProductionRuleList<T, ValueType> production_rules_;
-
-        std::vector<T> first_;
-        std::vector<T> follow_;
-
-        std::vector<T> GenerateFirstSet() const
-        {
-            std::vector<T> first;
-
-            for(auto const &rule : this->production_rules_.rules_)
-            {
-                std::visit(overload{
-                    [&](Terminal<T, ValueType> *terminal)
-                    {
-                        first.push_back(terminal->terminal_type);
-                    },
-                    [&](NonTerminal<T, ValueType> *nonterminal)
-                    {
-                        // Normally really dumb, but _should_ work within the constraints of the project.
-                        if(nonterminal == this) return;
-
-                        first.insert_range(first.end(), nonterminal->first_);
-                    },
-                }, rule.parse_sequence_[0]);
-            }
-
-            return first;
-        }
 
     public:
         std::expected<ValueType, Error> Parse(Tokenizer<T, ValueType>::TokenStream &stream)
@@ -404,8 +342,8 @@ namespace unlogic
             return std::unexpected("No matching rules!");
         }
 
-        NonTerminal(ProductionRuleList<T, ValueType> const &production_rules) : production_rules_(production_rules), first_(std::move(this->GenerateFirstSet())) {}
-        NonTerminal(ProductionRule<T, ValueType> const &production_rule) : production_rules_({ production_rule }), first_(std::move(this->GenerateFirstSet())) {}
+        NonTerminal(ProductionRuleList<T, ValueType> const &production_rules) : production_rules_(production_rules) {}
+        NonTerminal(ProductionRule<T, ValueType> const &production_rule) : production_rules_({ production_rule }) {}
     };
 
     template<typename T, typename ValueType>
@@ -413,6 +351,55 @@ namespace unlogic
     {
         Tokenizer<T, ValueType> const &tokenizer_;
         NonTerminal<T, ValueType> const &start_;
+
+        enum class ActionType
+        {
+            kShift,
+            kReduce,
+            kAccept,
+        };
+
+        struct Branch
+        {
+            ProductionRule<T, ValueType> const &rule;
+            int index;
+
+            constexpr Branch(ProductionRule<T, ValueType> const &rule, int index) : rule(rule), index(index) {};
+        };
+
+        struct State
+        {
+            std::vector<Branch> branches;
+
+            void Append(State const &state)
+            {
+                this->branches.insert_range(this->branches.end(), state.branches);
+            }
+
+            static State Close(NonTerminal<T, ValueType> const &nonterminal, int index = 0)
+            {
+                State state;
+
+                for(ProductionRule<T, ValueType> const &rule : nonterminal.production_rules_.rules_)
+                {
+                    state.branches.emplace_back(rule, index);
+
+                    if (rule.parse_sequence_.size() > index)
+                    {
+                        std::visit(overload{
+                            [&](NonTerminal<T, ValueType> *nonterminal)
+                            {
+                                state.Append(State::Close(*nonterminal));
+                            }
+                        }, rule.parse_sequence_[index]);
+                    }
+                }
+
+                return state;
+            }
+        };
+
+        std::vector<State> states_;
 
         // void goto_;
         // void action_;
@@ -434,8 +421,33 @@ namespace unlogic
 
         Parser(Tokenizer<T, ValueType> const &tokenizer, NonTerminal<T, ValueType> const &start) : tokenizer_(tokenizer), start_(start)
         {
-            // Generate LR(1) automaton
+            using LookaheadType = std::variant<Terminal<T, ValueType>*, NonTerminal<T, ValueType>*>;
 
+            // Parser table generation
+            this->states_.push_back(State::Close(start));
+            for(auto &state : this->states_)
+            {
+                // Generate list of every possible following symbol
+                std::vector<LookaheadType> follows;
+                for(auto const &branch : state.branches)
+                {
+                    if(branch.index < branch.rule.parse_sequnece_.size() + 1)
+                    {
+                        // TODO: generate "shift" rule
+                        follows.push_back(branch.rule.parse_sequence_[branch.index]);
+                    }
+                    else
+                    {
+                        // TODO: generate "reduce" rule
+                    }
+                }
+
+                // Generate a new state for each following symbol
+                for(auto const &follow : follows)
+                {
+
+                }
+            }
         }
     };
 }
