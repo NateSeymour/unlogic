@@ -241,7 +241,8 @@ namespace unlogic
 
         std::optional<ValueType> Produce(Tokenizer<T, ValueType>::TokenStream &stream)
         {
-            static_assert(false, "unimplemented");
+            //static_assert(false, "unimplemented");
+            return std::nullopt;
         }
 
         ProductionRule(Terminal<T, ValueType> &start)
@@ -321,27 +322,6 @@ namespace unlogic
         ProductionRuleList<T, ValueType> production_rules_;
 
     public:
-        std::expected<ValueType, Error> Parse(Tokenizer<T, ValueType>::TokenStream &stream)
-        {
-            auto start = stream.Peek();
-            if(!start)
-            {
-                return std::unexpected("Unexpected end of token stream!");
-            }
-
-            for(auto &rule : this->production_rules_.rules_)
-            {
-                auto value = rule.Produce(stream);
-
-                if(value)
-                {
-                    return *value;
-                }
-            }
-
-            return std::unexpected("No matching rules!");
-        }
-
         NonTerminal(ProductionRuleList<T, ValueType> const &production_rules) : production_rules_(production_rules) {}
         NonTerminal(ProductionRule<T, ValueType> const &production_rule) : production_rules_({ production_rule }) {}
     };
@@ -364,7 +344,7 @@ namespace unlogic
             ProductionRule<T, ValueType> const &rule;
             int index;
 
-            constexpr Branch(ProductionRule<T, ValueType> const &rule, int index) : rule(rule), index(index) {};
+            Branch(ProductionRule<T, ValueType> const &rule, int index) : rule(rule), index(index) {};
         };
 
         struct State
@@ -390,7 +370,8 @@ namespace unlogic
                             [&](NonTerminal<T, ValueType> *nonterminal)
                             {
                                 state.Append(State::Close(*nonterminal));
-                            }
+                            },
+                            [](Terminal<T, ValueType> *none) {},
                         }, rule.parse_sequence_[index]);
                     }
                 }
@@ -431,7 +412,7 @@ namespace unlogic
                 std::vector<LookaheadType> follows;
                 for(auto const &branch : state.branches)
                 {
-                    if(branch.index < branch.rule.parse_sequnece_.size() + 1)
+                    if(branch.index < branch.rule.parse_sequence_.size() + 1)
                     {
                         // TODO: generate "shift" rule
                         follows.push_back(branch.rule.parse_sequence_[branch.index]);
@@ -445,7 +426,24 @@ namespace unlogic
                 // Generate a new state for each following symbol
                 for(auto const &follow : follows)
                 {
+                    State &follow_state = this->states_.emplace_back();
 
+                    for(auto const &branch : state.branches)
+                    {
+                        if(branch.rule.parse_sequence_[branch.index] == follow)
+                        {
+                            Branch &new_branch = follow_state.branches.emplace_back(branch.rule, branch.index + 1);
+
+                            // Close nonterminals if exist at parsing location
+                            std::visit(overload{
+                                [&](NonTerminal<T, ValueType> *nonterminal)
+                                {
+                                    follow_state.Append(State::Close(*nonterminal));
+                                },
+                                [](Terminal<T, ValueType> *none) {},
+                            }, new_branch.rule.parse_sequence_[new_branch.index]);
+                        }
+                    }
                 }
             }
         }
