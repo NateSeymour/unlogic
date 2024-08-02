@@ -13,11 +13,10 @@ pkg_check_modules(GTKMM gtkmm-4.0 epoxy pango)
 
 include(FetchContent)
 FetchContent_Declare(
-        ctre
-        GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git
-        GIT_TAG v3.9.0
+        buffalo
+        GIT_REPOSITORY https://github.com/NateSeymour/buffalo.git
+        GIT_TAG main
 )
-FetchContent_MakeAvailable(ctre)
 
 FetchContent_Declare(
         glm
@@ -42,12 +41,6 @@ else()
 endif()
 
 # Unlogic
-add_library(unlogic-parser INTERFACE
-        src/parser/Parser.h
-)
-target_link_libraries(unlogic-parser INTERFACE ctre::ctre)
-target_include_directories(unlogic-parser INTERFACE src)
-
 add_library(unlogic STATIC
         src/parser/Node.cpp
         src/parser/Node.h
@@ -92,8 +85,3 @@ add_executable(unlogic-test
         test/main.test.cpp
 )
 target_link_libraries(unlogic-test PUBLIC unlogic unlogic-graphic GTest::gtest)
-
-add_executable(unlogic-parser-test
-        test/parser.test.cpp
-)
-target_link_libraries(unlogic-parser-test PUBLIC unlogic-parser GTest::gtest_main)
