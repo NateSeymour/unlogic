@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <gtkmm.h>
 #include <iostream>
+#include "parser/Parser.h"
 #include "util/format.h"
 #include "SourceEditor.h"
 #include "CanvasArea.h"
@@ -22,6 +23,13 @@ namespace unlogic
         CanvasArea canvas_;
 
         Graph graph_;
+
+        Compiler compiler_;
+
+        /**
+         * Placeholder for what will become the objects handed over to the graph
+         */
+        void *compilation_product_buffer_;
 
         void on_renderer_realize() { /* Empty */ }
 
@@ -44,8 +52,7 @@ namespace unlogic
 
         void on_renderer_drag_end(double x, double y) {}
 
-    public:
-        Window()
+        void CreateUI()
         {
             this->set_title("Unlogic");
             this->set_default_size(1000, 500);
@@ -72,6 +79,12 @@ namespace unlogic
 
             this->canvas_.signal_realize().connect(sigc::mem_fun(*this, &Window::on_renderer_realize));
             this->canvas_.signal_render().connect(sigc::mem_fun(*this, &Window::on_renderer_render), false);
+        }
+
+    public:
+        Window()
+        {
+            this->CreateUI();
         }
     };
 }

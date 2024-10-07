@@ -19,8 +19,7 @@
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/Support/TargetSelect.h>
 #include "parser/Node.h"
-#include "parser/Parser.hpp"
-#include "parser/Scanner.h"
+#include "parser/Parser.h"
 #include "Library.h"
 #include "std/StandardLibrary.h"
 
@@ -61,7 +60,7 @@ namespace unlogic
         }
 
         template<typename... Args>
-        Callable<Args...> CompileFunction(std::string const &input)
+        Callable<Args...> CompileFunction(std::string_view input)
         {
             CompilationContext ctx;
             for(auto const &library : this->libraries_)

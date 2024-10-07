@@ -16,7 +16,6 @@ namespace unlogic
 {
     class Graph : public Drawable
     {
-        unlogic::Compiler compiler_;
         std::vector<Line> plots_;
         glm::vec2 domain_;
         float axis_thickness_ = 0.1f;

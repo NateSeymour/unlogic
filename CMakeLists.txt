@@ -15,8 +15,9 @@ include(FetchContent)
 FetchContent_Declare(
         buffalo
         GIT_REPOSITORY https://github.com/NateSeymour/buffalo.git
-        GIT_TAG main
+        GIT_TAG 0e69248b39e26f6b2730399aceee3c94882366d6
 )
+FetchContent_MakeAvailable(buffalo)
 
 FetchContent_Declare(
         glm
@@ -53,9 +54,10 @@ add_library(unlogic STATIC
         src/util/io.cpp
         src/util/io.h
         src/Error.h
-        src/parser/Unlogic.cpp
+        src/parser/Parser.cpp
+        src/parser/Parser.h
 )
-target_link_libraries(unlogic PUBLIC ${llvm_libs})
+target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
 
 add_executable(unlogic-calculator

@@ -38,26 +38,10 @@ namespace unlogic
         }
     };
 
-    enum class NodeType
-    {
-        Variable,
-        Constant,
-        Call,
-        Addition,
-        Subtraction,
-        Multiplication,
-        Division,
-        Potentiation,
-    };
-
     class Node
     {
     public:
         virtual llvm::Value *Codegen(CompilationContext &ctx) = 0;
-        virtual NodeType Type() const = 0;
-        virtual std::vector<Node const *> Children() const = 0;
-        virtual std::unique_ptr<Node> Derive() const = 0;
-        virtual std::unique_ptr<Node> Copy() const = 0;
 
         virtual ~Node() {}
     };
@@ -70,17 +54,9 @@ namespace unlogic
         std::string identifier_;
 
     public:
-        NodeType Type() const override
-        {
-            return NodeType::Variable;
-        }
-
         llvm::Value *Codegen(CompilationContext &ctx) override;
-        std::vector<Node const *> Children() const override;
-        std::unique_ptr<Node> Derive() const override;
-        std::unique_ptr<Node> Copy() const override;
 
-        VariableNode(std::string identifier) : identifier_(identifier) {}
+        VariableNode(std::string identifier) : identifier_(std::move(identifier)) {}
     };
 
     class ConstantNode : public Node
@@ -89,15 +65,7 @@ namespace unlogic
         double value_ = 0.0;
 
     public:
-        NodeType Type() const override
-        {
-            return NodeType::Constant;
-        }
-
         llvm::Value *Codegen(CompilationContext &ctx) override;
-        std::vector<const Node *> Children() const override;
-        std::unique_ptr<Node> Derive() const override;
-        std::unique_ptr<Node> Copy() const override;
 
         ConstantNode(double value) : value_(value) {}
     };
@@ -108,15 +76,7 @@ namespace unlogic
         std::vector<std::unique_ptr<Node>> arguments_;
 
     public:
-        NodeType Type() const override
-        {
-            return NodeType::Call;
-        }
-
         llvm::Value *Codegen(CompilationContext &ctx) override;
-        std::vector<const Node *> Children() const override;
-        std::unique_ptr<Node> Derive() const override;
-        std::unique_ptr<Node> Copy() const override;
 
         CallNode(std::string function_name, std::vector<std::unique_ptr<Node>> arguments) : function_name_(std::move(function_name)), arguments_(std::move(arguments)) {}
     };
@@ -127,21 +87,12 @@ namespace unlogic
         std::unique_ptr<Node> lhs_, rhs_;
 
     public:
-        std::vector<const Node *> Children() const override;
-
         BinaryNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
     };
 
     class AdditionNode : public BinaryNode
     {
     public:
-        NodeType Type() const override
-        {
-            return NodeType::Addition;
-        }
-
-        std::unique_ptr<Node> Derive() const override;
-        std::unique_ptr<Node> Copy() const override;
         llvm::Value *Codegen(CompilationContext &ctx) override;
 
         AdditionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
@@ -150,13 +101,6 @@ namespace unlogic
     class SubtractionNode : public BinaryNode
     {
     public:
-        NodeType Type() const override
-        {
-            return NodeType::Subtraction;
-        }
-
-        std::unique_ptr<Node> Derive() const override;
-        std::unique_ptr<Node> Copy() const override;
         llvm::Value *Codegen(CompilationContext &ctx) override;
 
         SubtractionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
@@ -165,13 +109,6 @@ namespace unlogic
     class MultiplicationNode : public BinaryNode
     {
     public:
-        NodeType Type() const override
-        {
-            return NodeType::Multiplication;
-        }
-
-        std::unique_ptr<Node> Derive() const override;
-        std::unique_ptr<Node> Copy() const override;
         llvm::Value *Codegen(CompilationContext &ctx) override;
 
         MultiplicationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
@@ -180,13 +117,6 @@ namespace unlogic
     class DivisionNode : public BinaryNode
     {
     public:
-        NodeType Type() const override
-        {
-            return NodeType::Division;
-        }
-
-        std::unique_ptr<Node> Derive() const override;
-        std::unique_ptr<Node> Copy() const override;
         llvm::Value *Codegen(CompilationContext &ctx) override;
 
         DivisionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
@@ -195,16 +125,14 @@ namespace unlogic
     class PotentiationNode : public BinaryNode
     {
     public:
-        NodeType Type() const override
-        {
-            return NodeType::Division;
-        }
-
-        std::unique_ptr<Node> Derive() const override;
-        std::unique_ptr<Node> Copy() const override;
         llvm::Value *Codegen(CompilationContext &ctx) override;
 
         PotentiationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+    };
+
+    class ProgramNode : public Node
+    {
+
     };
 
     struct Prototype
