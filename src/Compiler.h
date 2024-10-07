@@ -59,6 +59,7 @@ namespace unlogic
             llvm::InitializeNativeTargetAsmParser();
         }
 
+        /*
         template<typename... Args>
         Callable<Args...> CompileFunction(std::string_view input)
         {
@@ -86,6 +87,7 @@ namespace unlogic
 
             return Callable<Args...>(*function);
         }
+         */
 
         void AddLibrary(Library const &library)
         {

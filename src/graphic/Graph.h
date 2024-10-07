@@ -30,7 +30,7 @@ namespace unlogic
 
         void AddPlot(std::string const &function)
         {
-            this->plots_.emplace_back(this->compiler_.CompileFunction<double>(function), this->domain_);
+            //this->plots_.emplace_back(this->compiler_.CompileFunction<double>(function), this->domain_);
         }
 
         Graph(std::initializer_list<std::string> functions, glm::vec2 domain = {-100.0, 100.0}) : domain_(domain)

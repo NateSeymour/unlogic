@@ -19,17 +19,13 @@ namespace unlogic
     protected:
         Gtk::Paned divider_;
 
+        std::shared_ptr<SourceBuffer> source_buffer_;
         SourceEditor source_editor_;
-        CanvasArea canvas_;
 
+        CanvasArea canvas_;
         Graph graph_;
 
         Compiler compiler_;
-
-        /**
-         * Placeholder for what will become the objects handed over to the graph
-         */
-        void *compilation_product_buffer_;
 
         void on_renderer_realize() { /* Empty */ }
 
@@ -62,7 +58,12 @@ namespace unlogic
             // Divider
             this->set_child(this->divider_);
 
+            // Source Buffer
+            this->source_buffer_ = std::make_shared<SourceBuffer>();
+            this->source_buffer_->set_text("given f(x) := 3*x + 5;");
+
             // Source Editor
+            this->source_editor_.set_buffer(this->source_buffer_);
             this->divider_.set_start_child(this->source_editor_);
 
             // Renderer

@@ -43,7 +43,40 @@ namespace unlogic
     public:
         virtual llvm::Value *Codegen(CompilationContext &ctx) = 0;
 
-        virtual ~Node() {}
+        virtual ~Node() = default;
+    };
+
+    template<typename T>
+    class Literal
+    {
+    protected:
+        T value_;
+
+    public:
+        virtual T Value() const { return this->value_; }
+
+        virtual ~Literal() = default;
+
+        Literal(T value) : value_(std::move(value)) {}
+    };
+
+    class NumericLiteralNode : public Node, public Literal<double>
+    {
+    public:
+        llvm::Value *Codegen(CompilationContext &ctx) override;
+
+        NumericLiteralNode(double value) : Literal(value) {}
+    };
+
+    class StringLiteralNode : public Node, public Literal<std::string>
+    {
+    public:
+        llvm::Value *Codegen(CompilationContext &ctx) override
+        {
+            return nullptr;
+        }
+
+        StringLiteralNode(std::string value) : Literal(std::move(value)) {}
     };
 
     class VariableNode : public Node
@@ -57,17 +90,6 @@ namespace unlogic
         llvm::Value *Codegen(CompilationContext &ctx) override;
 
         VariableNode(std::string identifier) : identifier_(std::move(identifier)) {}
-    };
-
-    class ConstantNode : public Node
-    {
-    protected:
-        double value_ = 0.0;
-
-    public:
-        llvm::Value *Codegen(CompilationContext &ctx) override;
-
-        ConstantNode(double value) : value_(value) {}
     };
 
     class CallNode : public Node
@@ -130,18 +152,11 @@ namespace unlogic
         PotentiationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
     };
 
-    class ProgramNode : public Node
-    {
-
-    };
-
     struct Prototype
     {
-        std::unique_ptr<Node> body;
         std::string name;
         std::vector<std::string> arguments;
-
-        bool anonymous = false;
+        std::unique_ptr<Node> body;
 
         llvm::Function *Codegen(CompilationContext &ctx)
         {
@@ -172,6 +187,37 @@ namespace unlogic
 
             return function;
         }
+    };
+
+    class FunctionDefinitionNode : public Node
+    {
+        Prototype prototype_;
+
+    public:
+        llvm::Value *Codegen(CompilationContext &ctx) override
+        {
+            return nullptr;
+        }
+
+        FunctionDefinitionNode(Prototype prototype) : prototype_(std::move(prototype)) {}
+    };
+
+    class ScopedBlockNode : public Node
+    {
+        std::vector<std::unique_ptr<Node>> statements_;
+
+    public:
+        llvm::Value *Codegen(CompilationContext &ctx) override
+        {
+            return nullptr;
+        }
+
+        ScopedBlockNode(std::vector<std::unique_ptr<Node>> statements) : statements_(std::move(statements)) {};
+    };
+
+    class Program
+    {
+
     };
 }
 

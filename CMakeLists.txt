@@ -15,7 +15,7 @@ include(FetchContent)
 FetchContent_Declare(
         buffalo
         GIT_REPOSITORY https://github.com/NateSeymour/buffalo.git
-        GIT_TAG 0e69248b39e26f6b2730399aceee3c94882366d6
+        GIT_TAG 5c97384d15d0bb2d62b9ba07e19474929ba9eb6d
 )
 FetchContent_MakeAvailable(buffalo)
 

@@ -7,7 +7,7 @@ llvm::Value *VariableNode::Codegen(CompilationContext &ctx)
     return ctx.named_values[this->identifier_];
 }
 
-llvm::Value *ConstantNode::Codegen(CompilationContext &ctx)
+llvm::Value *NumericLiteralNode::Codegen(CompilationContext &ctx)
 {
     return llvm::ConstantFP::get(*ctx.llvm_ctx, llvm::APFloat(this->value_));
 }
