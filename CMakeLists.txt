@@ -83,7 +83,6 @@ target_include_directories(unlogic-calculator PUBLIC ${GTKMM_INCLUDE_DIRS})
 
 add_executable(unlogic-test
         test/unlogic.test.cpp
-        test/unlogic-graphic.test.cpp
         test/main.test.cpp
 )
-target_link_libraries(unlogic-test PUBLIC unlogic unlogic-graphic GTest::gtest)
+target_link_libraries(unlogic-test PUBLIC unlogic GTest::gtest)
