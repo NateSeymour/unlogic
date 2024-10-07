@@ -14,7 +14,8 @@ namespace unlogic
             Prototype,
             std::vector<std::string>,
             std::vector<std::unique_ptr<Node>>,
-            std::unique_ptr<Node>
+            std::unique_ptr<Node>,
+            Program
     >;
     using ParserGrammarType = bf::GrammarDefinition<ParserValueType>;
 

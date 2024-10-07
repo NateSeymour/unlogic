@@ -217,7 +217,10 @@ namespace unlogic
 
     class Program
     {
+        std::unique_ptr<Node> body_;
 
+    public:
+        Program(std::unique_ptr<Node> body) : body_(std::move(body)) {}
     };
 }
 

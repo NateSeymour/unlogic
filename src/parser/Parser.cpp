@@ -140,7 +140,15 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> scoped_block
     = bf::PR<G>(statement_list)<=>[](auto &$) -> ValueType
     {
         return std::make_unique<ScopedBlockNode>(std::move(statement_list($[0])));
-    };
+    }
+    ;
+
+bf::DefineNonTerminal<G, Program> program
+    = bf::PR<G>(scoped_block)<=>[](auto &$) -> ValueType
+    {
+        return Program(std::move(scoped_block($[0])));
+    }
+    ;
 
 bf::Grammar<G> grammar(tokenizer, scoped_block);
 bf::SLRParser<G> unlogic::parser(grammar);
