@@ -25,31 +25,37 @@
 
 namespace unlogic
 {
-    template<typename... Args>
-    class Callable
+    class Executable
     {
         friend class Compiler;
-        double(*function_)(Args...) = nullptr;
+
+        void(*function_)() = nullptr;
+        std::unique_ptr<llvm::orc::LLJIT> jit_;
 
     protected:
-        explicit Callable(llvm::orc::ExecutorAddr function)
+        explicit Executable(std::unique_ptr<llvm::orc::LLJIT> jit) : jit_(std::move(jit))
         {
-            this->function_ = function.toPtr<double(*)(Args...)>();
+            auto function_ea = this->jit_->lookup("__entry");
+            if(auto e = function_ea.takeError())
+            {
+                throw std::runtime_error(llvm::toString(std::move(e)));
+            }
+
+            this->function_ = function_ea->toPtr<void(*)()>();
         }
 
     public:
-        double operator()(Args... args) const
+        void operator()() const
         {
-            return this->function_(args...);
+            return this->function_();
         }
 
-        Callable() = delete;
+        Executable() = delete;
     };
 
     class Compiler
     {
-        std::unique_ptr<llvm::orc::LLJIT> jit_;
-        std::vector<Library> libraries_;
+        static std::vector<Library> global_libraries_;
 
     public:
         static void InitializeCompilerRuntime()
@@ -59,70 +65,56 @@ namespace unlogic
             llvm::InitializeNativeTargetAsmParser();
         }
 
-        /*
-        template<typename... Args>
-        Callable<Args...> CompileFunction(std::string_view input)
+        static Executable CompileProgram(Program &program)
         {
+            auto jit_res = llvm::orc::LLJITBuilder().create();
+            auto jit = std::move(*jit_res);
+
             CompilationContext ctx;
-            for(auto const &library : this->libraries_)
+
+            llvm::orc::JITDylib &main = jit->getMainJITDylib();
+
+            // Add libraries
+            for(auto &library : Compiler::global_libraries_)
             {
+                // Create dylib
+                auto dylib = jit->createJITDylib(library.name_);
+                if(auto e = dylib.takeError())
+                {
+                    throw std::runtime_error(llvm::toString(std::move(e)));
+                }
+
+                // Instantiate lib
+                auto symbol_map = library.SymbolMap(*jit);
+                auto std_sym_def = dylib->define(llvm::orc::absoluteSymbols(symbol_map));
+                if(std_sym_def)
+                {
+                    throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
+                }
+
+                // Add lib
+                main.addToLinkOrder(*dylib);
+
+                // Add to compilation context
                 library.PopulateCompilationContext(ctx);
             }
 
-            Prototype prototype = unlogic::parse_prototype(input);
+            program.Codegen(ctx);
 
-            prototype.Codegen(ctx);
-
-            llvm::orc::JITDylib &main = this->jit_->getMainJITDylib();
             auto rt = main.createResourceTracker();
 
             llvm::orc::ThreadSafeModule tsm(std::move(ctx.module), std::move(ctx.llvm_ctx));
-            this->jit_->addIRModule(rt, std::move(tsm));
+            jit->addIRModule(rt, std::move(tsm));
 
-            auto function = this->jit_->lookup(prototype.name);
-            if(auto e = function.takeError())
-            {
-                throw std::runtime_error(llvm::toString(std::move(e)));
-            }
-
-            return Callable<Args...>(*function);
+            return Executable(std::move(jit));
         }
-         */
 
-        void AddLibrary(Library const &library)
+        static void RegisterGlobalLibrary(Library const &library)
         {
-            auto dylib = this->jit_->createJITDylib(library.name_);
-            if(auto e = dylib.takeError())
-            {
-                throw std::runtime_error(llvm::toString(std::move(e)));
-            }
-
-            // Instantiate stdlib
-            auto symbol_map = library.SymbolMap(*this->jit_);
-            auto std_sym_def = dylib->define(llvm::orc::absoluteSymbols(symbol_map));
-            if(std_sym_def)
-            {
-                throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
-            }
-
-            // Add stdlib to link order
-            llvm::orc::JITDylib &main = this->jit_->getMainJITDylib();
-            main.addToLinkOrder(*dylib);
-
-            this->libraries_.push_back(library);
+            Compiler::global_libraries_.push_back(library);
         }
 
-        Compiler()
-        {
-            auto jit = llvm::orc::LLJITBuilder().create();
-            if(auto e = jit.takeError())
-            {
-                throw std::runtime_error(llvm::toString(std::move(e)));
-            }
-            this->jit_ = std::move(*jit);
-
-            this->AddLibrary(stdlib);
-        }
+        Compiler() = default;
     };
 }
 

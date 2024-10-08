@@ -25,8 +25,6 @@ namespace unlogic
         CanvasArea canvas_;
         Graph graph_;
 
-        Compiler compiler_;
-
         void on_renderer_realize() { /* Empty */ }
 
         bool on_renderer_render(const Glib::RefPtr<Gdk::GLContext>& context)
@@ -48,6 +46,17 @@ namespace unlogic
 
         void on_renderer_drag_end(double x, double y) {}
 
+        void on_source_buffer_changed()
+        {
+            auto source_text = this->source_buffer_->get_text();
+            auto program = parser.Parse(source_text.c_str());
+            if(program)
+            {
+                Executable executable = Compiler::CompileProgram(std::get<Program>(*program));
+                executable();
+            }
+        }
+
         void CreateUI()
         {
             this->set_title("Unlogic");
@@ -60,6 +69,7 @@ namespace unlogic
 
             // Source Buffer
             this->source_buffer_ = std::make_shared<SourceBuffer>();
+            this->source_buffer_->signal_changed().connect(sigc::mem_fun(*this, &Window::on_source_buffer_changed), false);
             this->source_buffer_->set_text("given f(x) := 3*x + 5;");
 
             // Source Editor

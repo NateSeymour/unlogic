@@ -30,7 +30,7 @@ std::shared_ptr<unlogic::VertexBuffer> unlogic::Line::GenerateVertexBuffer() con
     return std::make_shared<unlogic::VertexBuffer>(vertices, PrimitiveType::kTriangleStrip);
 }
 
-void unlogic::Line::SetFunction(const unlogic::Callable<double> &function, const glm::vec2 &domain)
+void unlogic::Line::SetFunction(const unlogic::Executable &function, const glm::vec2 &domain)
 {
     std::size_t point_count = std::ceil((domain.y - domain.x) / this->precision_);
     this->points_.clear();
@@ -38,7 +38,7 @@ void unlogic::Line::SetFunction(const unlogic::Callable<double> &function, const
     for (std::size_t i = 0; i < point_count; i++)
     {
         double x = domain.x + ((double)i * this->precision_);
-        double y = function(x);
+        double y = 0.0; // function(x);
 
         this->points_.emplace_back(x, y);
     }

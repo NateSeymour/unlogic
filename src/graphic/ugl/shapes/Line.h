@@ -19,11 +19,11 @@ namespace unlogic
         [[nodiscard]] std::shared_ptr<VertexBuffer> GenerateVertexBuffer() const override;
 
     public:
-        void SetFunction(unlogic::Callable<double> const &function, glm::vec2 const &domain);
+        void SetFunction(unlogic::Executable const &function, glm::vec2 const &domain);
 
         void SetPoints(std::vector<glm::vec2> const &points);
 
-        Line(unlogic::Callable<double> const &function, glm::vec2 const &domain)
+        Line(unlogic::Executable const &function, glm::vec2 const &domain)
         {
             this->SetFunction(function, domain);
         }

@@ -3,3 +3,7 @@
 //
 
 #include "Compiler.h"
+
+using namespace unlogic;
+
+std::vector<Library> unlogic::Compiler::global_libraries_;

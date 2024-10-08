@@ -7,6 +7,21 @@ using ValueType = ParserValueType;
 
 spex::CTRETokenizer<G> unlogic::tokenizer;
 
+bf::DefineTerminal<G> KW_GIVEN = tokenizer.Terminal<R"(given)">();
+bf::DefineTerminal<G> KW_CALC = tokenizer.Terminal<R"(calc)">();
+bf::DefineTerminal<G> KW_PLOT = tokenizer.Terminal<R"(plot)">();
+
+bf::DefineTerminal<G> KW_ON = tokenizer.Terminal<R"(on)">();
+bf::DefineTerminal<G> KW_AS = tokenizer.Terminal<R"(as)">();
+
+bf::DefineTerminal<G, double> NUMBER = tokenizer.Terminal<R"(\d+(\.\d+)?)">([](auto const &tok) -> ValueType {
+    return std::stod(std::string(tok.raw));
+});
+
+bf::DefineTerminal<G, std::string> IDENTIFIER = tokenizer.Terminal<R"([a-zA-Z]+)">([](auto const &tok) -> ValueType {
+    return std::string(tok.raw);
+});
+
 bf::DefineTerminal<G> OP_EXP = tokenizer.Terminal<R"(\^)", bf::Associativity::Right>();
 
 bf::DefineTerminal<G> OP_MUL = tokenizer.Terminal<R"(\*)", bf::Associativity::Left>();
@@ -25,21 +40,6 @@ bf::DefineTerminal<G> BRK_CLOSE = tokenizer.Terminal<R"(\])">();
 bf::DefineTerminal<G> STMT_DELIMITER = tokenizer.Terminal<R"(;)">();
 
 bf::DefineTerminal<G> SEPARATOR = tokenizer.Terminal<R"(,)">();
-
-bf::DefineTerminal<G> KW_GIVEN = tokenizer.Terminal<R"(given)">();
-bf::DefineTerminal<G> KW_CALC = tokenizer.Terminal<R"(calc)">();
-bf::DefineTerminal<G> KW_PLOT = tokenizer.Terminal<R"(plot)">();
-
-bf::DefineTerminal<G> KW_ON = tokenizer.Terminal<R"(on)">();
-bf::DefineTerminal<G> KW_AS = tokenizer.Terminal<R"(as)">();
-
-bf::DefineTerminal<G, double> NUMBER = tokenizer.Terminal<R"(\d+(\.\d+)?)">([](auto const &tok) -> ValueType {
-    return std::stod(std::string(tok.raw));
-});
-
-bf::DefineTerminal<G, std::string> IDENTIFIER = tokenizer.Terminal<R"([a-zA-Z]+)">([](auto const &tok) -> ValueType {
-    return std::string(tok.raw);
-});
 
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     = bf::PR<G>(NUMBER)<=>[](auto &$) -> ValueType
@@ -150,7 +150,7 @@ bf::DefineNonTerminal<G, Program> program
     }
     ;
 
-bf::Grammar<G> grammar(tokenizer, scoped_block);
+bf::Grammar<G> grammar(tokenizer, program);
 bf::SLRParser<G> unlogic::parser(grammar);
 
 std::map<bf::Terminal<G>, SyntaxHighlightingGroup> unlogic::syntax_highlighting_groups = {

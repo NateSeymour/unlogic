@@ -220,6 +220,23 @@ namespace unlogic
         std::unique_ptr<Node> body_;
 
     public:
+        llvm::Function *Codegen(CompilationContext &ctx)
+        {
+            // Generate function information
+            llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getVoidTy(*ctx.llvm_ctx), false);
+            llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, "main", *ctx.module);
+
+            // Generate function body
+            llvm::BasicBlock *block = llvm::BasicBlock::Create(*ctx.llvm_ctx, "entry", function);
+            ctx.builder->SetInsertPoint(block);
+
+            llvm::Value* return_value = this->body_->Codegen(ctx);
+            ctx.builder->CreateRet(return_value);
+            llvm::verifyFunction(*function);
+
+            return function;
+        }
+
         Program(std::unique_ptr<Node> body) : body_(std::move(body)) {}
     };
 }
