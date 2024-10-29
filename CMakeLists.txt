@@ -4,7 +4,7 @@ project(unlogic)
 set(CMAKE_CXX_STANDARD 23)
 
 # External Libs
-find_package(LLVM 17 CONFIG REQUIRED)
+find_package(LLVM 18.1.8 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
@@ -15,7 +15,7 @@ include(FetchContent)
 FetchContent_Declare(
         buffalo
         GIT_REPOSITORY https://github.com/NateSeymour/buffalo.git
-        GIT_TAG 7f0c0b6980445a6c0fec5b51f56bd8a6b1726990
+        GIT_TAG v1.0
 )
 FetchContent_MakeAvailable(buffalo)
 
@@ -38,7 +38,7 @@ FetchContent_MakeAvailable(GTEST)
 if(APPLE)
     set(llvm_libs ${LLVM_AVAILABLE_LIBS})
 else()
-    set(llvm_libs -lLLVM-17)
+    set(llvm_libs -lLLVM-18)
 endif()
 
 # Unlogic
