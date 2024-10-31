@@ -4,7 +4,7 @@ project(unlogic)
 set(CMAKE_CXX_STANDARD 23)
 
 # External Libs
-find_package(LLVM 18.1.8 CONFIG REQUIRED)
+find_package(LLVM 17 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
@@ -38,7 +38,7 @@ FetchContent_MakeAvailable(GTEST)
 if(APPLE)
     set(llvm_libs ${LLVM_AVAILABLE_LIBS})
 else()
-    set(llvm_libs -lLLVM-18)
+    set(llvm_libs -lLLVM-17)
 endif()
 
 # Unlogic
