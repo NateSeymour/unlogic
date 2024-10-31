@@ -3,7 +3,6 @@
 
 #include <map>
 #include <buffalo/buffalo.h>
-#include <buffalo/spex.h>
 #include "Node.h"
 
 namespace unlogic
@@ -19,8 +18,8 @@ namespace unlogic
     >;
     using ParserGrammarType = bf::GrammarDefinition<ParserValueType>;
 
-    extern spex::CTRETokenizer<ParserGrammarType> tokenizer;
-    extern bf::SLRParser<ParserGrammarType> parser;
+    extern bf::Tokenizer<ParserGrammarType> &tokenizer;
+    extern bf::NonTerminal<ParserGrammarType> &unlogic_program;
 
     enum class SyntaxHighlightingGroup
     {

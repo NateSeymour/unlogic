@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Install System Dependencies
-      run: sudo apt install -y build-essential cmake llvm-17-dev wget ninja-build bison flex libgtkmm-4.0-dev
+      run: sudo apt install -y build-essential cmake llvm-17-dev wget ninja-build libgtkmm-4.0-dev
     - uses: actions/checkout@v4
     - name: Configure Project
       run: mkdir cmake-build-release && cd cmake-build-release && cmake .. -DCMAKE_BUILD_TYPE=Release -G "Ninja"

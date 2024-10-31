@@ -48,6 +48,7 @@ namespace unlogic
 
         void on_source_buffer_changed()
         {
+            /*
             auto source_text = this->source_buffer_->get_text();
             auto program = parser.Parse(source_text.c_str());
             if(program)
@@ -55,6 +56,7 @@ namespace unlogic
                 Executable executable = Compiler::CompileProgram(std::get<Program>(*program));
                 executable();
             }
+             */
         }
 
         void CreateUI()

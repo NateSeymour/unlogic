@@ -5,41 +5,68 @@ using namespace unlogic;
 using G = ParserGrammarType;
 using ValueType = ParserValueType;
 
-spex::CTRETokenizer<G> unlogic::tokenizer;
+bf::DefineTerminal<G, R"(given)"> KW_GIVEN;
+bf::DefineTerminal<G, R"(calc)"> KW_CALC;
+bf::DefineTerminal<G, R"(plot)"> KW_PLOT;
 
-bf::DefineTerminal<G> KW_GIVEN = tokenizer.Terminal<R"(given)">();
-bf::DefineTerminal<G> KW_CALC = tokenizer.Terminal<R"(calc)">();
-bf::DefineTerminal<G> KW_PLOT = tokenizer.Terminal<R"(plot)">();
+bf::DefineTerminal<G, R"(on)"> KW_ON;
+bf::DefineTerminal<G, R"(as)"> KW_AS;
 
-bf::DefineTerminal<G> KW_ON = tokenizer.Terminal<R"(on)">();
-bf::DefineTerminal<G> KW_AS = tokenizer.Terminal<R"(as)">();
-
-bf::DefineTerminal<G, double> NUMBER = tokenizer.Terminal<R"(\d+(\.\d+)?)">([](auto const &tok) -> ValueType {
+bf::DefineTerminal<G, R"(\d+(\.\d+)?)", double> NUMBER([](auto const &tok) -> ValueType {
     return std::stod(std::string(tok.raw));
 });
 
-bf::DefineTerminal<G, std::string> IDENTIFIER = tokenizer.Terminal<R"([a-zA-Z]+)">([](auto const &tok) -> ValueType {
+bf::DefineTerminal<G, R"([a-zA-Z]+)", std::string> IDENTIFIER([](auto const &tok) -> ValueType {
     return std::string(tok.raw);
 });
 
-bf::DefineTerminal<G> OP_EXP = tokenizer.Terminal<R"(\^)", bf::Associativity::Right>();
+bf::DefineTerminal<G, R"(\^)"> OP_EXP(bf::Right);
 
-bf::DefineTerminal<G> OP_MUL = tokenizer.Terminal<R"(\*)", bf::Associativity::Left>();
-bf::DefineTerminal<G> OP_DIV = tokenizer.Terminal<R"(\/)", bf::Associativity::Left>();
-bf::DefineTerminal<G> OP_ADD = tokenizer.Terminal<R"(\+)", bf::Associativity::Left>();
-bf::DefineTerminal<G> OP_SUB = tokenizer.Terminal<R"(\-)", bf::Associativity::Left>();
+bf::DefineTerminal<G, R"(\*)"> OP_MUL(bf::Left);
+bf::DefineTerminal<G, R"(\/)"> OP_DIV(bf::Left);
+bf::DefineTerminal<G, R"(\+)"> OP_ADD(bf::Left);
+bf::DefineTerminal<G, R"(\-)"> OP_SUB(bf::Left);
 
-bf::DefineTerminal<G> OP_ASN = tokenizer.Terminal<R"(:=)", bf::Associativity::Left>();
+bf::DefineTerminal<G, R"(:=)"> OP_ASN(bf::Left);
 
-bf::DefineTerminal<G> PAR_OPEN = tokenizer.Terminal<R"(\()">();
-bf::DefineTerminal<G> PAR_CLOSE = tokenizer.Terminal<R"(\))">();
+bf::DefineTerminal<G, R"(\()"> PAR_OPEN;
+bf::DefineTerminal<G, R"(\))"> PAR_CLOSE;
 
-bf::DefineTerminal<G> BRK_OPEN = tokenizer.Terminal<R"(\[)">();
-bf::DefineTerminal<G> BRK_CLOSE = tokenizer.Terminal<R"(\])">();
+bf::DefineTerminal<G, R"(\[)"> BRK_OPEN;
+bf::DefineTerminal<G, R"(\])"> BRK_CLOSE;
 
-bf::DefineTerminal<G> STMT_DELIMITER = tokenizer.Terminal<R"(;)">();
+bf::DefineTerminal<G, R"(;)"> STMT_DELIMITER;
 
-bf::DefineTerminal<G> SEPARATOR = tokenizer.Terminal<R"(,)">();
+bf::DefineTerminal<G, R"(,)"> SEPARATOR;
+
+bf::Terminal<G> terminals[] = {
+        KW_GIVEN,
+        KW_CALC,
+        KW_PLOT,
+        KW_ON,
+        KW_AS,
+
+        NUMBER,
+        IDENTIFIER,
+
+        OP_EXP,
+        OP_MUL,
+        OP_DIV,
+        OP_ADD,
+        OP_SUB,
+        OP_ASN,
+
+        PAR_OPEN,
+        PAR_CLOSE,
+        BRK_OPEN,
+        BRK_CLOSE,
+
+        STMT_DELIMITER,
+
+        SEPARATOR,
+};
+
+bf::CTRETokenizer ctre_tokenizer(std::to_array(terminals));
 
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     = bf::PR<G>(NUMBER)<=>[](auto &$) -> ValueType
@@ -150,9 +177,15 @@ bf::DefineNonTerminal<G, Program> program
     }
     ;
 
-bf::Grammar<G> grammar(tokenizer, program);
-bf::SLRParser<G> unlogic::parser(grammar);
+/*
+ * Exports
+ */
+bf::Tokenizer<G> &unlogic::tokenizer = ctre_tokenizer;
+bf::NonTerminal<G> &unlogic::unlogic_program = program;
 
+/*
+ * Syntax highlighting
+ */
 std::map<bf::Terminal<G>, SyntaxHighlightingGroup> unlogic::syntax_highlighting_groups = {
         { OP_EXP, SyntaxHighlightingGroup::Operator },
         { OP_MUL, SyntaxHighlightingGroup::Operator },

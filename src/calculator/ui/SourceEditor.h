@@ -21,7 +21,7 @@ namespace unlogic
             while(true)
             {
                 auto token = token_stream.Consume();
-                if(!token || token->terminal == tokenizer.EOS) break;
+                if(!token || token->terminal == tokenizer.EOS()) break;
                 if(!this->tag_lookup_.contains(token->terminal)) continue;
 
                 auto tag_begin = this->get_iter_at_offset((int)token->location.begin);
