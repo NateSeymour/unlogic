@@ -56,6 +56,8 @@ add_library(unlogic STATIC
         src/Error.h
         src/parser/Parser.cpp
         src/parser/Parser.h
+        src/Program.cpp
+        src/Program.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)

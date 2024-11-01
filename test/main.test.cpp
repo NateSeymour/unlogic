@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
 
-    unlogic::Compiler::InitializeCompilerRuntime();
+    unlogic::Compiler::InitializeGlobalCompilerRuntime();
 
     return RUN_ALL_TESTS();
 }

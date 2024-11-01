@@ -10,11 +10,9 @@ namespace unlogic
     using ParserValueType = std::variant<
             double,
             std::string,
-            Prototype,
             std::vector<std::string>,
             std::vector<std::unique_ptr<Node>>,
-            std::unique_ptr<Node>,
-            Program
+            std::unique_ptr<Node>
     >;
     using ParserGrammarType = bf::GrammarDefinition<ParserValueType>;
 

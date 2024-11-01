@@ -21,6 +21,7 @@
 #include "parser/Node.h"
 #include "parser/Parser.h"
 #include "Library.h"
+#include "Program.h"
 #include "std/StandardLibrary.h"
 
 namespace unlogic
@@ -55,38 +56,60 @@ namespace unlogic
 
     class Compiler
     {
-        static std::vector<Library> global_libraries_;
+        static std::atomic<bool> global_init_complete_;
+        std::vector<LibraryDefinition> default_libraries_;
 
     public:
-        static void InitializeCompilerRuntime()
+        static void InitializeGlobalCompilerRuntime()
         {
             llvm::InitializeNativeTarget();
             llvm::InitializeNativeTargetAsmPrinter();
             llvm::InitializeNativeTargetAsmParser();
+
+            Compiler::global_init_complete_ = true;
+            Compiler::global_init_complete_.notify_all();
         }
 
-        static Executable CompileProgram(Program &program)
+        Executable Compile(std::string_view program_text)
         {
+            Compiler::global_init_complete_.wait(false);
+
+            // Establish context for build
+            llvm::LLVMContext ctx;
+
+            // Build parser
+            auto parser = bf::SLRParser<ParserGrammarType>::Build(unlogic::tokenizer, unlogic::unlogic_program);
+
+            // Create JIT
             auto jit_res = llvm::orc::LLJITBuilder().create();
             auto jit = std::move(*jit_res);
 
-            CompilationContext ctx;
-
+            // Create and link libraries to main dylib
             llvm::orc::JITDylib &main = jit->getMainJITDylib();
 
-            // Add libraries
-            for(auto &library : Compiler::global_libraries_)
+            for(auto &library_definition : this->default_libraries_)
             {
+                Library library = library_definition.Build(ctx);
+
                 // Create dylib
-                auto dylib = jit->createJITDylib(library.name_);
+                auto dylib = jit->createJITDylib(library.name);
                 if(auto e = dylib.takeError())
                 {
                     throw std::runtime_error(llvm::toString(std::move(e)));
                 }
 
-                // Instantiate lib
-                auto symbol_map = library.SymbolMap(*jit);
-                auto std_sym_def = dylib->define(llvm::orc::absoluteSymbols(symbol_map));
+                // Generate symbol map
+                llvm::orc::SymbolMap library_symbols;
+                for(auto &function : library.functions)
+                {
+                    library_symbols.insert({
+                        jit->mangleAndIntern(function.function->getName()),
+                        function.symbol,
+                    });
+                }
+
+                // Add symbol map
+                auto std_sym_def = dylib->define(llvm::orc::absoluteSymbols(library_symbols));
                 if(std_sym_def)
                 {
                     throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
@@ -94,27 +117,22 @@ namespace unlogic
 
                 // Add lib
                 main.addToLinkOrder(*dylib);
-
-                // Add to compilation context
-                library.PopulateCompilationContext(ctx);
             }
 
-            program.Codegen(ctx);
+            auto body = std::get<std::unique_ptr<Node>>(*parser->Parse(program_text));
 
-            auto rt = main.createResourceTracker();
+            Program program(ctx, std::move(body));
 
-            llvm::orc::ThreadSafeModule tsm(std::move(ctx.module), std::move(ctx.llvm_ctx));
-            jit->addIRModule(rt, std::move(tsm));
+            auto module = std::make_unique<llvm::Module>(std::move(program.Build()));
+
+            llvm::orc::ThreadSafeModule tsm(std::move(module), std::move(ctx.llvm_ctx));
+            jit->addIRModule(std::move(tsm));
 
             return Executable(std::move(jit));
         }
 
-        static void RegisterGlobalLibrary(Library const &library)
-        {
-            Compiler::global_libraries_.push_back(library);
-        }
-
         Compiler() = default;
+        Compiler(std::vector<LibraryDefinition> default_libraries) : default_libraries_(std::move(default_libraries)) {}
     };
 }
 

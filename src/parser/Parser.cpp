@@ -117,21 +117,22 @@ bf::DefineNonTerminal<G, std::vector<std::string>> identifier_list
     }
     ;
 
-bf::DefineNonTerminal<G, Prototype> function_definition
+bf::DefineNonTerminal<G, std::unique_ptr<Node>> function_definition
     = (KW_GIVEN + IDENTIFIER + PAR_OPEN + identifier_list + PAR_CLOSE + OP_ASN + expression)<=>[](auto &$) -> ValueType
     {
-        return Prototype {
-            .name = std::move(IDENTIFIER($[1])),
-            .arguments = std::move(identifier_list($[3])),
-            .body = std::move(expression($[6])),
-        };
+        return std::make_unique<FunctionDefinitionNode>(
+                std::move(IDENTIFIER($[1])),
+                std::move(identifier_list($[3])),
+                std::move(expression($[6]))
+        );
     }
     | (KW_GIVEN + IDENTIFIER + PAR_OPEN + PAR_CLOSE + OP_ASN + expression)<=>[](auto &$) -> ValueType
     {
-        return Prototype {
-            .name = std::move(IDENTIFIER($[1])),
-            .body = std::move(expression($[5])),
-        };
+        return std::make_unique<FunctionDefinitionNode>(
+                std::move(IDENTIFIER($[1])),
+                std::vector<std::string>{},
+                std::move(expression($[5]))
+        );
     }
     ;
 
@@ -142,7 +143,7 @@ bf::DefineNonTerminal<G> variable_definition
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> statement
     = bf::PR<G>(function_definition)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<FunctionDefinitionNode>(std::move(function_definition($[0])));
+        return std::move($[0]);
     }
     ;
 
@@ -170,10 +171,10 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> scoped_block
     }
     ;
 
-bf::DefineNonTerminal<G, Program> program
+bf::DefineNonTerminal<G, std::unique_ptr<Node>> program
     = bf::PR<G>(scoped_block)<=>[](auto &$) -> ValueType
     {
-        return Program(std::move(scoped_block($[0])));
+        return std::move(scoped_block($[0]));
     }
     ;
 

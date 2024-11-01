@@ -6,83 +6,66 @@
 #define UNLOGIC_LIBRARY_H
 
 #include <string>
+#include <utility>
 #include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
-#include "parser/Node.h"
 
 namespace unlogic
 {
-    class Library;
-
-    template<typename... Args>
-    struct ArgHelper
-    {
-        static constexpr std::size_t nargs = sizeof...(Args);
-        static void* Cast(double(*function)(Args...))
-        {
-            return (void*)function;
-        }
-
-        consteval ArgHelper() = default;
-    };
-
     struct LibraryFunction
     {
-        void *function;
-        std::uint8_t nargs;
-
-        LibraryFunction(Library &library, std::string name, void *function, std::uint8_t nargs);
+        llvm::orc::ExecutorSymbolDef symbol;
+        llvm::Function *function;
     };
 
-    class Library
+    struct Library
     {
-        friend class Compiler;
-        friend class LibraryFunction;
+        std::string name;
+        llvm::LLVMContext &ctx;
+        llvm::Module module;
+        std::vector<LibraryFunction> functions;
 
-        std::string name_;
-        std::map<std::string, LibraryFunction const*> definitions_;
-
-    protected:
-        void AddDefinition(std::string const &name, LibraryFunction const *function)
+        void AddFunction(char const *function_name, llvm::FunctionType *type, void *native_function)
         {
-            this->definitions_[name] = function;
+            llvm::Function *function = llvm::Function::Create(type, llvm::Function::ExternalLinkage, function_name, this->module);
+            llvm::orc::ExecutorSymbolDef symbol = {
+                    llvm::orc::ExecutorAddr::fromPtr(native_function),
+                    llvm::JITSymbolFlags::Callable,
+            };
+
+            this->functions.emplace_back({
+                .symbol = std::move(symbol),
+                .function = function,
+            });
         }
+
+        Library(std::string name, llvm::LLVMContext &ctx)
+            : name(std::move(name)),
+              ctx(ctx),
+              module(name, ctx) {}
+
+
+        Library() = delete;
+        Library(Library const&) = delete;
+    };
+
+    class LibraryDefinition
+    {
+        std::string name_;
+        std::function<void(Library&)> builder_;
 
     public:
-        void PopulateCompilationContext(CompilationContext &ctx) const
+        Library Build(llvm::LLVMContext &ctx)
         {
-            for(auto const &[name, definition] : this->definitions_)
-            {
-                ctx.RegisterLibraryFunction(name, definition->nargs);
-            }
+            Library library(this->name_, ctx);
+
+            this->builder_(library);
+
+            return std::move(library);
         }
 
-        llvm::orc::SymbolMap SymbolMap(llvm::orc::LLJIT const &jit) const
-        {
-            llvm::orc::SymbolMap sym;
-
-            for(auto const &[name, definition] : this->definitions_)
-            {
-                sym.insert({
-                    jit.mangleAndIntern(name),
-                    {
-                        llvm::orc::ExecutorAddr::fromPtr(definition->function),
-                        llvm::JITSymbolFlags::Callable
-                        }
-                });
-            }
-
-            return sym;
-        }
-
-        explicit Library(std::string name) : name_(std::move(name)) {}
+        LibraryDefinition(std::string name, std::function<void(Library&)> builder) : name_(std::move(name)), builder_(std::move(builder)) {}
     };
-
-#define UNLOGIC_ARGS(...) ArgHelper<__VA_ARGS__>
-#define UNLOGIC_DEFINE_LIBFUNCTION(library, name, function, args) \
-    namespace {                                                    \
-        static LibraryFunction name(library, #name, args::Cast(function), args::nargs);\
-    }
 }
 
 #endif //UNLOGIC_LIBRARY_H

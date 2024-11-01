@@ -6,4 +6,4 @@
 
 using namespace unlogic;
 
-std::vector<Library> unlogic::Compiler::global_libraries_;
+std::atomic<bool> Compiler::global_init_complete_ = false;
