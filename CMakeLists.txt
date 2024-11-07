@@ -45,19 +45,21 @@ endif()
 add_library(unlogic STATIC
         src/parser/Node.cpp
         src/parser/Node.h
-        src/Compiler.cpp
-        src/Compiler.h
-        src/std/StandardLibrary.cpp
-        src/std/StandardLibrary.h
-        src/Library.cpp
-        src/Library.h
+        src/compiler/Compiler.cpp
+        src/compiler/Compiler.h
+        src/compiler/std/StandardLibrary.cpp
+        src/compiler/std/StandardLibrary.h
+        src/compiler/Library.cpp
+        src/compiler/Library.h
         src/util/io.cpp
         src/util/io.h
         src/Error.h
         src/parser/Parser.cpp
         src/parser/Parser.h
-        src/Program.cpp
-        src/Program.h
+        src/compiler/Program.cpp
+        src/compiler/Program.h
+        src/compiler/IRGenerator.cpp
+        src/compiler/IRGenerator.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)

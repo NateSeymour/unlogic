@@ -1,6 +1,7 @@
 #ifndef UNLOGIC_PROGRAM_H
 #define UNLOGIC_PROGRAM_H
 
+#include "transformer/IRGenerator.h"
 #include "parser/Node.h"
 
 namespace unlogic
@@ -17,27 +18,23 @@ namespace unlogic
         {
             llvm::Module module("unlogic", this->llvm_ctx_);
 
-            // Create compilation context
+            // Create IR generation context
             Scope program_scope;
-
-            CompilationContext ctx = {
+            IRGenerationContext ctx = {
                     .llvm_ctx = this->llvm_ctx_,
                     .module = module,
                     .builder = this->builder_,
                     .scope = program_scope,
             };
 
-            // Generate entry entry
-            llvm::FunctionType *entry_type = llvm::FunctionType::get(llvm::Type::getVoidTy(this->llvm_ctx_), false);
-            llvm::Function *entry = llvm::Function::Create(entry_type, llvm::Function::ExternalLinkage, "main", module);
+            // IR Generator
+            IRGenerator generator(ctx);
 
-            // Generate entry body
-            llvm::BasicBlock *block = llvm::BasicBlock::Create(this->llvm_ctx_, "entry", entry);
-            this->builder_.SetInsertPoint(block);
+            // Generate main wrapper function
+            auto main = std::make_unique<FunctionDefinitionNode>("main", std::move(this->body_));
 
-            llvm::Value* return_value = this->body_->GenerateIR();
-            this->builder_.CreateRet(return_value);
-            llvm::verifyFunction(*entry);
+            // Build program
+            generator.Visit(main.get());
 
             return std::move(module);
         }

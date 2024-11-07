@@ -5,7 +5,7 @@
 #ifndef UNLOGIC_STANDARDLIBRARY_H
 #define UNLOGIC_STANDARDLIBRARY_H
 
-#include "Library.h"
+#include "compiler/Library.h"
 
 namespace unlogic
 {
