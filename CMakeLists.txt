@@ -55,8 +55,6 @@ add_library(unlogic STATIC
         src/Error.h
         src/parser/Parser.cpp
         src/parser/Parser.h
-        src/compiler/Program.cpp
-        src/compiler/Program.h
         src/compiler/transformer/IRGenerator.cpp
         src/compiler/transformer/IRGenerator.h
 )
@@ -79,6 +77,7 @@ add_executable(unlogic-calculator
         src/graphic/ugl/Canvas.h
         src/graphic/ugl/VertexBuffer.cpp
         src/graphic/ugl/VertexBuffer.h
+        src/calculator/main.h
 )
 target_link_libraries(unlogic-calculator PUBLIC unlogic glm::glm ${GTKMM_LIBRARIES})
 target_link_directories(unlogic-calculator PUBLIC ${GTKMM_LIBRARY_DIRS})

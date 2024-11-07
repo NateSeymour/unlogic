@@ -21,12 +21,12 @@
 #include "parser/Node.h"
 #include "parser/Parser.h"
 #include "Library.h"
-#include "Program.h"
 #include "std/StandardLibrary.h"
+#include "transformer/IRGenerator.h"
 
 namespace unlogic
 {
-    class Executable
+    class Program
     {
         friend class Compiler;
 
@@ -34,7 +34,7 @@ namespace unlogic
         std::unique_ptr<llvm::orc::LLJIT> jit_;
 
     protected:
-        explicit Executable(std::unique_ptr<llvm::orc::LLJIT> jit) : jit_(std::move(jit))
+        explicit Program(std::unique_ptr<llvm::orc::LLJIT> jit) : jit_(std::move(jit))
         {
             auto function_ea = this->jit_->lookup("__entry");
             if(auto e = function_ea.takeError())
@@ -51,12 +51,11 @@ namespace unlogic
             return this->function_();
         }
 
-        Executable() = delete;
+        Program() = delete;
     };
 
     class Compiler
     {
-        static std::atomic<bool> global_init_complete_;
         std::vector<LibraryDefinition> default_libraries_;
 
     public:
@@ -65,15 +64,10 @@ namespace unlogic
             llvm::InitializeNativeTarget();
             llvm::InitializeNativeTargetAsmPrinter();
             llvm::InitializeNativeTargetAsmParser();
-
-            Compiler::global_init_complete_ = true;
-            Compiler::global_init_complete_.notify_all();
         }
 
-        Executable Compile(std::string_view program_text)
+        Program Compile(std::string_view program_text)
         {
-            Compiler::global_init_complete_.wait(false);
-
             // Establish context for build
             auto ctx = std::make_unique<llvm::LLVMContext>();
 
@@ -119,16 +113,30 @@ namespace unlogic
                 main.addToLinkOrder(*dylib);
             }
 
+            // Parse program
             auto body = std::get<std::unique_ptr<Node>>(*parser->Parse(program_text));
 
-            Program program(*ctx.get(), std::move(body));
+            // Compile program
+            auto module = std::make_unique<llvm::Module>("unlogic", *ctx.get());
 
-            auto module = std::move(program.Build());
+            // Create IR generation context
+            Scope program_scope;
+            IRGenerationContext ir_ctx = {
+                    .llvm_ctx = *ctx.get(),
+                    .module = std::move(module),
+                    .scope = program_scope,
+            };
+
+            // IR Generator
+            IRGenerator generator(ir_ctx);
+
+            // Build program
+            body->Accept(generator);
 
             llvm::orc::ThreadSafeModule tsm(std::move(module), std::move(ctx));
             jit->addIRModule(std::move(tsm));
 
-            return Executable(std::move(jit));
+            return Program(std::move(jit));
         }
 
         Compiler() = default;

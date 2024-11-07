@@ -35,7 +35,7 @@ void unlogic::IRGenerator::Visit(const unlogic::CallNode *node)
         this->values.pop();
     }
 
-    llvm::Value *value = ctx.builder.CreateCall(function, argument_values, "calltmp");
+    llvm::Value *value = this->builder.CreateCall(function, argument_values, "calltmp");
     this->values.push(value);
 }
 
@@ -49,7 +49,7 @@ void unlogic::IRGenerator::Visit(const unlogic::AdditionNode *node)
     llvm::Value *rhs = this->values.top();
     this->values.pop();
 
-    llvm::Value *value = ctx.builder.CreateFAdd(lhs, rhs, "addtmp");
+    llvm::Value *value = this->builder.CreateFAdd(lhs, rhs, "addtmp");
     this->values.push(value);
 }
 
@@ -63,7 +63,7 @@ void unlogic::IRGenerator::Visit(const unlogic::SubtractionNode *node)
     llvm::Value *rhs = this->values.top();
     this->values.pop();
 
-    llvm::Value *value = ctx.builder.CreateFSub(lhs, rhs, "subtmp");
+    llvm::Value *value = this->builder.CreateFSub(lhs, rhs, "subtmp");
     this->values.push(value);
 }
 
@@ -77,7 +77,7 @@ void unlogic::IRGenerator::Visit(const unlogic::MultiplicationNode *node)
     llvm::Value *rhs = this->values.top();
     this->values.pop();
 
-    llvm::Value *value = ctx.builder.CreateFMul(lhs, rhs, "multmp");
+    llvm::Value *value = this->builder.CreateFMul(lhs, rhs, "multmp");
     this->values.push(value);
 }
 
@@ -91,7 +91,7 @@ void unlogic::IRGenerator::Visit(const unlogic::DivisionNode *node)
     llvm::Value *rhs = this->values.top();
     this->values.pop();
 
-    llvm::Value *value = ctx.builder.CreateFDiv(lhs, rhs, "divtmp");
+    llvm::Value *value = this->builder.CreateFDiv(lhs, rhs, "divtmp");
     this->values.push(value);
 }
 
@@ -107,7 +107,7 @@ void unlogic::IRGenerator::Visit(const unlogic::PotentiationNode *node)
 
     llvm::Function *pow = ctx.module->getFunction("pow");
 
-    llvm::Value *value = ctx.builder.CreateCall(pow, {lhs, rhs}, "powtmp");
+    llvm::Value *value = this->builder.CreateCall(pow, {lhs, rhs}, "powtmp");
     this->values.push(value);
 }
 
@@ -126,7 +126,7 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
 
     // Generate function body
     llvm::BasicBlock *block = llvm::BasicBlock::Create(ctx.llvm_ctx, node->name_, function);
-    ctx.builder.SetInsertPoint(block);
+    this->builder.SetInsertPoint(block);
 
     ctx.scope.PushLayer();
     for(auto &arg : function->args())
@@ -138,7 +138,7 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
     llvm::Value* return_value = this->values.top();
     this->values.pop();
 
-    ctx.builder.CreateRet(return_value);
+    this->builder.CreateRet(return_value);
 
     ctx.scope.PopLayer();
 
@@ -149,5 +149,4 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
 
 void unlogic::IRGenerator::Visit(const unlogic::ScopedBlockNode *node)
 {
-
 }

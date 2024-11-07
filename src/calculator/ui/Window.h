@@ -17,6 +17,8 @@ namespace unlogic
     class Window : public Gtk::Window
     {
     protected:
+        Glib::Dispatcher event_compilation_finished;
+
         Gtk::Paned divider_;
 
         std::shared_ptr<SourceBuffer> source_buffer_;
@@ -48,18 +50,10 @@ namespace unlogic
 
         void on_source_buffer_changed()
         {
-            /*
-            auto source_text = this->source_buffer_->get_text();
-            auto program = parser.Parse(source_text.c_str());
-            if(program)
-            {
-                Executable executable = Compiler::CompileProgram(std::get<Program>(*program));
-                executable();
-            }
-             */
         }
 
-        void CreateUI()
+    public:
+        Window()
         {
             this->set_title("Unlogic");
             this->set_default_size(1000, 500);
@@ -92,12 +86,6 @@ namespace unlogic
 
             this->canvas_.signal_realize().connect(sigc::mem_fun(*this, &Window::on_renderer_realize));
             this->canvas_.signal_render().connect(sigc::mem_fun(*this, &Window::on_renderer_render), false);
-        }
-
-    public:
-        Window()
-        {
-            this->CreateUI();
         }
     };
 }

@@ -1,4 +1,6 @@
+#include <thread>
 #include <gtkmm.h>
+#include "main.h"
 #include "compiler/Compiler.h"
 #include "ui/Window.h"
 
@@ -10,10 +12,24 @@
  * - Dispatchers for synchronization
  */
 
-int main(int argc, char *argv[])
+void init_compiler_runtime()
 {
     unlogic::Compiler::InitializeGlobalCompilerRuntime();
 
+    unlogic::compiler_runtime_avail = true;
+    unlogic::compiler_runtime_avail.notify_all();
+}
+
+int main(int argc, char *argv[])
+{
+    std::cout << "[MAIN] Initializing compiler runtime..." << std::endl;
+    std::thread init_thread(init_compiler_runtime);
+
+    std::cout << "[MAIN] Creating application..." << std::endl;
     auto app = Gtk::Application::create("global.seymour.unlogic");
-    return app->make_window_and_run<unlogic::Window>(argc, argv);
+    int ret = app->make_window_and_run<unlogic::Window>(argc, argv);
+
+    init_thread.join();
+
+    return ret;
 }

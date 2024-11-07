@@ -41,13 +41,13 @@ namespace unlogic
     {
         llvm::LLVMContext &llvm_ctx;
         std::unique_ptr<llvm::Module> module;
-        llvm::IRBuilder<> &builder;
         Scope &scope;
     };
 
     struct IRGenerator : public INodeVisitor
     {
         IRGenerationContext &ctx;
+        llvm::IRBuilder<> builder;
         std::stack<llvm::Value *> values;
 
         void Visit(const NumericLiteralNode *node) override;
@@ -62,7 +62,7 @@ namespace unlogic
         void Visit(const PotentiationNode *node) override;
         void Visit(const FunctionDefinitionNode *node) override;
 
-        IRGenerator(IRGenerationContext &ctx) : ctx(ctx) {}
+        IRGenerator(IRGenerationContext &ctx) : ctx(ctx), builder(ctx.llvm_ctx) {}
     };
 }
 
