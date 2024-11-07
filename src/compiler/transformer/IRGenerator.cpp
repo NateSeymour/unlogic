@@ -6,6 +6,11 @@ void unlogic::IRGenerator::Visit(const unlogic::NumericLiteralNode *node)
     this->values.push(value);
 }
 
+void unlogic::IRGenerator::Visit(const unlogic::StringLiteralNode *node)
+{
+
+}
+
 void unlogic::IRGenerator::Visit(const unlogic::VariableNode *node)
 {
    llvm::Value *value = *this->ctx.scope.Lookup(node->identifier_);
@@ -14,7 +19,7 @@ void unlogic::IRGenerator::Visit(const unlogic::VariableNode *node)
 
 void unlogic::IRGenerator::Visit(const unlogic::CallNode *node)
 {
-    llvm::Function *function = ctx.module.getFunction(node->function_name_);
+    llvm::Function *function = ctx.module->getFunction(node->function_name_);
 
     if(function->arg_size() < node->arguments_.size())
     {
@@ -100,7 +105,7 @@ void unlogic::IRGenerator::Visit(const unlogic::PotentiationNode *node)
     llvm::Value *rhs = this->values.top();
     this->values.pop();
 
-    llvm::Function *pow = ctx.module.getFunction("pow");
+    llvm::Function *pow = ctx.module->getFunction("pow");
 
     llvm::Value *value = ctx.builder.CreateCall(pow, {lhs, rhs}, "powtmp");
     this->values.push(value);
@@ -111,7 +116,7 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
     // Generate function information
     std::vector<llvm::Type*> argument_types(node->args_.size(), llvm::Type::getDoubleTy(ctx.llvm_ctx));
     llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(ctx.llvm_ctx), argument_types, false);
-    llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, node->name_, ctx.module);
+    llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, node->name_, *ctx.module);
 
     unsigned idx = 0;
     for (auto &arg : function->args())

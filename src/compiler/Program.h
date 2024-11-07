@@ -14,15 +14,15 @@ namespace unlogic
         std::unique_ptr<Node> body_;
 
     public:
-        llvm::Module Build()
+        std::unique_ptr<llvm::Module> Build()
         {
-            llvm::Module module("unlogic", this->llvm_ctx_);
+            auto module = std::make_unique<llvm::Module>("unlogic", this->llvm_ctx_);
 
             // Create IR generation context
             Scope program_scope;
             IRGenerationContext ctx = {
                     .llvm_ctx = this->llvm_ctx_,
-                    .module = module,
+                    .module = std::move(module),
                     .builder = this->builder_,
                     .scope = program_scope,
             };

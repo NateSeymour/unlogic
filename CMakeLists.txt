@@ -43,7 +43,6 @@ endif()
 
 # Unlogic
 add_library(unlogic STATIC
-        src/parser/Node.cpp
         src/parser/Node.h
         src/compiler/Compiler.cpp
         src/compiler/Compiler.h
@@ -58,8 +57,8 @@ add_library(unlogic STATIC
         src/parser/Parser.h
         src/compiler/Program.cpp
         src/compiler/Program.h
-        src/compiler/IRGenerator.cpp
-        src/compiler/IRGenerator.h
+        src/compiler/transformer/IRGenerator.cpp
+        src/compiler/transformer/IRGenerator.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)

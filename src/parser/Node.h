@@ -16,6 +16,7 @@
 namespace unlogic
 {
     struct NumericLiteralNode;
+    struct StringLiteralNode;
     struct VariableNode;
     struct CallNode;
     struct AdditionNode;
@@ -29,6 +30,7 @@ namespace unlogic
     struct INodeVisitor
     {
         virtual void Visit(NumericLiteralNode const *node)      = 0;
+        virtual void Visit(StringLiteralNode const *node)       = 0;
         virtual void Visit(VariableNode const *node)            = 0;
         virtual void Visit(CallNode const *node)                = 0;
         virtual void Visit(AdditionNode const *node)            = 0;
@@ -63,6 +65,16 @@ namespace unlogic
         }
 
         NumericLiteralNode(double value) : Literal(value) {}
+    };
+
+    struct StringLiteralNode : public Node, public Literal<std::string>
+    {
+        void Accept(INodeVisitor &visitor) override
+        {
+            visitor.Visit(this);
+        }
+
+        StringLiteralNode(std::string value) : Literal(std::move(value)) {}
     };
 
     struct VariableNode : public Node

@@ -75,7 +75,7 @@ namespace unlogic
             Compiler::global_init_complete_.wait(false);
 
             // Establish context for build
-            llvm::LLVMContext ctx;
+            auto ctx = std::make_unique<llvm::LLVMContext>();
 
             // Build parser
             auto parser = bf::SLRParser<ParserGrammarType>::Build(unlogic::tokenizer, unlogic::unlogic_program);
@@ -89,7 +89,7 @@ namespace unlogic
 
             for(auto &library_definition : this->default_libraries_)
             {
-                Library library = library_definition.Build(ctx);
+                Library library = library_definition.Build(*ctx.get());
 
                 // Create dylib
                 auto dylib = jit->createJITDylib(library.name);
@@ -121,11 +121,11 @@ namespace unlogic
 
             auto body = std::get<std::unique_ptr<Node>>(*parser->Parse(program_text));
 
-            Program program(ctx, std::move(body));
+            Program program(*ctx.get(), std::move(body));
 
-            auto module = std::make_unique<llvm::Module>(std::move(program.Build()));
+            auto module = std::move(program.Build());
 
-            llvm::orc::ThreadSafeModule tsm(std::move(module), std::move(ctx.llvm_ctx));
+            llvm::orc::ThreadSafeModule tsm(std::move(module), std::move(ctx));
             jit->addIRModule(std::move(tsm));
 
             return Executable(std::move(jit));

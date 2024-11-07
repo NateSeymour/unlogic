@@ -22,31 +22,31 @@ namespace unlogic
     {
         std::string name;
         llvm::LLVMContext &ctx;
-        llvm::Module module;
+        std::unique_ptr<llvm::Module> module;
         std::vector<LibraryFunction> functions;
 
         void AddFunction(char const *function_name, llvm::FunctionType *type, void *native_function)
         {
-            llvm::Function *function = llvm::Function::Create(type, llvm::Function::ExternalLinkage, function_name, this->module);
+            llvm::Function *function = llvm::Function::Create(type, llvm::Function::ExternalLinkage, function_name, *this->module);
             llvm::orc::ExecutorSymbolDef symbol = {
                     llvm::orc::ExecutorAddr::fromPtr(native_function),
                     llvm::JITSymbolFlags::Callable,
             };
 
-            this->functions.emplace_back({
-                .symbol = std::move(symbol),
-                .function = function,
-            });
+            LibraryFunction lib_function {
+                    .symbol = symbol,
+                    .function = function,
+            };
+            this->functions.push_back(lib_function);
         }
 
         Library(std::string name, llvm::LLVMContext &ctx)
             : name(std::move(name)),
               ctx(ctx),
-              module(name, ctx) {}
+              module(std::make_unique<llvm::Module>(name, ctx)) {}
 
 
         Library() = delete;
-        Library(Library const&) = delete;
     };
 
     class LibraryDefinition

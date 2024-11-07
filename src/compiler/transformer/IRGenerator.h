@@ -40,7 +40,7 @@ namespace unlogic
     struct IRGenerationContext
     {
         llvm::LLVMContext &llvm_ctx;
-        llvm::Module &module;
+        std::unique_ptr<llvm::Module> module;
         llvm::IRBuilder<> &builder;
         Scope &scope;
     };
@@ -51,6 +51,7 @@ namespace unlogic
         std::stack<llvm::Value *> values;
 
         void Visit(const NumericLiteralNode *node) override;
+        void Visit(const StringLiteralNode *node) override;
         void Visit(const DivisionNode *node) override;
         void Visit(const ScopedBlockNode *node) override;
         void Visit(const VariableNode *node) override;
