@@ -57,6 +57,8 @@ add_library(unlogic STATIC
         src/parser/Parser.h
         src/compiler/transformer/IRGenerator.cpp
         src/compiler/transformer/IRGenerator.h
+        src/compiler/std/RuntimeLibrary.cpp
+        src/compiler/std/RuntimeLibrary.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)

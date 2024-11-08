@@ -18,7 +18,7 @@ extern "C"
     }
 }
 
-LibraryDefinition unlogic::stdlib("stdlib", [](unlogic::Library &lib) {
+LibraryDefinition unlogic::stdlib("stdlib", [](Library &lib) {
     // pow
     std::array<llvm::Type*, 2> pow_args = {
             llvm::Type::getDoubleTy(lib.ctx),

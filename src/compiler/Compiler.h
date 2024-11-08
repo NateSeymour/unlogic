@@ -30,7 +30,6 @@ namespace unlogic
     {
         friend class Compiler;
 
-        void(*function_)() = nullptr;
         std::unique_ptr<llvm::orc::LLJIT> jit_;
 
     protected:
@@ -46,10 +45,7 @@ namespace unlogic
         }
 
     public:
-        void operator()() const
-        {
-            return this->function_();
-        }
+
 
         Program() = delete;
     };
