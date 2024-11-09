@@ -13,7 +13,7 @@ jobs:
     - name: Update Package Manager
       run: sudo apt update
     - name: Install System Dependencies
-      run: sudo apt install -y build-essential cmake ninja-build llvm-19-dev qt6-base-dev
+      run: sudo apt install -y build-essential cmake ninja-build llvm-18-dev qt6-base-dev
     - uses: actions/checkout@v4
     - name: Configure Project
       run: mkdir cmake-build-release && cd cmake-build-release && cmake .. -DCMAKE_BUILD_TYPE=Release -G "Ninja"

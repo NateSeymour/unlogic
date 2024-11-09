@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # External Libs
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
-find_package(LLVM 19.1 CONFIG REQUIRED)
+find_package(LLVM 18.1.3 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
