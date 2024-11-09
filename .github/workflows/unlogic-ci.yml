@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Update Package Manager
-      run: sudo apt update && sudo apt upgrade
+      run: sudo apt update
     - name: Install System Dependencies
       run: sudo apt install -y build-essential cmake ninja-build llvm-19-dev qt6-base-dev
     - uses: actions/checkout@v4
