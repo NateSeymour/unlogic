@@ -11,7 +11,7 @@ find_package(LLVM 18.1.3 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
-llvm_map_components_to_libnames(llvm_libs core irreader)
+llvm_map_components_to_libnames(llvm_libs support core irreader native target orcjit)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -33,6 +33,7 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/google/googletest.git
         GIT_TAG main
 )
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(GTEST)
 
 # UNLOGIC
@@ -73,4 +74,4 @@ add_executable(unlogic-test
         test/unlogic.test.cpp
         test/main.test.cpp
 )
-target_link_libraries(unlogic-test PUBLIC unlogic GTest::gtest)
+target_link_libraries(unlogic-test PUBLIC GTest::gtest unlogic)
