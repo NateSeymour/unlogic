@@ -59,12 +59,10 @@ target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
 
 # CALCULATOR
-qt_standard_project_setup()
-
 qt_add_executable(unlogic-calculator
         src/calculator/main.cpp
 )
-target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets unlogic)
+target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets)
 set_target_properties(unlogic-calculator PROPERTIES
         WIN32_EXECUTABLE ON
         MACOSX_BUNDLE ON
