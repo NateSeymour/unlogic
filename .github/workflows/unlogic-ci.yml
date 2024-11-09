@@ -11,10 +11,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Install System Dependencies
-      run: sudo apt install -y build-essential cmake llvm-17-dev wget ninja-build libgtkmm-4.0-dev
+      run: sudo apt install -y build-essential cmake ninja-build llvm-19-dev qt6-base-dev
     - uses: actions/checkout@v4
     - name: Configure Project
       run: mkdir cmake-build-release && cd cmake-build-release && cmake .. -DCMAKE_BUILD_TYPE=Release -G "Ninja"
+    - name: Build Unlogic
+      run: cd cmake-build-release && cmake --build . --target unlogic
+    - name: Build Unlogic Calculator
+      run: cd cmake-build-release && cmake --build . --target unlogic-calculator
     - name: Build Tests
       run: cd cmake-build-release && cmake --build . --target unlogic-test
     - name: Run Tests
