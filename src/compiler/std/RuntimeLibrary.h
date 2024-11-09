@@ -5,20 +5,22 @@
 
 namespace unlogic
 {
+    struct RuntimeResult
+    {
+
+    };
+
     struct Runtime
     {
         std::uint32_t screen_width;
         std::uint32_t screen_height;
         std::uint32_t center_x;
         std::uint32_t center_y;
+
+        RuntimeResult result;
     };
 
-    struct RuntimeResult
-    {
-
-    };
-
-    extern LibraryDefinition runtime;
+    extern Library runtime;
 }
 
 #endif //UNLOGIC_RUNTIMELIBRARY_H

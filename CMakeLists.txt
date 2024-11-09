@@ -59,6 +59,7 @@ add_library(unlogic STATIC
         src/compiler/transformer/IRGenerator.h
         src/compiler/std/RuntimeLibrary.cpp
         src/compiler/std/RuntimeLibrary.h
+        src/compiler/transformer/IRGenerationContext.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)

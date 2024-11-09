@@ -18,24 +18,10 @@ extern "C"
     }
 }
 
-LibraryDefinition unlogic::stdlib("stdlib", [](Library &lib) {
-    // pow
-    std::array<llvm::Type*, 2> pow_args = {
-            llvm::Type::getDoubleTy(lib.ctx),
-            llvm::Type::getDoubleTy(lib.ctx),
-    };
+Library unlogic::stdlib("stdlib");
 
-    llvm::FunctionType *pow_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(lib.ctx), pow_args, false);
-    lib.AddFunction("pow", pow_type, (void *) unlogic_std_pow);
-
-    // log
-    std::array<llvm::Type*, 1> log_args = {
-            llvm::Type::getInt8PtrTy(lib.ctx),
-    };
-
-    llvm::FunctionType *log_type = llvm::FunctionType::get(llvm::Type::getVoidTy(lib.ctx), log_args, false);
-    lib.AddFunction("log", log_type, (void *) unlogic_std_log);
-});
+LibrarySymbol std_pow(stdlib, "pow", (void*) unlogic_std_pow);
+LibrarySymbol std_log(stdlib, "log", (void*) unlogic_std_log);
 
 /*
 UNLOGIC_DEFINE_LIBFUNCTION(stdlib, pow, std::pow, UNLOGIC_ARGS(double, double));

@@ -174,7 +174,7 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> scoped_block
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> program
     = bf::PR<G>(scoped_block)<=>[](auto &$) -> ValueType
     {
-        return std::move(scoped_block($[0]));
+        return std::make_unique<ProgramEntryNode>(std::move(scoped_block($[0])));
     }
     ;
 

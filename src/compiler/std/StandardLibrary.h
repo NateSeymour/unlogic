@@ -9,7 +9,7 @@
 
 namespace unlogic
 {
-    extern LibraryDefinition stdlib;
+    extern Library stdlib;
 }
 
 #endif //UNLOGIC_STANDARDLIBRARY_H

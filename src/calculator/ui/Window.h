@@ -27,6 +27,8 @@ namespace unlogic
         CanvasArea canvas_;
         Graph graph_;
 
+        Compiler compiler_;
+
         void on_renderer_realize() { /* Empty */ }
 
         bool on_renderer_render(const Glib::RefPtr<Gdk::GLContext>& context)
@@ -50,6 +52,10 @@ namespace unlogic
 
         void on_source_buffer_changed()
         {
+            auto source = this->source_buffer_->get_text();
+            auto program = this->compiler_.Compile(source.c_str());
+
+            program.Run();
         }
 
     public:

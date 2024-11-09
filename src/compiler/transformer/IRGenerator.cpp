@@ -149,4 +149,31 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
 
 void unlogic::IRGenerator::Visit(const unlogic::ScopedBlockNode *node)
 {
+    for(auto &statement : node->statements_)
+    {
+        statement->Accept(*this);
+        this->values.pop();
+    }
+}
+
+void unlogic::IRGenerator::Visit(const unlogic::ProgramEntryNode *node)
+{
+    llvm::FunctionType *entry_type = llvm::FunctionType::get(llvm::Type::getVoidTy(this->ctx.llvm_ctx), false);
+    llvm::Function *entry = llvm::Function::Create(entry_type, llvm::Function::ExternalLinkage, "__entry", *this->ctx.module);
+
+    llvm::BasicBlock *block = llvm::BasicBlock::Create(ctx.llvm_ctx, "__entry", entry);
+    this->builder.SetInsertPoint(block);
+
+    llvm::FunctionType *runtime_init_type = llvm::FunctionType::get(llvm::Type::getVoidTy(this->ctx.llvm_ctx), false);
+    llvm::Function *runtime_init = llvm::Function::Create(runtime_init_type, llvm::GlobalValue::ExternalLinkage, "runtime_init");
+    this->builder.CreateCall(runtime_init);
+
+    node->body->Accept(*this);
+
+    llvm::Function *runtime_destroy = this->ctx.module->getFunction("runtime_destroy");
+    this->builder.CreateCall(runtime_destroy);
+
+    this->builder.CreateRetVoid();
+
+    llvm::verifyFunction(*entry);
 }

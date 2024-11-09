@@ -33,7 +33,10 @@ namespace unlogic
         std::unique_ptr<llvm::orc::LLJIT> jit_;
 
     protected:
-        explicit Program(std::unique_ptr<llvm::orc::LLJIT> jit) : jit_(std::move(jit))
+        explicit Program(std::unique_ptr<llvm::orc::LLJIT> jit) : jit_(std::move(jit)) {}
+
+    public:
+        void Run()
         {
             auto function_ea = this->jit_->lookup("__entry");
             if(auto e = function_ea.takeError())
@@ -41,18 +44,15 @@ namespace unlogic
                 throw std::runtime_error(llvm::toString(std::move(e)));
             }
 
-            this->function_ = function_ea->toPtr<void(*)()>();
+            function_ea->toPtr<void()>()();
         }
-
-    public:
-
 
         Program() = delete;
     };
 
     class Compiler
     {
-        std::vector<LibraryDefinition> default_libraries_;
+        std::vector<Library*> default_libraries_;
 
     public:
         static void InitializeGlobalCompilerRuntime()
@@ -77,12 +77,10 @@ namespace unlogic
             // Create and link libraries to main dylib
             llvm::orc::JITDylib &main = jit->getMainJITDylib();
 
-            for(auto &library_definition : this->default_libraries_)
+            for(auto library : this->default_libraries_)
             {
-                Library library = library_definition.Build(*ctx.get());
-
                 // Create dylib
-                auto dylib = jit->createJITDylib(library.name);
+                auto dylib = jit->createJITDylib(library->name);
                 if(auto e = dylib.takeError())
                 {
                     throw std::runtime_error(llvm::toString(std::move(e)));
@@ -90,11 +88,11 @@ namespace unlogic
 
                 // Generate symbol map
                 llvm::orc::SymbolMap library_symbols;
-                for(auto &function : library.functions)
+                for(auto symbol : library->symbols)
                 {
                     library_symbols.insert({
-                        jit->mangleAndIntern(function.function->getName()),
-                        function.symbol,
+                        jit->mangleAndIntern(symbol->name),
+                        symbol->symbol,
                     });
                 }
 
@@ -136,7 +134,7 @@ namespace unlogic
         }
 
         Compiler() = default;
-        Compiler(std::vector<LibraryDefinition> default_libraries) : default_libraries_(std::move(default_libraries)) {}
+        Compiler(std::vector<Library*> default_libraries) : default_libraries_(std::move(default_libraries)) {}
     };
 }
 

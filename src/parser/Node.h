@@ -26,6 +26,7 @@ namespace unlogic
     struct PotentiationNode;
     struct FunctionDefinitionNode;
     struct ScopedBlockNode;
+    struct ProgramEntryNode;
 
     struct INodeVisitor
     {
@@ -40,6 +41,7 @@ namespace unlogic
         virtual void Visit(PotentiationNode const *node)        = 0;
         virtual void Visit(FunctionDefinitionNode const *node)  = 0;
         virtual void Visit(ScopedBlockNode const *node)         = 0;
+        virtual void Visit(ProgramEntryNode const *node)        = 0;
     };
 
     struct Node
@@ -190,6 +192,18 @@ namespace unlogic
         }
 
         ScopedBlockNode(std::vector<std::unique_ptr<Node>> statements) : statements_(std::move(statements)) {};
+    };
+
+    struct ProgramEntryNode : public Node
+    {
+        std::unique_ptr<Node> body;
+
+        void Accept(INodeVisitor &visitor) override
+        {
+            visitor.Visit(this);
+        }
+
+        ProgramEntryNode(std::unique_ptr<Node> body) : body(std::move(body)) {}
     };
 }
 

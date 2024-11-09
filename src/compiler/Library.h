@@ -12,59 +12,32 @@
 
 namespace unlogic
 {
-    struct LibraryFunction
-    {
-        llvm::orc::ExecutorSymbolDef symbol;
-        llvm::Function *function;
-    };
+    struct LibrarySymbol;
 
     struct Library
     {
         std::string name;
-        llvm::LLVMContext &ctx;
-        std::unique_ptr<llvm::Module> module;
-        std::vector<LibraryFunction> functions;
+        std::vector<LibrarySymbol*> symbols;
 
-        void AddFunction(char const *function_name, llvm::FunctionType *type, void *native_function)
-        {
-            llvm::Function *function = llvm::Function::Create(type, llvm::Function::ExternalLinkage, function_name, *this->module);
-            llvm::orc::ExecutorSymbolDef symbol = {
-                    llvm::orc::ExecutorAddr::fromPtr(native_function),
-                    llvm::JITSymbolFlags::Callable,
-            };
-
-            LibraryFunction lib_function {
-                    .symbol = symbol,
-                    .function = function,
-            };
-            this->functions.push_back(lib_function);
-        }
-
-        Library(std::string name, llvm::LLVMContext &ctx)
-            : name(std::move(name)),
-              ctx(ctx),
-              module(std::make_unique<llvm::Module>(name, ctx)) {}
-
+        Library(std::string name) : name(std::move(name)) {}
 
         Library() = delete;
     };
 
-    class LibraryDefinition
+    struct LibrarySymbol
     {
-        std::string name_;
-        std::function<void(Library&)> builder_;
+        char const *name;
+        llvm::orc::ExecutorSymbolDef symbol;
 
-    public:
-        Library Build(llvm::LLVMContext &ctx)
+        LibrarySymbol(Library &lib, char const *name, void *native, bool callable = true) : name(name)
         {
-            Library library(this->name_, ctx);
+            this->symbol = {
+                    llvm::orc::ExecutorAddr::fromPtr(native),
+                    llvm::JITSymbolFlags::Callable,
+            };
 
-            this->builder_(library);
-
-            return std::move(library);
-        }
-
-        LibraryDefinition(std::string name, std::function<void(Library&)> builder) : name_(std::move(name)), builder_(std::move(builder)) {}
+            lib.symbols.push_back(this);
+        };
     };
 }
 

@@ -3,47 +3,10 @@
 
 #include <stack>
 #include "parser/Node.h"
+#include "IRGenerationContext.h"
 
 namespace unlogic
 {
-    class Scope
-    {
-        std::vector<std::map<std::string, llvm::Value*>> layers;
-
-    public:
-        std::optional<llvm::Value*> Lookup(std::string const &key)
-        {
-            for(auto &layer : this->layers | std::ranges::views::reverse)
-            {
-                if(layer.contains(key)) return layer[key];
-            }
-
-            return std::nullopt;
-        }
-
-        void Insert(std::string const &key, llvm::Value *value)
-        {
-            this->layers.back()[key] = value;
-        }
-
-        void PushLayer()
-        {
-            this->layers.emplace_back();
-        }
-
-        void PopLayer()
-        {
-            this->layers.pop_back();
-        }
-    };
-
-    struct IRGenerationContext
-    {
-        llvm::LLVMContext &llvm_ctx;
-        std::unique_ptr<llvm::Module> module;
-        Scope &scope;
-    };
-
     struct IRGenerator : public INodeVisitor
     {
         IRGenerationContext &ctx;
@@ -61,6 +24,7 @@ namespace unlogic
         void Visit(const MultiplicationNode *node) override;
         void Visit(const PotentiationNode *node) override;
         void Visit(const FunctionDefinitionNode *node) override;
+        void Visit(const ProgramEntryNode *node) override;
 
         IRGenerator(IRGenerationContext &ctx) : ctx(ctx), builder(ctx.llvm_ctx) {}
     };
