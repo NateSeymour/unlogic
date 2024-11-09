@@ -1,8 +1,0 @@
-{
-  "dependencies": [
-    "gtkmm",
-    "libepoxy",
-    "pangomm",
-    "pkgconf"
-  ]
-}
