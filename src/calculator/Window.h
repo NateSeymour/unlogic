@@ -8,23 +8,32 @@
 #include <QGridLayout>
 #include <QMainWindow>
 #include <QTextEdit>
+#include <QSplitter>
+#include "renderer/VulkanInstance.h"
+#include "renderer/VulkanWindow.h"
 
 namespace ui
 {
     class Window : public QMainWindow
     {
-        QGridLayout *layout_ = nullptr;
         QTextEdit *editor_ = nullptr;
+        QWidget *renderer_ = nullptr;
 
     public:
         Window()
         {
-            this->layout_ = new QGridLayout;
+            auto splitter = new QSplitter;
 
             this->editor_ = new QTextEdit;
-            this->layout_->addWidget(this->editor_);
+            splitter->addWidget(this->editor_);
 
-            this->setLayout(this->layout_);
+            auto render_window = new VulkanWindow;
+            render_window->setVulkanInstance(ui::vk_global);
+
+            this->renderer_ = QWidget::createWindowContainer(render_window);
+            splitter->addWidget(this->renderer_);
+
+            this->setCentralWidget(splitter);
         }
     };
 }

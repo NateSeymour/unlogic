@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # External Libs
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Gui)
 
 find_package(LLVM 18.1.3 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
@@ -64,8 +64,13 @@ qt_add_executable(unlogic-calculator
         src/calculator/main.cpp
         src/calculator/Window.cpp
         src/calculator/Window.h
+        src/calculator/renderer/VulkanRenderer.h
+        src/calculator/renderer/VulkanWindow.h
+        src/calculator/renderer/RenderWidget.h
+        src/calculator/renderer/VulkanInstance.h
+        src/calculator/renderer/VulkanInstance.cpp
 )
-target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets)
+target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui)
 set_target_properties(unlogic-calculator PROPERTIES
         WIN32_EXECUTABLE ON
         MACOSX_BUNDLE ON
