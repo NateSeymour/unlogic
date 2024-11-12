@@ -62,6 +62,8 @@ target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
 # CALCULATOR
 qt_add_executable(unlogic-calculator
         src/calculator/main.cpp
+        src/calculator/Window.cpp
+        src/calculator/Window.h
 )
 target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets)
 set_target_properties(unlogic-calculator PROPERTIES
