@@ -66,7 +66,6 @@ qt_add_executable(unlogic-calculator
         src/calculator/Window.h
         src/calculator/renderer/VulkanRenderer.h
         src/calculator/renderer/VulkanWindow.h
-        src/calculator/renderer/RenderWidget.h
         src/calculator/renderer/VulkanInstance.h
         src/calculator/renderer/VulkanInstance.cpp
 )
