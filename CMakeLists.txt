@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # External Libs
-find_package(Qt6 REQUIRED COMPONENTS Widgets Gui)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Gui ShaderTools)
 
 find_package(LLVM 18.1.3 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
@@ -75,6 +75,25 @@ qt_add_executable(unlogic-calculator
         src/calculator/renderer/VulkanInstance.h
         src/calculator/renderer/VulkanInstance.cpp
         src/calculator/renderer/VulkanRenderer.cpp
+        src/calculator/resource/shaders/plot.frag
+        src/calculator/resource/shaders/plot.vert
+)
+qt_add_shaders(unlogic-calculator "shaders"
+        NOGLSL
+        NOHSL
+        NOMSL
+        PREFIX "/shaders"
+        BASE src/calculator/resource/shaders
+        FILES
+            src/calculator/resource/shaders/plot.frag
+            src/calculator/resource/shaders/plot.vert
+)
+qt_add_resources(unlogic-calculator "fonts"
+        PREFIX "/fonts"
+        BASE src/calculator/resource
+        FILES
+            src/calculator/resource/Roboto-Medium.ttf
+            src/calculator/resource/SourceCodePro.ttf
 )
 target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui unlogic)
 set_target_properties(unlogic-calculator PROPERTIES
