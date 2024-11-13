@@ -1,16 +1,31 @@
 #ifndef UNLOGIC_VULKANRENDERER_H
 #define UNLOGIC_VULKANRENDERER_H
 
+#include <iostream>
 #include <QVulkanWindowRenderer>
 #include <QVulkanDeviceFunctions>
+#include "graphic/Scene.h"
 
 namespace ui
 {
-    class VulkanRenderer : public QVulkanWindowRenderer
+    class VulkanRenderer : public QObject, public QVulkanWindowRenderer
     {
+        Q_OBJECT
+
         QVulkanWindow *window_ = nullptr;
         QVulkanDeviceFunctions *device_functions_ = nullptr;
-        float green = 0;
+
+        unlogic::Scene *scene_ = nullptr;
+
+    public slots:
+        void setScene(unlogic::Scene *scene)
+        {
+            if(scene != this->scene_)
+            {
+                this->scene_ = scene;
+                this->window_->requestUpdate();
+            }
+        }
 
     public:
         void initResources() override
@@ -20,13 +35,19 @@ namespace ui
 
         void startNextFrame() override
         {
-            this->green += 0.005f;
-            if (this->green > 1.0f)
+            if(!this->scene_)
             {
-                this->green = 0.0f;
+                this->window_->frameReady();
+                this->window_->requestUpdate();
+                return;
             }
 
-            VkClearColorValue clearColor = {{ 0.0f, this->green, 0.0f, 1.0f }};
+            VkClearColorValue clearColor = {
+                this->scene_->background.r,
+                this->scene_->background.g,
+                this->scene_->background.b,
+                this->scene_->background.a,
+            };
             VkClearDepthStencilValue clearDS = { 1.0f, 0 };
             VkClearValue clearValues[2];
             memset(clearValues, 0, sizeof(clearValues));

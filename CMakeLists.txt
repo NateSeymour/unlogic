@@ -55,21 +55,27 @@ add_library(unlogic STATIC
         src/compiler/std/RuntimeLibrary.cpp
         src/compiler/std/RuntimeLibrary.h
         src/compiler/transformer/IRGenerationContext.h
+        src/graphic/Scene.cpp
+        src/graphic/Scene.h
+        src/graphic/Color.cpp
+        src/graphic/Color.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
 
 # CALCULATOR
+qt_standard_project_setup()
 qt_add_executable(unlogic-calculator
         src/calculator/main.cpp
         src/calculator/Window.cpp
         src/calculator/Window.h
         src/calculator/renderer/VulkanRenderer.h
         src/calculator/renderer/VulkanWindow.h
+        src/calculator/renderer/VulkanWindow.cpp
         src/calculator/renderer/VulkanInstance.h
         src/calculator/renderer/VulkanInstance.cpp
 )
-target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui)
+target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui unlogic)
 set_target_properties(unlogic-calculator PROPERTIES
         WIN32_EXECUTABLE ON
         MACOSX_BUNDLE ON
