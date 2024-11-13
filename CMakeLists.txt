@@ -59,6 +59,7 @@ add_library(unlogic STATIC
         src/graphic/Scene.h
         src/graphic/Color.cpp
         src/graphic/Color.h
+        src/graphic/ugl/Vertex.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
@@ -95,7 +96,7 @@ qt_add_resources(unlogic-calculator "fonts"
             src/calculator/resource/Roboto-Medium.ttf
             src/calculator/resource/SourceCodePro.ttf
 )
-target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui unlogic)
+target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui Qt6::ShaderTools Qt6::GuiPrivate unlogic)
 set_target_properties(unlogic-calculator PROPERTIES
         WIN32_EXECUTABLE ON
         MACOSX_BUNDLE ON

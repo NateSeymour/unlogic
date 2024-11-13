@@ -11,10 +11,17 @@ namespace ui
     class VulkanRenderer : public QVulkanWindowRenderer
     {
         VulkanWindow *window_ = nullptr;
-        QVulkanDeviceFunctions *device_functions_ = nullptr;
+
+        VkPipelineLayout pipeline_layout_;
+        VkPipeline pipeline_;
+
+        QVulkanDeviceFunctions *dev_ = nullptr;
 
     public:
+        VkShaderModule loadShader(std::string_view path);
+
         void initResources() override;
+        void releaseResources() override;
         void startNextFrame() override;
 
         VulkanRenderer(VulkanWindow *window) : window_(window) {}

@@ -9,12 +9,15 @@ int main(int argc, char **argv)
 
     // Initialize global Vulkan Instance
     ui::vk_global = new QVulkanInstance;
-    ui::vk_global->setLayers({
+    ui::vk_global->setLayers({});
+
+    ui::vk_global->setExtensions({
 #if !NDEBUG
-            "VK_LAYER_KHRONOS_validation",
+         "VK_LAYER_KHRONOS_validation",
 #endif
-            "VK_KHR_surface",
-            "VK_KHR_swapchain",
+         "VK_KHR_portability_subset",
+         "VK_KHR_surface",
+         "VK_KHR_swapchain",
     });
 
     if(!ui::vk_global->create())
