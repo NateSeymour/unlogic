@@ -74,6 +74,7 @@ qt_add_executable(unlogic-calculator
         src/calculator/renderer/VulkanWindow.cpp
         src/calculator/renderer/VulkanInstance.h
         src/calculator/renderer/VulkanInstance.cpp
+        src/calculator/renderer/VulkanRenderer.cpp
 )
 target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui unlogic)
 set_target_properties(unlogic-calculator PROPERTIES

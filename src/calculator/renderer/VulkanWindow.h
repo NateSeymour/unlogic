@@ -11,14 +11,15 @@ namespace ui
     {
         Q_OBJECT
 
+        friend class VulkanRenderer;
+
+    protected:
+        unlogic::Scene *scene = nullptr;
+
     public:
         QVulkanWindowRenderer *createRenderer() override
         {
-            auto renderer = new VulkanRenderer(this);
-
-            QObject::connect(this, &VulkanWindow::sceneChanged, renderer, &VulkanRenderer::setScene);
-
-            return renderer;
+            return new VulkanRenderer(this);
         }
 
     public slots:

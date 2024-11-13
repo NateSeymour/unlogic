@@ -1,10 +1,13 @@
 #include "VulkanWindow.h"
 
-#include <iostream>
-
 using namespace ui;
 
 void VulkanWindow::setScene(unlogic::Scene *scene)
 {
-    emit sceneChanged(scene);
+    if(this->scene != scene)
+    {
+        this->scene = scene;
+        this->requestUpdate();
+        emit sceneChanged(scene);
+    }
 }
