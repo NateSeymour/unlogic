@@ -154,6 +154,10 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
     this->builder.SetInsertPoint(parent);
 }
 
+void unlogic::IRGenerator::Visit(const PlotCommandNode *node)
+{
+}
+
 void unlogic::IRGenerator::Visit(const unlogic::ScopedBlockNode *node)
 {
     for(auto &statement : node->statements_)

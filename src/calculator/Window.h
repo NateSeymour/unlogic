@@ -53,6 +53,7 @@ namespace ui
             auto splitter = new QSplitter;
 
             this->editor_ = new QTextEdit;
+            this->editor_->setText("given f(x) := x^2;\nplot f;");
             splitter->addWidget(this->editor_);
 
             auto render_window = new VulkanWindow;

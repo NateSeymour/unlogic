@@ -24,6 +24,7 @@ namespace unlogic
         void Visit(const MultiplicationNode *node) override;
         void Visit(const PotentiationNode *node) override;
         void Visit(const FunctionDefinitionNode *node) override;
+        void Visit(const PlotCommandNode *node) override;
         void Visit(const ProgramEntryNode *node) override;
 
         IRGenerator(IRGenerationContext &ctx) : ctx(ctx), builder(ctx.llvm_ctx) {}

@@ -25,6 +25,7 @@ namespace unlogic
     struct DivisionNode;
     struct PotentiationNode;
     struct FunctionDefinitionNode;
+    struct PlotCommandNode;
     struct ScopedBlockNode;
     struct ProgramEntryNode;
 
@@ -40,6 +41,7 @@ namespace unlogic
         virtual void Visit(DivisionNode const *node)            = 0;
         virtual void Visit(PotentiationNode const *node)        = 0;
         virtual void Visit(FunctionDefinitionNode const *node)  = 0;
+        virtual void Visit(PlotCommandNode const *node)  = 0;
         virtual void Visit(ScopedBlockNode const *node)         = 0;
         virtual void Visit(ProgramEntryNode const *node)        = 0;
     };
@@ -180,6 +182,18 @@ namespace unlogic
         FunctionDefinitionNode(std::string name, std::unique_ptr<Node> body)
             : name_(std::move(name)),
               body_(std::move(body)) {}
+    };
+
+    struct PlotCommandNode : public Node
+    {
+        std::string function_name;
+
+        void Accept(INodeVisitor &visitor) override
+        {
+            visitor.Visit(this);
+        }
+
+        PlotCommandNode(std::string function_name) : function_name(std::move(function_name)) {}
     };
 
     struct ScopedBlockNode : public Node

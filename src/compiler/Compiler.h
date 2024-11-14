@@ -115,7 +115,8 @@ namespace unlogic
             }
 
             // Parse program
-            auto body = std::get<std::unique_ptr<Node>>(*parser->Parse(program_text));
+            auto result = parser->Parse(program_text);
+            auto body = std::get<std::unique_ptr<Node>>(std::move(*result));
 
             // Compile program
             auto module = std::make_unique<llvm::Module>("unlogic", *ctx.get());

@@ -75,7 +75,7 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     }
     | bf::PR<G>(IDENTIFIER)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<StringLiteralNode>(IDENTIFIER($[0]));
+        return std::make_unique<VariableNode>(IDENTIFIER($[0]));
     }
     | (PAR_OPEN + expression + PAR_CLOSE)<=>[](auto &$) -> ValueType
     {
@@ -140,15 +140,26 @@ bf::DefineNonTerminal<G> variable_definition
     = (KW_GIVEN + IDENTIFIER + OP_ASN + expression)
     ;
 
+bf::DefineNonTerminal<G, std::unique_ptr<Node>> plot_command
+    = (KW_PLOT + IDENTIFIER)<=>[](auto &$) -> ValueType
+    {
+        return std::make_unique<PlotCommandNode>(IDENTIFIER($[1]));
+    }
+    ;
+
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> statement
-    = bf::PR<G>(function_definition)<=>[](auto &$) -> ValueType
+    = (function_definition + STMT_DELIMITER)<=>[](auto &$) -> ValueType
+    {
+        return std::move($[0]);
+    }
+    | (plot_command + STMT_DELIMITER)<=>[](auto &$) -> ValueType
     {
         return std::move($[0]);
     }
     ;
 
 bf::DefineNonTerminal<G, std::vector<std::unique_ptr<Node>>> statement_list
-    = (statement + STMT_DELIMITER)<=>[](auto &$) -> ValueType
+    = bf::PR<G>(statement)<=>[](auto &$) -> ValueType
     {
         std::vector<std::unique_ptr<Node>> list;
         list.push_back(std::move(statement($[0])));
