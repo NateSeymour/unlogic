@@ -28,7 +28,7 @@ void VulkanRenderer::initResources()
         .pName = "main",
     };
 
-    std::array<VkPipelineShaderStageCreateInfo, 2> shader_stages = {vert_shader_stage_info, frag_shader_stage_info};
+    std::array shader_stages = {vert_shader_stage_info, frag_shader_stage_info};
 
     VkVertexInputBindingDescription vertex_input_binding_description {
         .binding = 0,
@@ -36,19 +36,19 @@ void VulkanRenderer::initResources()
         .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
     };
 
-    std::array<VkVertexInputAttributeDescription, 2> vertex_attribute_descriptions = {
-            VkVertexInputAttributeDescription {
-                .location = 0,
-                .binding = 0,
-                .format = VK_FORMAT_R32G32_SFLOAT,
-                .offset = offsetof(unlogic::Vertex, position),
-            },
-            VkVertexInputAttributeDescription {
-                .location = 1,
-                .binding = 0,
-                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                .offset = offsetof(unlogic::Vertex, color),
-            },
+    std::array vertex_attribute_descriptions = {
+        VkVertexInputAttributeDescription {
+            .location = 0,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32_SFLOAT,
+            .offset = offsetof(unlogic::Vertex, position),
+        },
+        VkVertexInputAttributeDescription {
+            .location = 1,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+            .offset = offsetof(unlogic::Vertex, color),
+        },
     };
 
     VkPipelineVertexInputStateCreateInfo vertex_input_info {
@@ -65,7 +65,7 @@ void VulkanRenderer::initResources()
         .primitiveRestartEnable = VK_TRUE,
     };
 
-    std::array<VkDynamicState, 2> dynamic_states = {
+    std::array dynamic_states = {
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
     };
