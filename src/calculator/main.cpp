@@ -1,10 +1,12 @@
+#include "Window.h"
 #include <QApplication>
 #include <QtWidgets/QtWidgets>
 #include "renderer/VulkanInstance.h"
-#include "Window.h"
 
 int main(int argc, char **argv)
 {
+    unlogic::Compiler::InitializeGlobalCompilerRuntime();
+
     QApplication app(argc, argv);
 
     // Initialize global Vulkan Instance

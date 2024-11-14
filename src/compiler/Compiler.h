@@ -23,6 +23,7 @@
 #include "Library.h"
 #include "std/StandardLibrary.h"
 #include "transformer/IRGenerator.h"
+#include "graphic/Scene.h"
 
 namespace unlogic
 {
@@ -36,7 +37,7 @@ namespace unlogic
         explicit Program(std::unique_ptr<llvm::orc::LLJIT> jit) : jit_(std::move(jit)) {}
 
     public:
-        void Run()
+        void operator()(Scene *scene)
         {
             auto function_ea = this->jit_->lookup("__entry");
             if(auto e = function_ea.takeError())
@@ -44,7 +45,7 @@ namespace unlogic
                 throw std::runtime_error(llvm::toString(std::move(e)));
             }
 
-            function_ea->toPtr<void()>()();
+            function_ea->toPtr<void(Scene*)>()(scene);
         }
 
         Program() = delete;
@@ -77,6 +78,10 @@ namespace unlogic
             // Create and link libraries to main dylib
             llvm::orc::JITDylib &main = jit->getMainJITDylib();
 
+            // Create program scope
+            Scope program_scope;
+            program_scope.PushLayer();
+
             for(auto library : this->default_libraries_)
             {
                 // Create dylib
@@ -94,6 +99,8 @@ namespace unlogic
                         jit->mangleAndIntern(symbol->name),
                         symbol->symbol,
                     });
+
+                    symbol->PopulateScope(*ctx.get(), program_scope);
                 }
 
                 // Add symbol map
@@ -114,7 +121,6 @@ namespace unlogic
             auto module = std::make_unique<llvm::Module>("unlogic", *ctx.get());
 
             // Create IR generation context
-            Scope program_scope;
             IRGenerationContext ir_ctx = {
                     .llvm_ctx = *ctx.get(),
                     .module = std::move(module),
@@ -127,8 +133,8 @@ namespace unlogic
             // Build program
             body->Accept(generator);
 
-            llvm::orc::ThreadSafeModule tsm(std::move(module), std::move(ctx));
-            jit->addIRModule(std::move(tsm));
+            llvm::orc::ThreadSafeModule tsm(std::move(ir_ctx.module), std::move(ctx));
+            auto e = jit->addIRModule(std::move(tsm));
 
             return Program(std::move(jit));
         }

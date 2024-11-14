@@ -60,8 +60,10 @@ add_library(unlogic STATIC
         src/graphic/Color.cpp
         src/graphic/Color.h
         src/graphic/ugl/Vertex.h
+        src/graphic/Plot.h
+        src/graphic/Plot.cpp
 )
-target_link_libraries(unlogic PUBLIC ${llvm_libs} buffalo)
+target_link_libraries(unlogic PUBLIC ${llvm_libs} glm::glm buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
 
 # CALCULATOR

@@ -9,6 +9,7 @@
 #include <utility>
 #include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include "transformer/IRGenerationContext.h"
 
 namespace unlogic
 {
@@ -29,7 +30,10 @@ namespace unlogic
         char const *name;
         llvm::orc::ExecutorSymbolDef symbol;
 
-        LibrarySymbol(Library &lib, char const *name, void *native, bool callable = true) : name(name)
+        using PopulateScopeType = std::function<void(llvm::LLVMContext&, Scope&)>;
+        PopulateScopeType PopulateScope;
+
+        LibrarySymbol(Library &lib, char const *name, void *native, PopulateScopeType populate_scope) : name(name), PopulateScope(std::move(populate_scope))
         {
             this->symbol = {
                     llvm::orc::ExecutorAddr::fromPtr(native),

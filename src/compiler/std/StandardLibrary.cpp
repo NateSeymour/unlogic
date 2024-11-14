@@ -20,8 +20,26 @@ extern "C"
 
 Library unlogic::stdlib("stdlib");
 
-LibrarySymbol std_pow(stdlib, "pow", (void*) unlogic_std_pow);
-LibrarySymbol std_log(stdlib, "log", (void*) unlogic_std_log);
+LibrarySymbol std_pow(stdlib, "pow", (void*)unlogic_std_pow, [](llvm::LLVMContext &ctx, Scope &scope) {
+    std::array args = {
+        llvm::Type::getDoubleTy(ctx),
+        llvm::Type::getDoubleTy(ctx),
+    };
+    llvm::Type *ret = llvm::Type::getDoubleTy(ctx);
+
+    llvm::FunctionType *fn = llvm::FunctionType::get(ret, args, false);
+    scope.Insert("pow", llvm::Function::Create(fn, llvm::GlobalValue::ExternalLinkage, "pow"));
+});
+
+LibrarySymbol std_log(stdlib, "log", (void*)unlogic_std_log, [](llvm::LLVMContext &ctx, Scope &scope) {
+    std::array<llvm::Type*, 1> args = {
+        llvm::PointerType::getInt8Ty(ctx),
+    };
+    llvm::Type *ret = llvm::Type::getVoidTy(ctx);
+
+    llvm::FunctionType *fn = llvm::FunctionType::get(ret, args, false);
+    scope.Insert("log", llvm::Function::Create(fn, llvm::GlobalValue::ExternalLinkage, "log"));
+});
 
 /*
 UNLOGIC_DEFINE_LIBFUNCTION(stdlib, pow, std::pow, UNLOGIC_ARGS(double, double));

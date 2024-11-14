@@ -1,3 +1,4 @@
+#include <iostream>
 #include "IRGenerator.h"
 
 void unlogic::IRGenerator::Visit(const unlogic::NumericLiteralNode *node)
@@ -113,6 +114,9 @@ void unlogic::IRGenerator::Visit(const unlogic::PotentiationNode *node)
 
 void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
 {
+    // Save entry
+    llvm::BasicBlock *parent = this->builder.GetInsertBlock();
+
     // Generate function information
     std::vector<llvm::Type*> argument_types(node->args_.size(), llvm::Type::getDoubleTy(ctx.llvm_ctx));
     llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(ctx.llvm_ctx), argument_types, false);
@@ -145,6 +149,9 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
     llvm::verifyFunction(*function);
 
     this->values.push(function);
+
+    // Return to parent block
+    this->builder.SetInsertPoint(parent);
 }
 
 void unlogic::IRGenerator::Visit(const unlogic::ScopedBlockNode *node)
@@ -158,22 +165,27 @@ void unlogic::IRGenerator::Visit(const unlogic::ScopedBlockNode *node)
 
 void unlogic::IRGenerator::Visit(const unlogic::ProgramEntryNode *node)
 {
-    llvm::FunctionType *entry_type = llvm::FunctionType::get(llvm::Type::getVoidTy(this->ctx.llvm_ctx), false);
+    std::array<llvm::Type*, 1> args = {
+        llvm::PointerType::getInt8Ty(this->ctx.llvm_ctx),
+    };
+    llvm::FunctionType *entry_type = llvm::FunctionType::get(llvm::Type::getVoidTy(this->ctx.llvm_ctx), args, false);
     llvm::Function *entry = llvm::Function::Create(entry_type, llvm::Function::ExternalLinkage, "__entry", *this->ctx.module);
 
     llvm::BasicBlock *block = llvm::BasicBlock::Create(ctx.llvm_ctx, "__entry", entry);
-    this->builder.SetInsertPoint(block);
 
-    llvm::FunctionType *runtime_init_type = llvm::FunctionType::get(llvm::Type::getVoidTy(this->ctx.llvm_ctx), false);
-    llvm::Function *runtime_init = llvm::Function::Create(runtime_init_type, llvm::GlobalValue::ExternalLinkage, "runtime_init");
-    this->builder.CreateCall(runtime_init);
+    this->ctx.scope.PushLayer();
+
+    this->ctx.scope.Insert("__scene", entry->getArg(0));
+
+    this->builder.SetInsertPoint(block);
 
     node->body->Accept(*this);
 
-    llvm::Function *runtime_destroy = this->ctx.module->getFunction("runtime_destroy");
-    this->builder.CreateCall(runtime_destroy);
-
     this->builder.CreateRetVoid();
+    this->ctx.scope.PopLayer();
 
-    llvm::verifyFunction(*entry);
+    if(llvm::verifyFunction(*entry, &llvm::errs()))
+    {
+        throw std::runtime_error("function has errors");
+    }
 }
