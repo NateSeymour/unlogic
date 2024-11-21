@@ -106,7 +106,7 @@ void unlogic::IRGenerator::Visit(const unlogic::PotentiationNode *node)
     llvm::Value *rhs = this->values.top();
     this->values.pop();
 
-    llvm::Function *pow = ctx.module->getFunction("pow");
+    llvm::Function *pow = (llvm::Function*)*this->ctx.scope.Lookup("pow");
 
     llvm::Value *value = this->builder.CreateCall(pow, {lhs, rhs}, "powtmp");
     this->values.push(value);
@@ -146,7 +146,10 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
 
     ctx.scope.PopLayer();
 
-    llvm::verifyFunction(*function);
+    if(llvm::verifyFunction(*function, &llvm::errs()))
+    {
+        throw std::runtime_error("function has errors");
+    }
 
     this->values.push(function);
 
@@ -156,6 +159,7 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
 
 void unlogic::IRGenerator::Visit(const PlotCommandNode *node)
 {
+    std::cout << "TEST" << std::endl;
 }
 
 void unlogic::IRGenerator::Visit(const unlogic::ScopedBlockNode *node)

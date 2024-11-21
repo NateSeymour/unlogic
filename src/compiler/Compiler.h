@@ -5,23 +5,15 @@
 #ifndef UNLOGIC_COMPILER_H
 #define UNLOGIC_COMPILER_H
 
-#include <cmath>
-#include <string>
 #include <llvm/ExecutionEngine/Orc/Core.h>
-#include <llvm/ExecutionEngine/Orc/ExecutorProcessControl.h>
 #include <llvm/ExecutionEngine/Orc/IRCompileLayer.h>
 #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h>
-#include <llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h>
-#include <llvm/ExecutionEngine/Orc/CompileUtils.h>
-#include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
-#include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/Support/TargetSelect.h>
 #include "parser/Node.h"
 #include "parser/Parser.h"
 #include "Library.h"
-#include "std/StandardLibrary.h"
 #include "transformer/IRGenerator.h"
 #include "graphic/Scene.h"
 
@@ -78,6 +70,9 @@ namespace unlogic
             // Create and link libraries to main dylib
             llvm::orc::JITDylib &main = jit->getMainJITDylib();
 
+            // Create module
+            auto module = std::make_unique<llvm::Module>("unlogic", *ctx.get());
+
             // Create program scope
             Scope program_scope;
             program_scope.PushLayer();
@@ -100,7 +95,7 @@ namespace unlogic
                         symbol->symbol,
                     });
 
-                    symbol->PopulateScope(*ctx.get(), program_scope);
+                    symbol->PopulateScope(*ctx.get(), *module, program_scope);
                 }
 
                 // Add symbol map
@@ -117,9 +112,6 @@ namespace unlogic
             // Parse program
             auto result = parser->Parse(program_text);
             auto body = std::get<std::unique_ptr<Node>>(std::move(*result));
-
-            // Compile program
-            auto module = std::make_unique<llvm::Module>("unlogic", *ctx.get());
 
             // Create IR generation context
             IRGenerationContext ir_ctx = {

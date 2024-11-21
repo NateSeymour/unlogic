@@ -7,6 +7,7 @@
 
 #include "compiler/Compiler.h"
 #include "compiler/std/RuntimeLibrary.h"
+#include "compiler/std/StandardLibrary.h"
 #include <QGridLayout>
 #include <QMainWindow>
 #include <QPushButton>

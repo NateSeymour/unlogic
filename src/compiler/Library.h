@@ -30,7 +30,7 @@ namespace unlogic
         char const *name;
         llvm::orc::ExecutorSymbolDef symbol;
 
-        using PopulateScopeType = std::function<void(llvm::LLVMContext&, Scope&)>;
+        using PopulateScopeType = std::function<void(llvm::LLVMContext&, llvm::Module&, Scope&)>;
         PopulateScopeType PopulateScope;
 
         LibrarySymbol(Library &lib, char const *name, void *native, PopulateScopeType populate_scope) : name(name), PopulateScope(std::move(populate_scope))
