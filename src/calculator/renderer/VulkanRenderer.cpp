@@ -151,6 +151,14 @@ void VulkanRenderer::initResources()
 
     this->createStandardPipeline(this->plot_pipeline_, this->plot_pipeline_layout_, ":/shaders/plot.vert.qsb", ":/shaders/plot.frag.qsb");
     this->createStandardPipeline(this->graph_pipeline_, this->graph_pipeline_layout_, ":/shaders/graph.vert.qsb", ":/shaders/graph.frag.qsb");
+
+    std::array corners = {
+        glm::vec2 { -1.f, -1.f },
+        glm::vec2 { 1.f, -1.f },
+        glm::vec2 { 1.f, 1.f },
+        glm::vec2 { -1.f, 1.f },
+    };
+    this->gridlines_ = this->window_->scene->Rect(corners, unlogic::Color::Green);
 }
 
 void VulkanRenderer::releaseResources()
@@ -222,7 +230,7 @@ void VulkanRenderer::startNextFrame()
     // Commence drawing scene
     if(this->window_->scene->draw_gridlines)
     {
-        this->drawGridlines();
+        this->drawVertexBuffer(this->gridlines_.get(), this->graph_pipeline_);
     }
 
     this->dev_->vkCmdEndRenderPass(cmd);
@@ -269,61 +277,14 @@ VkShaderModule VulkanRenderer::loadShader(std::string_view path)
     return module;
 }
 
-void VulkanRenderer::drawGridlines()
+void VulkanRenderer::drawVertexBuffer(unlogic::VertexBuffer *vertex_buffer, VkPipeline pipeline)
 {
     VkCommandBuffer cmd = this->window_->currentCommandBuffer();
+    this->dev_->vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-    VkBuffer buffer;
-    VkDeviceMemory memory;
-
-    std::array vertices = {
-            unlogic::Vertex {{ -1.f, -1.f }, unlogic::Color::Green},
-            unlogic::Vertex {{ 1.f, -1.f }, unlogic::Color::Green},
-            unlogic::Vertex {{ 1.f, 1.f }, unlogic::Color::Green},
-
-            unlogic::Vertex {{ 1.f, 1.f }, unlogic::Color::Blue},
-            unlogic::Vertex {{ -1.f, 1.f }, unlogic::Color::Blue},
-            unlogic::Vertex {{ -1.f, -1.f }, unlogic::Color::Blue},
-    };
-
-    VkBufferCreateInfo buffer_info {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size = sizeof(unlogic::Vertex) * vertices.size(),
-            .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-    };
-
-    if(this->dev_->vkCreateBuffer(this->window_->device(), &buffer_info, nullptr, &buffer) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create buffer");
-    }
-
-    VkMemoryAllocateInfo memory_allocate_info {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = buffer_info.size,
-            .memoryTypeIndex = this->window_->hostVisibleMemoryIndex(),
-    };
-
-    if(this->dev_->vkAllocateMemory(this->window_->device(), &memory_allocate_info, nullptr, &memory) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to allocate memory");
-    }
-
-    this->dev_->vkBindBufferMemory(this->window_->device(), buffer, memory, 0);
-
-    void *data = nullptr;
-    this->dev_->vkMapMemory(this->window_->device(), memory, 0, buffer_info.size, 0, &data);
-    memcpy(data, vertices.data(), buffer_info.size);
-    this->dev_->vkUnmapMemory(this->window_->device(), memory);
-
-    this->dev_->vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->graph_pipeline_);
-
-    std::array buffers = { buffer };
-    std::array<VkDeviceSize, 1> offsets = { 0 };
+    std::array buffers = { static_cast<VkBuffer>(vertex_buffer->GetNativeHandle()) };
+    constexpr std::array<VkDeviceSize, 1> offsets = { 0 };
     this->dev_->vkCmdBindVertexBuffers(cmd, 0, 1, buffers.data(), offsets.data());
 
-    this->dev_->vkCmdDraw(cmd, vertices.size(), 1, 0, 0);
-
-    //this->dev_->vkDestroyBuffer(this->window_->device(), buffer, nullptr);
-    //this->dev_->vkFreeMemory(this->window_->device(), memory, nullptr);
+    this->dev_->vkCmdDraw(cmd, vertex_buffer->GetVertexCount(), 1, 0, 0);
 }

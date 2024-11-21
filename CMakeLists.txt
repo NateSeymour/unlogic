@@ -62,6 +62,7 @@ add_library(unlogic STATIC
         src/graphic/ugl/Vertex.h
         src/graphic/Plot.h
         src/graphic/Plot.cpp
+        src/graphic/VertexBuffer.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} glm::glm buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
@@ -78,6 +79,7 @@ qt_add_executable(unlogic-calculator
         src/calculator/renderer/VulkanInstance.h
         src/calculator/renderer/VulkanInstance.cpp
         src/calculator/renderer/VulkanRenderer.cpp
+        src/calculator/renderer/VulkanVertexBuffer.h
         src/calculator/resource/shaders/plot.frag
         src/calculator/resource/shaders/plot.vert
 )

@@ -14,6 +14,7 @@
 #include <QTextEdit>
 #include <QSplitter>
 #include "renderer/VulkanInstance.h"
+#include "renderer/VulkanVertexBuffer.h"
 #include "renderer/VulkanWindow.h"
 
 namespace ui
@@ -40,8 +41,6 @@ namespace ui
     public:
         Window()
         {
-            this->scene_ = std::make_unique<unlogic::Scene>();
-
             auto body = new QWidget;
             auto main_layout = new QVBoxLayout;
 
@@ -58,6 +57,8 @@ namespace ui
             splitter->addWidget(this->editor_);
 
             auto render_window = new VulkanWindow;
+            auto vertex_buffer_provider = std::make_unique<unlogic::VulkanVertexBufferProvider>(render_window);
+            this->scene_ = std::make_unique<unlogic::Scene>(std::move(vertex_buffer_provider));
             render_window->setVulkanInstance(ui::vk_global);
             render_window->setScene(this->scene_.get());
 

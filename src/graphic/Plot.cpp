@@ -2,6 +2,7 @@
 // Created by Nathan on 11/14/2024.
 //
 #include <numbers>
+#include <vector>
 #include "Plot.h"
 #include "ugl/Vertex.h"
 
@@ -21,6 +22,7 @@ Plot2d::Plot2d(std::string name, Plot2dFunctionType fn) : name_(std::move(name))
         points.emplace_back(x, y);
     }
 
+    /*
     this->line_.vertices.clear();
     this->line_.vertices.reserve(points.size() * 2);
     double dx = 0.0;
@@ -44,4 +46,5 @@ Plot2d::Plot2d(std::string name, Plot2dFunctionType fn) : name_(std::move(name))
         this->line_.vertices.push_back({glm::vec2(point.x + tx, point.y - ty), this->color_}); // a1
         this->line_.vertices.push_back({glm::vec2(point.x - tx, point.y + ty), this->color_}); // a2
     }
+    */
 }

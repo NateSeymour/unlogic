@@ -3,6 +3,7 @@
 
 #include <QVulkanWindowRenderer>
 #include <QVulkanDeviceFunctions>
+#include "graphic/VertexBuffer.h"
 
 namespace ui
 {
@@ -20,6 +21,8 @@ namespace ui
 
         QVulkanDeviceFunctions *dev_ = nullptr;
 
+        std::unique_ptr<unlogic::VertexBuffer> gridlines_ = nullptr;
+
     public:
         // Vulkan Utils
         VkShaderModule loadShader(std::string_view path);
@@ -31,7 +34,7 @@ namespace ui
         void startNextFrame() override;
 
         // Draw Commands
-        void drawGridlines();
+        void drawVertexBuffer(unlogic::VertexBuffer *vertex_buffer, VkPipeline pipeline);
 
         VulkanRenderer(VulkanWindow *window) : window_(window) {}
     };

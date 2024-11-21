@@ -7,7 +7,6 @@
 
 #include <string>
 #include <glm/glm.hpp>
-#include "ugl/shapes/Line.h"
 #include "Color.h"
 
 namespace unlogic
@@ -27,7 +26,7 @@ namespace unlogic
         float precision_ = 0.1f;
         float line_thickness_ = 10.f;
 
-        Line line_;
+        //Line line_;
 
         Plot2d(std::string name, Plot2dFunctionType fn);
 
