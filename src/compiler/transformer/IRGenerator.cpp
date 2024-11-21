@@ -157,9 +157,8 @@ void unlogic::IRGenerator::Visit(const unlogic::FunctionDefinitionNode *node)
     this->builder.SetInsertPoint(parent);
 }
 
-void unlogic::IRGenerator::Visit(const PlotCommandNode *node)
+void unlogic::IRGenerator::Visit(const unlogic::PlotCommandNode *node)
 {
-    std::cout << "TEST" << std::endl;
 }
 
 void unlogic::IRGenerator::Visit(const unlogic::ScopedBlockNode *node)
