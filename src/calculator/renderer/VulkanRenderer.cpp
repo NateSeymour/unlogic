@@ -59,7 +59,7 @@ void VulkanRenderer::createStandardPipeline(VkPipeline &pipeline, VkPipelineLayo
 
     VkPipelineInputAssemblyStateCreateInfo input_assembly_info {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
             .primitiveRestartEnable = VK_TRUE,
     };
 
@@ -199,6 +199,26 @@ void VulkanRenderer::startNextFrame()
 
     this->dev_->vkCmdBeginRenderPass(cmd, &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+    // Set Viewport
+    VkViewport viewport {
+            .x = 0.f,
+            .y = 0.f,
+            .width = (float)sz.width(),
+            .height = (float)sz.height(),
+            .minDepth = 0.f,
+            .maxDepth = 1.f,
+    };
+    this->dev_->vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    VkRect2D scissor {
+            .offset = { 0, 0 },
+            .extent = {
+                    .width = (std::uint32_t)sz.width(),
+                    .height = (std::uint32_t)sz.height(),
+            },
+    };
+    this->dev_->vkCmdSetScissor(cmd, 0, 1, &scissor);
+
     // Commence drawing scene
     if(this->window_->scene->draw_gridlines)
     {
@@ -257,10 +277,13 @@ void VulkanRenderer::drawGridlines()
     VkDeviceMemory memory;
 
     std::array vertices = {
+            unlogic::Vertex {{ -1.f, -1.f }, unlogic::Color::Green},
+            unlogic::Vertex {{ 1.f, -1.f }, unlogic::Color::Green},
+            unlogic::Vertex {{ 1.f, 1.f }, unlogic::Color::Green},
+
+            unlogic::Vertex {{ 1.f, 1.f }, unlogic::Color::Blue},
+            unlogic::Vertex {{ -1.f, 1.f }, unlogic::Color::Blue},
             unlogic::Vertex {{ -1.f, -1.f }, unlogic::Color::Blue},
-            unlogic::Vertex {{ -1.f, 1.f },  unlogic::Color::Green},
-            unlogic::Vertex {{ 1.f, 1.f },   unlogic::Color::Red},
-            unlogic::Vertex {{ 1.f, -1.f },  unlogic::Color::Black},
     };
 
     VkBufferCreateInfo buffer_info {
@@ -301,6 +324,6 @@ void VulkanRenderer::drawGridlines()
 
     this->dev_->vkCmdDraw(cmd, vertices.size(), 1, 0, 0);
 
-    this->dev_->vkDestroyBuffer(this->window_->device(), buffer, nullptr);
-    this->dev_->vkFreeMemory(this->window_->device(), memory, nullptr);
+    //this->dev_->vkDestroyBuffer(this->window_->device(), buffer, nullptr);
+    //this->dev_->vkFreeMemory(this->window_->device(), memory, nullptr);
 }
