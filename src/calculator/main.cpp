@@ -29,6 +29,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    QFontDatabase::addApplicationFont(":/fonts/SourceCodePro.ttf");
+
     // Create Window
     ui::Window window;
     window.resize(1000, 500);
