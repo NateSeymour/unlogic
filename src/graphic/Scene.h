@@ -12,6 +12,7 @@ namespace unlogic
     struct Scene
     {
         Color background = Color::White;
+        bool draw_gridlines = true;
     };
 } // unlogic
 

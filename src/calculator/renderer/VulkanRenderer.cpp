@@ -7,138 +7,136 @@
 
 using namespace ui;
 
-void VulkanRenderer::initResources()
+void VulkanRenderer::createStandardPipeline(VkPipeline &pipeline, VkPipelineLayout &layout, const char *vert_shader_path, const char *frag_shader_path)
 {
-    this->dev_ = this->window_->vulkanInstance()->deviceFunctions(this->window_->device());
-
-    VkShaderModule vert_shader = this->loadShader(":/shaders/plot.vert.qsb");
-    VkShaderModule frag_shader = this->loadShader(":/shaders/plot.frag.qsb");
+    VkShaderModule vert_shader = this->loadShader(vert_shader_path);
+    VkShaderModule frag_shader = this->loadShader(frag_shader_path);
 
     VkPipelineShaderStageCreateInfo vert_shader_stage_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_VERTEX_BIT,
-        .module = vert_shader,
-        .pName = "main",
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = vert_shader,
+            .pName = "main",
     };
 
     VkPipelineShaderStageCreateInfo frag_shader_stage_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .module = frag_shader,
-        .pName = "main",
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = frag_shader,
+            .pName = "main",
     };
 
     std::array shader_stages = {vert_shader_stage_info, frag_shader_stage_info};
 
     VkVertexInputBindingDescription vertex_input_binding_description {
-        .binding = 0,
-        .stride = sizeof(unlogic::Vertex),
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+            .binding = 0,
+            .stride = sizeof(unlogic::Vertex),
+            .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
     };
 
     std::array vertex_attribute_descriptions = {
-        VkVertexInputAttributeDescription {
-            .location = 0,
-            .binding = 0,
-            .format = VK_FORMAT_R32G32_SFLOAT,
-            .offset = offsetof(unlogic::Vertex, position),
-        },
-        VkVertexInputAttributeDescription {
-            .location = 1,
-            .binding = 0,
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .offset = offsetof(unlogic::Vertex, color),
-        },
+            VkVertexInputAttributeDescription {
+                    .location = 0,
+                    .binding = 0,
+                    .format = VK_FORMAT_R32G32_SFLOAT,
+                    .offset = offsetof(unlogic::Vertex, position),
+            },
+            VkVertexInputAttributeDescription {
+                    .location = 1,
+                    .binding = 0,
+                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .offset = offsetof(unlogic::Vertex, color),
+            },
     };
 
     VkPipelineVertexInputStateCreateInfo vertex_input_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-        .vertexBindingDescriptionCount = 1,
-        .pVertexBindingDescriptions = &vertex_input_binding_description,
-        .vertexAttributeDescriptionCount = vertex_attribute_descriptions.size(),
-        .pVertexAttributeDescriptions = vertex_attribute_descriptions.data(),
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+            .vertexBindingDescriptionCount = 1,
+            .pVertexBindingDescriptions = &vertex_input_binding_description,
+            .vertexAttributeDescriptionCount = vertex_attribute_descriptions.size(),
+            .pVertexAttributeDescriptions = vertex_attribute_descriptions.data(),
     };
 
     VkPipelineInputAssemblyStateCreateInfo input_assembly_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
-        .primitiveRestartEnable = VK_TRUE,
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+            .primitiveRestartEnable = VK_TRUE,
     };
 
     std::array dynamic_states = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR,
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR,
     };
 
     VkPipelineDynamicStateCreateInfo dynamic_state_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .dynamicStateCount = dynamic_states.size(),
-        .pDynamicStates = dynamic_states.data(),
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+            .dynamicStateCount = dynamic_states.size(),
+            .pDynamicStates = dynamic_states.data(),
     };
 
     VkPipelineViewportStateCreateInfo viewport_state_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-        .viewportCount = 1,
-        .scissorCount = 1,
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+            .viewportCount = 1,
+            .scissorCount = 1,
     };
 
     VkPipelineRasterizationStateCreateInfo rasterization_state_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        .depthClampEnable = VK_FALSE,
-        .rasterizerDiscardEnable = VK_FALSE,
-        .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode = VK_CULL_MODE_BACK_BIT,
-        .frontFace = VK_FRONT_FACE_CLOCKWISE,
-        .depthBiasEnable = VK_FALSE,
-        .depthBiasConstantFactor = 0.f,
-        .depthBiasClamp = 0.f,
-        .depthBiasSlopeFactor = 0.f,
-        .lineWidth = 1.f,
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+            .depthClampEnable = VK_FALSE,
+            .rasterizerDiscardEnable = VK_FALSE,
+            .polygonMode = VK_POLYGON_MODE_FILL,
+            .cullMode = VK_CULL_MODE_BACK_BIT,
+            .frontFace = VK_FRONT_FACE_CLOCKWISE,
+            .depthBiasEnable = VK_FALSE,
+            .depthBiasConstantFactor = 0.f,
+            .depthBiasClamp = 0.f,
+            .depthBiasSlopeFactor = 0.f,
+            .lineWidth = 1.f,
     };
 
     VkPipelineMultisampleStateCreateInfo multisample_state_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-        .sampleShadingEnable = VK_FALSE,
-        .minSampleShading = 1.0f,
-        .pSampleMask = nullptr,
-        .alphaToCoverageEnable = VK_FALSE,
-        .alphaToOneEnable = VK_FALSE,
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+            .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+            .sampleShadingEnable = VK_FALSE,
+            .minSampleShading = 1.0f,
+            .pSampleMask = nullptr,
+            .alphaToCoverageEnable = VK_FALSE,
+            .alphaToOneEnable = VK_FALSE,
     };
 
     VkPipelineLayoutCreateInfo pipeline_layout_info {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 0,
-        .pSetLayouts = nullptr,
-        .pushConstantRangeCount = 0,
-        .pPushConstantRanges = nullptr,
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = 0,
+            .pSetLayouts = nullptr,
+            .pushConstantRangeCount = 0,
+            .pPushConstantRanges = nullptr,
     };
 
-    if(this->dev_->vkCreatePipelineLayout(this->window_->device(), &pipeline_layout_info, nullptr, &this->pipeline_layout_) != VK_SUCCESS)
+    if(this->dev_->vkCreatePipelineLayout(this->window_->device(), &pipeline_layout_info, nullptr, &layout) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create pipeline layout");
     }
 
     VkGraphicsPipelineCreateInfo pipeline_info {
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .stageCount = shader_stages.size(),
-        .pStages = shader_stages.data(),
-        .pVertexInputState = &vertex_input_info,
-        .pInputAssemblyState = &input_assembly_info,
-        .pViewportState = &viewport_state_info,
-        .pRasterizationState = &rasterization_state_info,
-        .pMultisampleState = &multisample_state_info,
-        .pDepthStencilState = nullptr,
-        .pColorBlendState = nullptr,
-        .pDynamicState = &dynamic_state_info,
-        .layout = this->pipeline_layout_,
-        .renderPass = this->window_->defaultRenderPass(),
-        .subpass = 0,
-        .basePipelineHandle = VK_NULL_HANDLE,
-        .basePipelineIndex = -1,
+            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .stageCount = shader_stages.size(),
+            .pStages = shader_stages.data(),
+            .pVertexInputState = &vertex_input_info,
+            .pInputAssemblyState = &input_assembly_info,
+            .pViewportState = &viewport_state_info,
+            .pRasterizationState = &rasterization_state_info,
+            .pMultisampleState = &multisample_state_info,
+            .pDepthStencilState = nullptr,
+            .pColorBlendState = nullptr,
+            .pDynamicState = &dynamic_state_info,
+            .layout = layout,
+            .renderPass = this->window_->defaultRenderPass(),
+            .subpass = 0,
+            .basePipelineHandle = VK_NULL_HANDLE,
+            .basePipelineIndex = -1,
     };
 
-    if(this->dev_->vkCreateGraphicsPipelines(this->window_->device(), VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &this->pipeline_) != VK_SUCCESS)
+    if(this->dev_->vkCreateGraphicsPipelines(this->window_->device(), VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &pipeline) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create pipeline");
     }
@@ -147,10 +145,21 @@ void VulkanRenderer::initResources()
     this->dev_->vkDestroyShaderModule(this->window_->device(), frag_shader, nullptr);
 }
 
+void VulkanRenderer::initResources()
+{
+    this->dev_ = this->window_->vulkanInstance()->deviceFunctions(this->window_->device());
+
+    this->createStandardPipeline(this->plot_pipeline_, this->plot_pipeline_layout_, ":/shaders/plot.vert.qsb", ":/shaders/plot.frag.qsb");
+    this->createStandardPipeline(this->graph_pipeline_, this->graph_pipeline_layout_, ":/shaders/graph.vert.qsb", ":/shaders/graph.frag.qsb");
+}
+
 void VulkanRenderer::releaseResources()
 {
-    this->dev_->vkDestroyPipeline(this->window_->device(), this->pipeline_, nullptr);
-    this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->pipeline_layout_, nullptr);
+    this->dev_->vkDestroyPipeline(this->window_->device(), this->plot_pipeline_, nullptr);
+    this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->plot_pipeline_layout_, nullptr);
+
+    this->dev_->vkDestroyPipeline(this->window_->device(), this->graph_pipeline_, nullptr);
+    this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->graph_pipeline_layout_, nullptr);
 }
 
 void VulkanRenderer::startNextFrame()
@@ -162,8 +171,6 @@ void VulkanRenderer::startNextFrame()
     }
 
     VkCommandBuffer cmd = this->window_->currentCommandBuffer();
-
-    this->dev_->vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline_);
 
     unlogic::Color background = this->window_->scene->background;
 
@@ -192,11 +199,11 @@ void VulkanRenderer::startNextFrame()
 
     this->dev_->vkCmdBeginRenderPass(cmd, &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    // Do nothing else. We will just clear to green, changing the component on
-    // every invocation. This also helps verifying the rate to which the thread
-    // is throttled to. (The elapsed time between startNextFrame calls should
-    // typically be around 16 ms. Note that rendering is 2 frames ahead of what
-    // is displayed.)
+    // Commence drawing scene
+    if(this->window_->scene->draw_gridlines)
+    {
+        this->drawGridlines();
+    }
 
     this->dev_->vkCmdEndRenderPass(cmd);
 
@@ -228,9 +235,9 @@ VkShaderModule VulkanRenderer::loadShader(std::string_view path)
     QShaderCode shader_code = shader.shader(shader_key);
 
     VkShaderModuleCreateInfo create_info {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = (std::size_t)shader_code.shader().size(),
-        .pCode = reinterpret_cast<const uint32_t*>(shader_code.shader().constData()),
+            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            .codeSize = (std::size_t)shader_code.shader().size(),
+            .pCode = reinterpret_cast<const uint32_t*>(shader_code.shader().constData()),
     };
 
     VkShaderModule module;
@@ -240,4 +247,60 @@ VkShaderModule VulkanRenderer::loadShader(std::string_view path)
     }
 
     return module;
+}
+
+void VulkanRenderer::drawGridlines()
+{
+    VkCommandBuffer cmd = this->window_->currentCommandBuffer();
+
+    VkBuffer buffer;
+    VkDeviceMemory memory;
+
+    std::array vertices = {
+            unlogic::Vertex {{ -1.f, -1.f }, unlogic::Color::Blue},
+            unlogic::Vertex {{ -1.f, 1.f },  unlogic::Color::Green},
+            unlogic::Vertex {{ 1.f, 1.f },   unlogic::Color::Red},
+            unlogic::Vertex {{ 1.f, -1.f },  unlogic::Color::Black},
+    };
+
+    VkBufferCreateInfo buffer_info {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = sizeof(unlogic::Vertex) * vertices.size(),
+            .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    };
+
+    if(this->dev_->vkCreateBuffer(this->window_->device(), &buffer_info, nullptr, &buffer) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create buffer");
+    }
+
+    VkMemoryAllocateInfo memory_allocate_info {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = buffer_info.size,
+            .memoryTypeIndex = this->window_->hostVisibleMemoryIndex(),
+    };
+
+    if(this->dev_->vkAllocateMemory(this->window_->device(), &memory_allocate_info, nullptr, &memory) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to allocate memory");
+    }
+
+    this->dev_->vkBindBufferMemory(this->window_->device(), buffer, memory, 0);
+
+    void *data = nullptr;
+    this->dev_->vkMapMemory(this->window_->device(), memory, 0, buffer_info.size, 0, &data);
+    memcpy(data, vertices.data(), buffer_info.size);
+    this->dev_->vkUnmapMemory(this->window_->device(), memory);
+
+    this->dev_->vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->graph_pipeline_);
+
+    std::array buffers = { buffer };
+    std::array<VkDeviceSize, 1> offsets = { 0 };
+    this->dev_->vkCmdBindVertexBuffers(cmd, 0, 1, buffers.data(), offsets.data());
+
+    this->dev_->vkCmdDraw(cmd, vertices.size(), 1, 0, 0);
+
+    this->dev_->vkDestroyBuffer(this->window_->device(), buffer, nullptr);
+    this->dev_->vkFreeMemory(this->window_->device(), memory, nullptr);
 }

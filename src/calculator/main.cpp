@@ -16,6 +16,7 @@ int main(int argc, char **argv)
     ui::vk_global->setExtensions({
 #if !NDEBUG
          "VK_LAYER_KHRONOS_validation",
+         "VK_EXT_memory_budget",
 #endif
          "VK_KHR_portability_subset",
          "VK_KHR_surface",

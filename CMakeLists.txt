@@ -90,6 +90,8 @@ qt_add_shaders(unlogic-calculator "shaders"
         FILES
             src/calculator/resource/shaders/plot.frag
             src/calculator/resource/shaders/plot.vert
+            src/calculator/resource/shaders/graph.frag
+            src/calculator/resource/shaders/graph.vert
 )
 qt_add_resources(unlogic-calculator "fonts"
         PREFIX "/fonts"

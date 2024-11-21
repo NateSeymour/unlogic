@@ -12,17 +12,26 @@ namespace ui
     {
         VulkanWindow *window_ = nullptr;
 
-        VkPipelineLayout pipeline_layout_;
-        VkPipeline pipeline_;
+        VkPipelineLayout graph_pipeline_layout_;
+        VkPipeline graph_pipeline_;
+
+        VkPipelineLayout plot_pipeline_layout_;
+        VkPipeline plot_pipeline_;
 
         QVulkanDeviceFunctions *dev_ = nullptr;
 
     public:
+        // Vulkan Utils
         VkShaderModule loadShader(std::string_view path);
+        void createStandardPipeline(VkPipeline &pipeline, VkPipelineLayout &layout, char const *vert_shader_path, char const *frag_shader_path);
 
+        // Vulkan Commands
         void initResources() override;
         void releaseResources() override;
         void startNextFrame() override;
+
+        // Draw Commands
+        void drawGridlines();
 
         VulkanRenderer(VulkanWindow *window) : window_(window) {}
     };

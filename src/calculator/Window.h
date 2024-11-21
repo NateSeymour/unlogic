@@ -59,7 +59,6 @@ namespace ui
 
             auto render_window = new VulkanWindow;
             render_window->setVulkanInstance(ui::vk_global);
-            this->scene_->background = unlogic::Color::Blue;
             render_window->setScene(this->scene_.get());
 
             this->renderer_widget_ = QWidget::createWindowContainer(render_window);
