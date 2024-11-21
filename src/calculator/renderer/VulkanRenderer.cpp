@@ -60,7 +60,7 @@ void VulkanRenderer::createStandardPipeline(VkPipeline &pipeline, VkPipelineLayo
     VkPipelineInputAssemblyStateCreateInfo input_assembly_info {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
             .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-            .primitiveRestartEnable = VK_TRUE,
+            .primitiveRestartEnable = VK_FALSE,
     };
 
     std::array dynamic_states = {
@@ -104,6 +104,26 @@ void VulkanRenderer::createStandardPipeline(VkPipeline &pipeline, VkPipelineLayo
             .alphaToOneEnable = VK_FALSE,
     };
 
+    VkPipelineColorBlendAttachmentState color_blend_attachment_state {
+            .blendEnable = VK_FALSE,
+            .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+            .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+            .colorBlendOp = VK_BLEND_OP_ADD,
+            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+            .alphaBlendOp = VK_BLEND_OP_ADD,
+            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+
+    VkPipelineColorBlendStateCreateInfo color_blend_state_info {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+            .logicOpEnable = VK_FALSE,
+            .logicOp = VK_LOGIC_OP_COPY,
+            .attachmentCount = 1,
+            .pAttachments = &color_blend_attachment_state,
+            .blendConstants = { 0.f, 0.f, 0.f, 0.f },
+    };
+
     VkPipelineLayoutCreateInfo pipeline_layout_info {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = 0,
@@ -127,7 +147,7 @@ void VulkanRenderer::createStandardPipeline(VkPipeline &pipeline, VkPipelineLayo
             .pRasterizationState = &rasterization_state_info,
             .pMultisampleState = &multisample_state_info,
             .pDepthStencilState = nullptr,
-            .pColorBlendState = nullptr,
+            .pColorBlendState = &color_blend_state_info,
             .pDynamicState = &dynamic_state_info,
             .layout = layout,
             .renderPass = this->window_->defaultRenderPass(),
@@ -163,6 +183,8 @@ void VulkanRenderer::initResources()
 
 void VulkanRenderer::releaseResources()
 {
+    this->gridlines_->Release();
+
     this->dev_->vkDestroyPipeline(this->window_->device(), this->plot_pipeline_, nullptr);
     this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->plot_pipeline_layout_, nullptr);
 

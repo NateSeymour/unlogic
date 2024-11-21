@@ -11,11 +11,12 @@ int main(int argc, char **argv)
 
     // Initialize global Vulkan Instance
     ui::vk_global = new QVulkanInstance;
-    ui::vk_global->setLayers({});
+    ui::vk_global->setLayers({
+         "VK_LAYER_KHRONOS_validation",
+    });
 
     ui::vk_global->setExtensions({
 #if !NDEBUG
-         "VK_LAYER_KHRONOS_validation",
          "VK_EXT_memory_budget",
 #endif
          "VK_KHR_portability_subset",
