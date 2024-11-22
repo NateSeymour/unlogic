@@ -83,6 +83,8 @@ qt_add_executable(unlogic-calculator
         src/calculator/renderer/VulkanVertexBuffer.h
         src/calculator/resource/shaders/plot.frag
         src/calculator/resource/shaders/plot.vert
+        src/calculator/renderer/VulkanPipeline.cpp
+        src/calculator/renderer/VulkanPipeline.h
 )
 qt_add_shaders(unlogic-calculator "shaders"
         NOGLSL
@@ -93,8 +95,8 @@ qt_add_shaders(unlogic-calculator "shaders"
         FILES
             src/calculator/resource/shaders/plot.frag
             src/calculator/resource/shaders/plot.vert
-            src/calculator/resource/shaders/graph.frag
-            src/calculator/resource/shaders/graph.vert
+        src/calculator/resource/shaders/grid.frag
+        src/calculator/resource/shaders/grid.vert
 )
 qt_add_resources(unlogic-calculator "fonts"
         PREFIX "/fonts"

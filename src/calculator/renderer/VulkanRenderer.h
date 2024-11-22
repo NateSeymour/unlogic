@@ -3,6 +3,7 @@
 
 #include <QVulkanWindowRenderer>
 #include <QVulkanDeviceFunctions>
+#include "VulkanPipeline.h"
 #include "graphic/VertexBuffer.h"
 
 namespace ui
@@ -13,28 +14,21 @@ namespace ui
     {
         VulkanWindow *window_ = nullptr;
 
-        VkPipelineLayout graph_pipeline_layout_;
-        VkPipeline graph_pipeline_;
-
-        VkPipelineLayout plot_pipeline_layout_;
-        VkPipeline plot_pipeline_;
-
         QVulkanDeviceFunctions *dev_ = nullptr;
 
-        std::unique_ptr<unlogic::VertexBuffer> gridlines_ = nullptr;
+        std::unique_ptr<VulkanPipeline> grid_pipeline_;
+        std::unique_ptr<VulkanPipeline> plot_pipeline_;
+
+        std::unique_ptr<unlogic::VertexBuffer> grid_ = nullptr;
 
     public:
-        // Vulkan Utils
-        VkShaderModule loadShader(std::string_view path);
-        void createStandardPipeline(VkPipeline &pipeline, VkPipelineLayout &layout, char const *vert_shader_path, char const *frag_shader_path);
-
         // Vulkan Commands
         void initResources() override;
         void releaseResources() override;
         void startNextFrame() override;
 
         // Draw Commands
-        void drawVertexBuffer(unlogic::VertexBuffer *vertex_buffer, VkPipeline pipeline);
+        void drawVertexBuffer(unlogic::VertexBuffer *vertex_buffer, VulkanPipeline &pipeline);
 
         VulkanRenderer(VulkanWindow *window) : window_(window) {}
     };
