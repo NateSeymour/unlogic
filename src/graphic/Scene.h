@@ -8,6 +8,7 @@
 #include <vector>
 #include <memory>
 #include <glm/glm.hpp>
+#include "Camera.h"
 #include "VertexBuffer.h"
 #include "Color.h"
 
@@ -17,6 +18,7 @@ namespace unlogic
     {
         std::unique_ptr<VertexBufferProvider> vertex_buffer_provider;
 
+        Camera camera;
         Color background = Color::White;
         bool draw_gridlines = true;
 

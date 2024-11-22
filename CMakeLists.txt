@@ -63,6 +63,7 @@ add_library(unlogic STATIC
         src/graphic/Plot.h
         src/graphic/Plot.cpp
         src/graphic/VertexBuffer.h
+        src/graphic/Camera.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} glm::glm buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
