@@ -13,7 +13,7 @@ jobs:
     - name: Update Package Manager
       run: sudo apt update
     - name: Install System Dependencies
-      run: sudo apt install -y build-essential cmake ninja-build llvm-18-dev wget libxkbcommon-x11-dev libxcb-icccm4-dev
+      run: sudo apt install -y build-essential cmake ninja-build llvm-18-dev wget libxkbcommon-x11-dev libxcb-icccm4-dev libxcb-image0-dev
     - name: Download QT
       run: wget -O qt-installer.run https://d13lb3tujbc8s0.cloudfront.net/onlineinstallers/qt-online-installer-linux-x64-4.8.1.run
     - name: Install QT
