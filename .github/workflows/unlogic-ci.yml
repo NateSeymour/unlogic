@@ -18,7 +18,6 @@ jobs:
       uses: jurplel/install-qt-action@v4
       with:
         version: 6.8.*
-        modules: qtgui qtshadertools
     - uses: actions/checkout@v4
     - name: Configure Project
       run: mkdir cmake-build-release && cd cmake-build-release && cmake .. -DCMAKE_BUILD_TYPE=Release -G "Ninja"
