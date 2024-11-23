@@ -1,5 +1,11 @@
 #version 450
 
+layout (binding = 0) uniform Camera {
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+} camera;
+
 layout (location = 0) in vec4 in_color;
 
 layout (location = 0) out vec4 out_color;

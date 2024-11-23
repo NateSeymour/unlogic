@@ -3,7 +3,7 @@
 #include <rhi/qshader.h>
 #include "graphic/ugl/Vertex.h"
 
-VkShaderModule ui::VulkanPipeline::loadShader(char const *path)
+VkShaderModule ui::VulkanPipeline::LoadShader(char const *path)
 {
     QFile shader_file(path);
     if (!shader_file.open(QIODevice::ReadOnly))
@@ -45,8 +45,8 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char
 {
     this->dev_ = this->window_->vulkanInstance()->deviceFunctions(this->window_->device());
 
-    VkShaderModule vert_shader = this->loadShader(vert);
-    VkShaderModule frag_shader = this->loadShader(frag);
+    VkShaderModule vert_shader = this->LoadShader(vert);
+    VkShaderModule frag_shader = this->LoadShader(frag);
 
     VkPipelineShaderStageCreateInfo vert_shader_stage_info{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -245,6 +245,53 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char
     this->dev_->vkBindBufferMemory(this->window_->device(), this->camera_buffer_, this->camera_memory_, 0);
 
     this->dev_->vkMapMemory(this->window_->device(), this->camera_memory_, 0, camera_buffer_info.size, 0, (void **)&this->camera);
+
+    VkDescriptorPoolSize descriptor_pool_size{
+            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+    };
+
+    VkDescriptorPoolCreateInfo descriptor_pool_info{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .maxSets = 1,
+            .poolSizeCount = 1,
+            .pPoolSizes = &descriptor_pool_size,
+    };
+
+    if (this->dev_->vkCreateDescriptorPool(this->window_->device(), &descriptor_pool_info, nullptr, &this->descriptor_pool_) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create descriptor pool");
+    }
+
+    VkDescriptorSetAllocateInfo descriptor_set_allocate_info{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .descriptorPool = this->descriptor_pool_,
+            .descriptorSetCount = 1,
+            .pSetLayouts = &this->descriptor_set_layout_,
+    };
+
+    if (this->dev_->vkAllocateDescriptorSets(this->window_->device(), &descriptor_set_allocate_info, &this->descriptor_set_) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to allocate descriptor set");
+    }
+
+    VkDescriptorBufferInfo descriptor_buffer_info{
+            .buffer = this->camera_buffer_,
+            .offset = 0,
+            .range = sizeof(unlogic::Camera),
+    };
+
+    VkWriteDescriptorSet write_descriptor_set{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = this->descriptor_set_,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &descriptor_buffer_info,
+    };
+
+    this->dev_->vkUpdateDescriptorSets(this->window_->device(), 1, &write_descriptor_set, 0, nullptr);
 }
 
 void ui::VulkanPipeline::Destroy()
@@ -252,6 +299,7 @@ void ui::VulkanPipeline::Destroy()
     this->dev_->vkDestroyBuffer(this->window_->device(), this->camera_buffer_, nullptr);
     this->dev_->vkFreeMemory(this->window_->device(), this->camera_memory_, nullptr);
 
+    this->dev_->vkDestroyDescriptorPool(this->window_->device(), this->descriptor_pool_, nullptr);
     this->dev_->vkDestroyDescriptorSetLayout(this->window_->device(), this->descriptor_set_layout_, nullptr);
     this->dev_->vkDestroyPipeline(this->window_->device(), this->pipeline_, nullptr);
     this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->pipeline_layout_, nullptr);
@@ -265,4 +313,18 @@ ui::VulkanPipeline::~VulkanPipeline()
 VkPipeline ui::VulkanPipeline::NativeHandle()
 {
     return this->pipeline_;
+}
+
+void ui::VulkanPipeline::DrawVertexBuffer(unlogic::VertexBuffer *vertex_buffer)
+{
+    VkCommandBuffer cmd = this->window_->currentCommandBuffer();
+
+    this->dev_->vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline_);
+    this->dev_->vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline_layout_, 0, 1, &this->descriptor_set_, 0, nullptr);
+
+    std::array buffers = {static_cast<VkBuffer>(vertex_buffer->GetNativeHandle())};
+    constexpr std::array<VkDeviceSize, 1> offsets = {0};
+    this->dev_->vkCmdBindVertexBuffers(cmd, 0, 1, buffers.data(), offsets.data());
+
+    this->dev_->vkCmdDraw(cmd, vertex_buffer->GetVertexCount(), 1, 0, 0);
 }

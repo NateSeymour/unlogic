@@ -1,8 +1,8 @@
 #ifndef UNLOGIC_VULKANRENDERER_H
 #define UNLOGIC_VULKANRENDERER_H
 
-#include <QVulkanWindowRenderer>
 #include <QVulkanDeviceFunctions>
+#include <QVulkanWindowRenderer>
 #include "VulkanPipeline.h"
 #include "graphic/VertexBuffer.h"
 
@@ -27,11 +27,8 @@ namespace ui
         void releaseResources() override;
         void startNextFrame() override;
 
-        // Draw Commands
-        void drawVertexBuffer(unlogic::VertexBuffer *vertex_buffer, VulkanPipeline &pipeline);
-
         VulkanRenderer(VulkanWindow *window) : window_(window) {}
     };
-}
+} // namespace ui
 
-#endif //UNLOGIC_VULKANRENDERER_H
+#endif // UNLOGIC_VULKANRENDERER_H

@@ -4,6 +4,7 @@
 #include <QVulkanDeviceFunctions>
 #include <QVulkanWindow>
 #include "graphic/Camera.h"
+#include "graphic/VertexBuffer.h"
 
 namespace ui
 {
@@ -14,6 +15,7 @@ namespace ui
 
         VkDescriptorPool descriptor_pool_ = nullptr;
         VkDescriptorSetLayout descriptor_set_layout_ = nullptr;
+        VkDescriptorSet descriptor_set_ = nullptr;
         VkPipelineLayout pipeline_layout_ = nullptr;
         VkPipeline pipeline_ = nullptr;
 
@@ -23,8 +25,10 @@ namespace ui
     public:
         unlogic::Camera *camera = nullptr;
 
-        VkShaderModule loadShader(char const *path);
+        VkShaderModule LoadShader(char const *path);
         VkPipeline NativeHandle();
+
+        void DrawVertexBuffer(unlogic::VertexBuffer *vertex_buffer);
 
         void Destroy();
 
