@@ -5,13 +5,13 @@
 #ifndef VULKANVERTEXBUFFER_H
 #define VULKANVERTEXBUFFER_H
 
-#include <QVulkanWindow>
 #include <QVulkanDeviceFunctions>
+#include <QVulkanWindow>
 #include "graphic/VertexBuffer.h"
 
-namespace unlogic
+namespace ui
 {
-    class VulkanVertexBuffer : public VertexBuffer
+    class VulkanVertexBuffer : public unlogic::VertexBuffer
     {
         QVulkanWindow *window_ = nullptr;
         QVulkanDeviceFunctions *dev_ = nullptr;
@@ -22,43 +22,43 @@ namespace unlogic
     public:
         void Release() override
         {
-            if(this->vk_buffer_)
+            if (this->vk_buffer_)
             {
                 this->dev_->vkDestroyBuffer(this->window_->device(), this->vk_buffer_, nullptr);
                 this->vk_buffer_ = nullptr;
             }
 
-            if(this->vk_memory_)
+            if (this->vk_memory_)
             {
                 this->dev_->vkFreeMemory(this->window_->device(), this->vk_memory_, nullptr);
                 this->vk_memory_ = nullptr;
             }
         }
 
-        void Allocate(Vertex const *vertices, std::size_t vertex_count) override
+        void Allocate(unlogic::Vertex const *vertices, std::size_t vertex_count) override
         {
             this->Release();
             this->SetVertexCount(vertex_count);
 
-            VkBufferCreateInfo buffer_info {
+            VkBufferCreateInfo buffer_info{
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-                    .size = sizeof(Vertex) * vertex_count,
+                    .size = sizeof(unlogic::Vertex) * vertex_count,
                     .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             };
 
-            if(this->dev_->vkCreateBuffer(this->window_->device(), &buffer_info, nullptr, &this->vk_buffer_) != VK_SUCCESS)
+            if (this->dev_->vkCreateBuffer(this->window_->device(), &buffer_info, nullptr, &this->vk_buffer_) != VK_SUCCESS)
             {
                 throw std::runtime_error("failed to create buffer");
             }
 
-            VkMemoryAllocateInfo memory_allocate_info {
+            VkMemoryAllocateInfo memory_allocate_info{
                     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                     .allocationSize = buffer_info.size,
                     .memoryTypeIndex = this->window_->hostVisibleMemoryIndex(),
             };
 
-            if(this->dev_->vkAllocateMemory(this->window_->device(), &memory_allocate_info, nullptr, &this->vk_memory_) != VK_SUCCESS)
+            if (this->dev_->vkAllocateMemory(this->window_->device(), &memory_allocate_info, nullptr, &this->vk_memory_) != VK_SUCCESS)
             {
                 throw std::runtime_error("failed to allocate memory");
             }
@@ -73,7 +73,7 @@ namespace unlogic
 
         void *GetNativeHandle() override
         {
-            return (void*)this->vk_buffer_;
+            return (void *)this->vk_buffer_;
         }
 
         VulkanVertexBuffer(QVulkanWindow *window) : window_(window)
@@ -87,18 +87,18 @@ namespace unlogic
         }
     };
 
-    class VulkanVertexBufferProvider : public VertexBufferProvider
+    class VulkanVertexBufferProvider : public unlogic::VertexBufferProvider
     {
         QVulkanWindow *window_ = nullptr;
 
     public:
-        std::unique_ptr<VertexBuffer> GetVertexBuffer() override
+        std::unique_ptr<unlogic::VertexBuffer> GetVertexBuffer() override
         {
             return std::make_unique<VulkanVertexBuffer>(this->window_);
         }
 
         VulkanVertexBufferProvider(QVulkanWindow *window) : window_(window) {}
     };
-}
+} // namespace ui
 
-#endif //VULKANVERTEXBUFFER_H
+#endif // VULKANVERTEXBUFFER_H

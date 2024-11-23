@@ -38,6 +38,11 @@ void VulkanRenderer::startNextFrame()
         return;
     }
 
+    // Set camera for all pipelines
+    *this->grid_pipeline_->camera = this->window_->scene->camera;
+    *this->plot_pipeline_->camera = this->window_->scene->camera;
+
+    // Begin render pass
     VkCommandBuffer cmd = this->window_->currentCommandBuffer();
 
     unlogic::Color background = this->window_->scene->background;

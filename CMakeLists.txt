@@ -85,6 +85,7 @@ qt_add_executable(unlogic-calculator
         src/calculator/resource/shaders/plot.vert
         src/calculator/renderer/VulkanPipeline.cpp
         src/calculator/renderer/VulkanPipeline.h
+        src/calculator/renderer/VulkanVertexBuffer.cpp
 )
 qt_add_shaders(unlogic-calculator "shaders"
         NOGLSL
