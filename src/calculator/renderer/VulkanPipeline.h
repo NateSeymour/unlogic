@@ -11,6 +11,7 @@ namespace ui
         QVulkanWindow *window_;
         QVulkanDeviceFunctions *dev_;
 
+        VkDescriptorSetLayout descriptor_set_layout_ = nullptr;
         VkPipelineLayout pipeline_layout_ = nullptr;
         VkPipeline pipeline_ = nullptr;
 

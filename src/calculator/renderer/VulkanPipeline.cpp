@@ -160,10 +160,29 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, const char *vert, cons
             .blendConstants = { 0.f, 0.f, 0.f, 0.f },
     };
 
+    VkDescriptorSetLayoutBinding descriptor_layout_binding {
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS,
+            .pImmutableSamplers = nullptr,
+    };
+
+    VkDescriptorSetLayoutCreateInfo descriptor_set_layout_info {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = 1,
+            .pBindings = &descriptor_layout_binding,
+    };
+
+    if(this->dev_->vkCreateDescriptorSetLayout(this->window_->device(), &descriptor_set_layout_info, nullptr, &this->descriptor_set_layout_) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create descriptor set layout");
+    }
+
     VkPipelineLayoutCreateInfo pipeline_layout_info {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            .setLayoutCount = 0,
-            .pSetLayouts = nullptr,
+            .setLayoutCount = 1,
+            .pSetLayouts = &this->descriptor_set_layout_,
             .pushConstantRangeCount = 0,
             .pPushConstantRanges = nullptr,
     };
@@ -203,6 +222,7 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, const char *vert, cons
 
 void ui::VulkanPipeline::Destroy()
 {
+    this->dev_->vkDestroyDescriptorSetLayout(this->window_->device(), this->descriptor_set_layout_, nullptr);
     this->dev_->vkDestroyPipeline(this->window_->device(), this->pipeline_, nullptr);
     this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->pipeline_layout_, nullptr);
 }
