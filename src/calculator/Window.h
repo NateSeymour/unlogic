@@ -35,6 +35,7 @@ namespace ui
             unlogic::Compiler compiler({&unlogic::stdlib, &unlogic::runtime});
             auto program = compiler.Compile(program_text);
 
+            this->scene_->plots.clear();
             program(this->scene_.get());
         }
 

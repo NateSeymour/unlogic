@@ -93,10 +93,16 @@ void VulkanRenderer::startNextFrame()
     };
     this->dev_->vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    // Commence drawing scene
+    // Draw Grid
     if (this->window_->scene->draw_gridlines)
     {
         this->grid_pipeline_->DrawVertexBuffer(this->grid_.get());
+    }
+
+    // Draw Plots
+    for (auto &plot: this->window_->scene->plots)
+    {
+        this->plot_pipeline_->DrawVertexBuffer(plot.vertex_buffer.get());
     }
 
     this->dev_->vkCmdEndRenderPass(cmd);

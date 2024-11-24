@@ -8,7 +8,8 @@
 
 using namespace unlogic;
 
-Plot2d::Plot2d(std::string name, Plot2dFunctionType fn) : name_(std::move(name)), fn_(fn)
+Plot2d::Plot2d(VertexBufferProvider *buffer_provider, std::string name, Plot2dFunctionType fn, Color color) :
+    buffer_provider_(buffer_provider), name_(std::move(name)), fn_(fn), color_(color)
 {
     std::size_t point_count = std::ceil((this->domain_.y - this->domain_.x) / this->precision_);
 
@@ -22,29 +23,31 @@ Plot2d::Plot2d(std::string name, Plot2dFunctionType fn) : name_(std::move(name))
         points.emplace_back(x, y);
     }
 
-    /*
-    this->line_.vertices.clear();
-    this->line_.vertices.reserve(points.size() * 2);
+    std::vector<Vertex> vertices;
+    vertices.reserve(points.size() * 2);
     double dx = 0.0;
     double dy = 0.0;
-    for(std::size_t i = 0; i < points.size(); i++)
+    for (std::size_t i = 0; i < points.size(); i++)
     {
-        if(i < points.size() - 1)
+        if (i < points.size() - 1)
         {
             dx = points[i + 1].x - points[i].x;
             dy = points[i + 1].y - points[i].y;
         }
 
         double theta1 = std::atan2(dy, dx);
-        double theta2 = ((std::numbers::pi/2) - theta1);
+        double theta2 = ((std::numbers::pi / 2) - theta1);
 
         double tx = (this->line_thickness_ / 2) * std::cos(theta2);
         double ty = (this->line_thickness_ / 2) * std::sin(theta2);
 
         auto const &point = points[i];
 
-        this->line_.vertices.push_back({glm::vec2(point.x + tx, point.y - ty), this->color_}); // a1
-        this->line_.vertices.push_back({glm::vec2(point.x - tx, point.y + ty), this->color_}); // a2
+        vertices.push_back({glm::vec2(point.x + tx, point.y - ty), this->color_}); // a1
+        vertices.push_back({glm::vec2(point.x - tx, point.y + ty), this->color_}); // a2
     }
-    */
+
+    this->vertex_buffer = this->buffer_provider_->GetVertexBuffer();
+
+    this->vertex_buffer->Allocate(vertices.data(), vertices.size());
 }

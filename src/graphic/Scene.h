@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "VertexBuffer.h"
 #include "Color.h"
+#include "Plot.h"
 
 namespace unlogic
 {
@@ -24,17 +25,19 @@ namespace unlogic
 
         std::vector<std::unique_ptr<VertexBuffer>> drawables;
 
+        std::vector<Plot2d> plots;
+
         std::unique_ptr<VertexBuffer> Rect(std::array<glm::vec2, 4> const &corners, Color color = Color::White)
         {
             auto vertex_buffer = this->vertex_buffer_provider->GetVertexBuffer();
 
             std::array<Vertex, 6> vertices = {
-                Vertex { corners[0], color },
-                Vertex { corners[1], color },
-                Vertex { corners[2], color },
-                Vertex { corners[2], color },
-                Vertex { corners[3], color },
-                Vertex { corners[0], color },
+                    Vertex{corners[0], color},
+                    Vertex{corners[1], color},
+                    Vertex{corners[2], color},
+                    Vertex{corners[2], color},
+                    Vertex{corners[3], color},
+                    Vertex{corners[0], color},
             };
 
             vertex_buffer->Allocate(vertices.data(), vertices.size());
@@ -42,13 +45,15 @@ namespace unlogic
             return std::move(vertex_buffer);
         }
 
+        void AddPlot(char const *name, Plot2dFunctionType function)
+        {
+            this->plots.emplace_back(this->vertex_buffer_provider.get(), name, function, Color::Red);
+        }
+
         Scene() = delete;
 
-        Scene(std::unique_ptr<VertexBufferProvider> vertex_buffer_provider) : vertex_buffer_provider(std::move(vertex_buffer_provider))
-        {
-
-        }
+        Scene(std::unique_ptr<VertexBufferProvider> vertex_buffer_provider) : vertex_buffer_provider(std::move(vertex_buffer_provider)) {}
     };
-} // unlogic
+} // namespace unlogic
 
-#endif //SCENE_H
+#endif // SCENE_H

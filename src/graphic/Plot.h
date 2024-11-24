@@ -8,34 +8,32 @@
 #include <string>
 #include <glm/glm.hpp>
 #include "Color.h"
+#include "VertexBuffer.h"
 
 namespace unlogic
 {
-    using Plot2dFunctionType = double(*)(double);
+    using Plot2dFunctionType = double (*)(double);
 
     class Plot2d
     {
-        std::string name_ = "My Plot";
+        std::string name_;
         Color color_ = Color::Red;
 
         Plot2dFunctionType fn_ = nullptr;
 
-        glm::vec2 domain_ = { -10.f, 10.f };
-        glm::vec2 range_ = { -10.f, 10.f };
+        glm::vec2 domain_ = {-10.f, 10.f};
+        glm::vec2 range_ = {-10.f, 10.f};
 
         float precision_ = 0.1f;
-        float line_thickness_ = 10.f;
+        float line_thickness_ = 0.1f;
 
-        //Line line_;
-
-        Plot2d(std::string name, Plot2dFunctionType fn);
+        VertexBufferProvider *buffer_provider_ = nullptr;
 
     public:
-        static Plot2d FromFunction(std::string name, Plot2dFunctionType fn)
-        {
-            return {std::move(name), fn};
-        }
-    };
-}
+        std::unique_ptr<VertexBuffer> vertex_buffer;
 
-#endif //PLOT_H
+        Plot2d(VertexBufferProvider *buffer_provider, std::string name, Plot2dFunctionType fn, Color color);
+    };
+} // namespace unlogic
+
+#endif // PLOT_H

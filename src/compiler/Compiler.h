@@ -32,12 +32,14 @@ namespace unlogic
         void operator()(Scene *scene)
         {
             auto function_ea = this->jit_->lookup("__entry");
-            if(auto e = function_ea.takeError())
+            if (auto e = function_ea.takeError())
             {
                 throw std::runtime_error(llvm::toString(std::move(e)));
             }
 
-            function_ea->toPtr<void(Scene*)>()(scene);
+            auto program = function_ea->toPtr<void(Scene *)>();
+
+            return program(scene);
         }
 
         Program() = delete;
@@ -45,7 +47,7 @@ namespace unlogic
 
     class Compiler
     {
-        std::vector<Library*> default_libraries_;
+        std::vector<Library *> default_libraries_;
 
     public:
         static void InitializeGlobalCompilerRuntime()
@@ -77,22 +79,22 @@ namespace unlogic
             Scope program_scope;
             program_scope.PushLayer();
 
-            for(auto library : this->default_libraries_)
+            for (auto library: this->default_libraries_)
             {
                 // Create dylib
                 auto dylib = jit->createJITDylib(library->name);
-                if(auto e = dylib.takeError())
+                if (auto e = dylib.takeError())
                 {
                     throw std::runtime_error(llvm::toString(std::move(e)));
                 }
 
                 // Generate symbol map
                 llvm::orc::SymbolMap library_symbols;
-                for(auto symbol : library->symbols)
+                for (auto symbol: library->symbols)
                 {
                     library_symbols.insert({
-                        jit->mangleAndIntern(symbol->name),
-                        symbol->symbol,
+                            jit->mangleAndIntern(symbol->name),
+                            symbol->symbol,
                     });
 
                     symbol->PopulateScope(*ctx.get(), *module, program_scope);
@@ -100,7 +102,7 @@ namespace unlogic
 
                 // Add symbol map
                 auto std_sym_def = dylib->define(llvm::orc::absoluteSymbols(library_symbols));
-                if(std_sym_def)
+                if (std_sym_def)
                 {
                     throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
                 }
@@ -133,8 +135,8 @@ namespace unlogic
         }
 
         Compiler() = default;
-        Compiler(std::vector<Library*> default_libraries) : default_libraries_(std::move(default_libraries)) {}
+        Compiler(std::vector<Library *> default_libraries) : default_libraries_(std::move(default_libraries)) {}
     };
-}
+} // namespace unlogic
 
-#endif //UNLOGIC_COMPILER_H
+#endif // UNLOGIC_COMPILER_H
