@@ -10,8 +10,8 @@
 #include "compiler/std/StandardLibrary.h"
 #include <QMainWindow>
 #include <QPushButton>
-#include <QTextEdit>
 #include <QSplitter>
+#include <QTextEdit>
 #include <QVBoxLayout>
 #include "renderer/VulkanInstance.h"
 #include "renderer/VulkanVertexBuffer.h"
@@ -32,7 +32,7 @@ namespace ui
         {
             auto program_text = this->editor_->toPlainText().toStdString();
 
-            unlogic::Compiler compiler({ &unlogic::stdlib, &unlogic::runtime });
+            unlogic::Compiler compiler({&unlogic::stdlib, &unlogic::runtime});
             auto program = compiler.Compile(program_text);
 
             program(this->scene_.get());
@@ -73,6 +73,6 @@ namespace ui
             this->setCentralWidget(body);
         }
     };
-}
+} // namespace ui
 
-#endif //WINDOW_H
+#endif // WINDOW_H

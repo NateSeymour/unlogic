@@ -51,6 +51,7 @@ MacroBlockBegin: ''
 MacroBlockEnd: ''
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
+SortIncludes: Never
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeRangeBasedForLoopColon: false

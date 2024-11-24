@@ -11,10 +11,16 @@ namespace unlogic
 {
     struct Camera
     {
-        glm::mat4 model;
-        glm::mat4 view;
-        glm::mat4 projection;
-    };
-}
+        alignas(4) float resolution = 50.f;
+        alignas(4) float dpi_scalar = 1.f;
 
-#endif //CAMERA_H
+        alignas(8) glm::vec2 center = {0.f, 0.f};
+        alignas(8) glm::vec2 window;
+
+        alignas(16) glm::mat4 model;
+        alignas(16) glm::mat4 view;
+        alignas(16) glm::mat4 projection;
+    };
+} // namespace unlogic
+
+#endif // CAMERA_H
