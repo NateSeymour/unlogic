@@ -25,7 +25,7 @@ namespace unlogic
         glm::vec2 range_ = {-10.f, 10.f};
 
         float precision_ = 0.1f;
-        float line_thickness_ = 0.1f;
+        float line_thickness_ = 0.05f;
 
         VertexBufferProvider *buffer_provider_ = nullptr;
 

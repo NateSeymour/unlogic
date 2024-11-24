@@ -32,7 +32,7 @@ namespace ui
 
         void Destroy();
 
-        VulkanPipeline(QVulkanWindow *window, char const *vert, char const *frag);
+        VulkanPipeline(QVulkanWindow *window, char const *vert, char const *frag, VkPrimitiveTopology primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         ~VulkanPipeline();
     };
 } // namespace ui

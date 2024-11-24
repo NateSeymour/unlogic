@@ -43,8 +43,8 @@ Plot2d::Plot2d(VertexBufferProvider *buffer_provider, std::string name, Plot2dFu
 
         auto const &point = points[i];
 
-        vertices.push_back({glm::vec2(point.x + tx, point.y - ty), this->color_}); // a1
         vertices.push_back({glm::vec2(point.x - tx, point.y + ty), this->color_}); // a2
+        vertices.push_back({glm::vec2(point.x + tx, point.y - ty), this->color_}); // a1
     }
 
     this->vertex_buffer = this->buffer_provider_->GetVertexBuffer();

@@ -10,7 +10,7 @@ void VulkanRenderer::initResources()
     this->dev_ = this->window_->vulkanInstance()->deviceFunctions(this->window_->device());
 
     this->grid_pipeline_ = std::make_unique<VulkanPipeline>(this->window_, ":/shaders/grid.vert.qsb", ":/shaders/grid.frag.qsb");
-    this->plot_pipeline_ = std::make_unique<VulkanPipeline>(this->window_, ":/shaders/plot.vert.qsb", ":/shaders/plot.frag.qsb");
+    this->plot_pipeline_ = std::make_unique<VulkanPipeline>(this->window_, ":/shaders/plot.vert.qsb", ":/shaders/plot.frag.qsb", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
 
     std::array corners = {
             glm::vec2{-1.f, -1.f},

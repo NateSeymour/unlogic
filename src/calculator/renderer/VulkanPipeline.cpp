@@ -41,7 +41,7 @@ VkShaderModule ui::VulkanPipeline::LoadShader(char const *path)
     return module;
 }
 
-ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char const *frag) : window_(window)
+ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char const *frag, VkPrimitiveTopology primitive_topology) : window_(window)
 {
     this->dev_ = this->window_->vulkanInstance()->deviceFunctions(this->window_->device());
 
@@ -95,8 +95,8 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char
 
     VkPipelineInputAssemblyStateCreateInfo input_assembly_info{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-            .primitiveRestartEnable = VK_FALSE,
+            .topology = primitive_topology,
+            .primitiveRestartEnable = primitive_topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ? VK_TRUE : VK_FALSE,
     };
 
     std::array dynamic_states = {
