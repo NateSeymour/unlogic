@@ -47,7 +47,14 @@ namespace unlogic
 
         void AddPlot(char const *name, Plot2dFunctionType function)
         {
-            this->plots.emplace_back(this->vertex_buffer_provider.get(), name, function, Color::Red);
+            std::array colors = {
+                    Color::Red,
+                    Color::Green,
+                    Color::Blue,
+            };
+            Color color = colors[std::rand() % colors.size()];
+
+            this->plots.emplace_back(this->vertex_buffer_provider.get(), name, function, color);
         }
 
         Scene() = delete;

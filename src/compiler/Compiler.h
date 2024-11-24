@@ -81,13 +81,6 @@ namespace unlogic
 
             for (auto library: this->default_libraries_)
             {
-                // Create dylib
-                auto dylib = jit->createJITDylib(library->name);
-                if (auto e = dylib.takeError())
-                {
-                    throw std::runtime_error(llvm::toString(std::move(e)));
-                }
-
                 // Generate symbol map
                 llvm::orc::SymbolMap library_symbols;
                 for (auto symbol: library->symbols)
@@ -97,18 +90,15 @@ namespace unlogic
                             symbol->symbol,
                     });
 
-                    symbol->PopulateScope(*ctx.get(), *module, program_scope);
+                    symbol->Define(*ctx.get(), *module);
                 }
 
                 // Add symbol map
-                auto std_sym_def = dylib->define(llvm::orc::absoluteSymbols(library_symbols));
+                auto std_sym_def = main.define(llvm::orc::absoluteSymbols(library_symbols));
                 if (std_sym_def)
                 {
                     throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
                 }
-
-                // Add lib
-                main.addToLinkOrder(*dylib);
             }
 
             // Parse program

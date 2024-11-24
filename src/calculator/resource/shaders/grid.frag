@@ -1,9 +1,10 @@
 #version 450
 
 layout (binding = 0) uniform Camera {
-    float resolution;
-    float dpi_scalar;
-    vec2 center;
+    float dpi;
+    float fov;
+
+    vec2 location;
     vec2 window;
 
     mat4 model;
@@ -26,7 +27,9 @@ bool centerline(vec2 st, float width) {
 }
 
 void main() {
-    vec2 st = ((gl_FragCoord.xy - ((camera.window * camera.dpi_scalar) / 2) - (camera.center.xy * camera.dpi_scalar)) / camera.resolution);
+    // ((gl_FragCoord.xy - ((camera.window * camera.dpi_scalar) / 2) - (camera.center.xy * camera.dpi_scalar)) / camera.resolution);
+    vec4 ndc = vec4((gl_FragCoord.xy + camera.window * camera.dpi / 2) / (camera.window * camera.dpi), 0.0, 1.0);
+    vec2 st = (inverse(camera.projection) * ndc).xy;
     vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
 
     if (centerline(st, 0.2)) {

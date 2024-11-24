@@ -38,8 +38,10 @@ namespace ui
             {
                 QPointF current_position = ev->position();
 
-                this->scene->camera.center.x += (float)(current_position.x() - this->last_mouse_pos_.x());
-                this->scene->camera.center.y += (float)(current_position.y() - this->last_mouse_pos_.y());
+                float dx = current_position.x() - this->last_mouse_pos_.x();
+                float dy = current_position.y() - this->last_mouse_pos_.y();
+
+                this->scene->camera.TranslatePixel({dx, dy});
 
                 this->last_mouse_pos_ = current_position;
             }
@@ -47,17 +49,17 @@ namespace ui
 
         void wheelEvent(QWheelEvent *ev) override
         {
-            this->scene->camera.resolution += (float)ev->angleDelta().y();
+            // this->scene->camera.resolution += (float)ev->angleDelta().y();
         }
 
         void resizeEvent(QResizeEvent *ev) override
         {
-            this->scene->camera.dpi_scalar = (float)this->devicePixelRatio();
+            this->scene->camera.SetDPI((float)this->devicePixelRatio());
 
-            this->scene->camera.window = {
+            this->scene->camera.SetWindowSize({
                     ev->size().width(),
                     ev->size().height(),
-            };
+            });
         }
 
     public:

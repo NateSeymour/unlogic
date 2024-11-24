@@ -103,9 +103,9 @@ void unlogic::IRGenerator::Visit(unlogic::PotentiationNode const *node)
     llvm::Value *rhs = this->values.top();
     this->values.pop();
 
-    llvm::Function *pow = (llvm::Function *)*this->ctx.scope.Lookup("pow");
+    llvm::Function *std_pow = this->ctx.module->getFunction("unlogic_std_pow");
 
-    llvm::Value *value = this->builder.CreateCall(pow, {lhs, rhs}, "powtmp");
+    llvm::Value *value = this->builder.CreateCall(std_pow, {lhs, rhs}, "powtmp");
     this->values.push(value);
 }
 
@@ -167,7 +167,7 @@ void unlogic::IRGenerator::Visit(unlogic::PlotCommandNode const *node)
         throw std::runtime_error("function not found");
     }
 
-    auto scene_add_plot = (llvm::Function *)*this->ctx.scope.Lookup("scene_add_plot");
+    auto scene_add_plot = this->ctx.module->getFunction("unlogic_scene_add_plot");
 
     std::array<llvm::Value *, 3> args = {scene, name, (llvm::Function *)*function};
 

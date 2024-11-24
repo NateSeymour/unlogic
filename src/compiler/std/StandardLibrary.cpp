@@ -20,7 +20,7 @@ extern "C"
 
 Library unlogic::stdlib("stdlib");
 
-LibrarySymbol std_pow(stdlib, "pow", (void*)unlogic_std_pow, [](llvm::LLVMContext &ctx, llvm::Module &mod, Scope &scope) {
+LibrarySymbol std_pow(stdlib, "unlogic_std_pow", (void*)unlogic_std_pow, [](llvm::LLVMContext &ctx, llvm::Module &mod) {
     std::array args = {
         llvm::Type::getDoubleTy(ctx),
         llvm::Type::getDoubleTy(ctx),
@@ -28,17 +28,17 @@ LibrarySymbol std_pow(stdlib, "pow", (void*)unlogic_std_pow, [](llvm::LLVMContex
     llvm::Type *ret = llvm::Type::getDoubleTy(ctx);
 
     llvm::FunctionType *fn = llvm::FunctionType::get(ret, args, false);
-    scope.Insert("pow", llvm::Function::Create(fn, llvm::GlobalValue::ExternalLinkage, "pow", mod));
+    llvm::Function::Create(fn, llvm::GlobalValue::ExternalLinkage, "unlogic_std_pow", mod);
 });
 
-LibrarySymbol std_log(stdlib, "log", (void*)unlogic_std_log, [](llvm::LLVMContext &ctx, llvm::Module &mod, Scope &scope) {
+LibrarySymbol std_log(stdlib, "unlogic_std_log", (void*)unlogic_std_log, [](llvm::LLVMContext &ctx, llvm::Module &mod) {
     std::array<llvm::Type*, 1> args = {
         llvm::PointerType::getInt8Ty(ctx),
     };
     llvm::Type *ret = llvm::Type::getVoidTy(ctx);
 
     llvm::FunctionType *fn = llvm::FunctionType::get(ret, args, false);
-    scope.Insert("log", llvm::Function::Create(fn, llvm::GlobalValue::ExternalLinkage, "log", mod));
+    llvm::Function::Create(fn, llvm::GlobalValue::ExternalLinkage, "unlogic_std_log", mod);
 });
 
 /*

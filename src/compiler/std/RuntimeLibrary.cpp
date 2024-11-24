@@ -13,7 +13,7 @@ extern "C"
 
 Library unlogic::runtime("runtime");
 
-LibrarySymbol scene_add_plot(runtime, "unlogic_scene_add_plot", (void *)unlogic_scene_add_plot, [](llvm::LLVMContext &ctx, llvm::Module &mod, Scope &scope) {
+LibrarySymbol scene_add_plot(runtime, "unlogic_scene_add_plot", (void *)unlogic_scene_add_plot, [](llvm::LLVMContext &ctx, llvm::Module &mod) {
     std::array<llvm::Type *, 1> plot_function_args = {
             llvm::Type::getDoubleTy(ctx),
     };
@@ -27,5 +27,5 @@ LibrarySymbol scene_add_plot(runtime, "unlogic_scene_add_plot", (void *)unlogic_
     llvm::Type *ret = llvm::Type::getVoidTy(ctx);
 
     llvm::FunctionType *fn = llvm::FunctionType::get(ret, args, false);
-    scope.Insert("scene_add_plot", llvm::Function::Create(fn, llvm::GlobalValue::ExternalLinkage, "unlogic_scene_add_plot", mod));
+    llvm::Function::Create(fn, llvm::GlobalValue::ExternalLinkage, "unlogic_scene_add_plot", mod);
 });
