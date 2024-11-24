@@ -4,12 +4,10 @@
 #include <numbers>
 #include <vector>
 #include "Plot.h"
-#include "ugl/Vertex.h"
 
 using namespace unlogic;
 
-Plot2d::Plot2d(VertexBufferProvider *buffer_provider, std::string name, Plot2dFunctionType fn, Color color) :
-    buffer_provider_(buffer_provider), name_(std::move(name)), fn_(fn), color_(color)
+Plot2d::Plot2d(std::string name, Plot2dFunctionType fn, Color color) : name_(std::move(name)), fn_(fn), color_(color)
 {
     std::size_t point_count = std::ceil((this->domain_.y - this->domain_.x) / this->precision_);
 
@@ -23,8 +21,8 @@ Plot2d::Plot2d(VertexBufferProvider *buffer_provider, std::string name, Plot2dFu
         points.emplace_back(x, y);
     }
 
-    std::vector<Vertex> vertices;
-    vertices.reserve(points.size() * 2);
+    this->vertices.clear();
+    this->vertices.reserve(points.size() * 2);
     double dx = 0.0;
     double dy = 0.0;
     for (std::size_t i = 0; i < points.size(); i++)
@@ -43,11 +41,7 @@ Plot2d::Plot2d(VertexBufferProvider *buffer_provider, std::string name, Plot2dFu
 
         auto const &point = points[i];
 
-        vertices.push_back({glm::vec2(point.x - tx, point.y + ty), this->color_}); // a2
-        vertices.push_back({glm::vec2(point.x + tx, point.y - ty), this->color_}); // a1
+        this->vertices.push_back({glm::vec2(point.x - tx, point.y + ty), this->color_}); // a2
+        this->vertices.push_back({glm::vec2(point.x + tx, point.y - ty), this->color_}); // a1
     }
-
-    this->vertex_buffer = this->buffer_provider_->GetVertexBuffer();
-
-    this->vertex_buffer->Allocate(vertices.data(), vertices.size());
 }

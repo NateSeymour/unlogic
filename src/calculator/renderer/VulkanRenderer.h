@@ -4,7 +4,7 @@
 #include <QVulkanDeviceFunctions>
 #include <QVulkanWindowRenderer>
 #include "VulkanPipeline.h"
-#include "graphic/VertexBuffer.h"
+#include "VulkanVertexBuffer.h"
 
 namespace ui
 {
@@ -15,6 +15,8 @@ namespace ui
         VulkanWindow *window_ = nullptr;
 
         QVulkanDeviceFunctions *dev_ = nullptr;
+
+        std::unique_ptr<VulkanVertexBufferProvider> vertex_buffer_provider_;
 
         std::unique_ptr<VulkanPipeline> grid_pipeline_;
         std::unique_ptr<VulkanPipeline> plot_pipeline_;

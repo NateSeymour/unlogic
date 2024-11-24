@@ -322,7 +322,7 @@ void ui::VulkanPipeline::DrawVertexBuffer(unlogic::VertexBuffer *vertex_buffer)
     this->dev_->vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline_);
     this->dev_->vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline_layout_, 0, 1, &this->descriptor_set_, 0, nullptr);
 
-    std::array buffers = {static_cast<VkBuffer>(vertex_buffer->GetNativeHandle())};
+    std::array buffers = {static_cast<VkBuffer>(vertex_buffer->NativeHandle())};
     constexpr std::array<VkDeviceSize, 1> offsets = {0};
     this->dev_->vkCmdBindVertexBuffers(cmd, 0, 1, buffers.data(), offsets.data());
 

@@ -27,7 +27,7 @@ namespace unlogic
 
         virtual void Release() = 0;
         virtual void Allocate(Vertex const *vertices, std::size_t vertex_count) = 0;
-        virtual void *GetNativeHandle() = 0;
+        virtual void *NativeHandle() = 0;
 
         virtual ~VertexBuffer() = default;
     };
@@ -39,6 +39,6 @@ namespace unlogic
 
         virtual ~VertexBufferProvider() = default;
     };
-}
+} // namespace unlogic
 
-#endif //VERTEXBUFFER_H
+#endif // VERTEXBUFFER_H

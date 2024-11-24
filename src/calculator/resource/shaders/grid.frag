@@ -1,10 +1,12 @@
 #version 450
 
+#define M_PI 3.1415926535897932384626433832795
+
 layout (binding = 0) uniform Camera {
     float dpi;
     float fov;
 
-    vec2 location;
+    vec3 location;
     vec2 window;
 
     mat4 model;
@@ -13,7 +15,6 @@ layout (binding = 0) uniform Camera {
 } camera;
 
 layout (location = 0) in vec4 in_color;
-
 layout (location = 0) out vec4 out_color;
 
 bool grid(vec2 st, float interval, float width) {
@@ -27,9 +28,14 @@ bool centerline(vec2 st, float width) {
 }
 
 void main() {
-    // ((gl_FragCoord.xy - ((camera.window * camera.dpi_scalar) / 2) - (camera.center.xy * camera.dpi_scalar)) / camera.resolution);
-    vec4 ndc = vec4((gl_FragCoord.xy + camera.window * camera.dpi / 2) / (camera.window * camera.dpi), 0.0, 1.0);
-    vec2 st = (inverse(camera.projection) * ndc).xy;
+    float dist = camera.location.z;
+    float alpha = (180.f - camera.fov) / 2.f;
+    float base = (dist / tan(alpha * (M_PI / 180.f))) * 2;
+    float aspect = camera.window.x / camera.window.y;
+
+    vec2 world = vec2(base * aspect, base);
+
+    vec2 st = (gl_FragCoord.xy / camera.window) * world;
     vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
 
     if (centerline(st, 0.2)) {

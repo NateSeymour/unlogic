@@ -6,7 +6,9 @@
 #include <QResizeEvent>
 #include <QVulkanWindow>
 #include "VulkanRenderer.h"
+#include "VulkanVertexBuffer.h"
 #include "graphic/Scene.h"
+#include "graphic/shape/Rect.h"
 
 namespace ui
 {
@@ -19,13 +21,20 @@ namespace ui
         QPointF last_mouse_pos_;
 
     public slots:
-        void setScene(unlogic::Scene *scene);
+        void setScene(std::shared_ptr<unlogic::Scene> scene);
 
     signals:
-        void sceneChanged(unlogic::Scene *scene);
+        void sceneChanged(std::shared_ptr<unlogic::Scene> scene);
 
     protected:
-        unlogic::Scene *scene = nullptr;
+        unlogic::Camera camera;
+        unlogic::Rect grid = std::array{
+                glm::vec2{-1.f, -1.f},
+                glm::vec2{1.f, -1.f},
+                glm::vec2{1.f, 1.f},
+                glm::vec2{-1.f, 1.f},
+        };
+        std::shared_ptr<unlogic::Scene> scene;
 
         void mousePressEvent(QMouseEvent *ev) override
         {
@@ -41,7 +50,7 @@ namespace ui
                 float dx = current_position.x() - this->last_mouse_pos_.x();
                 float dy = current_position.y() - this->last_mouse_pos_.y();
 
-                this->scene->camera.TranslatePixel({dx, dy});
+                this->camera.TranslatePixel({dx, dy});
 
                 this->last_mouse_pos_ = current_position;
             }
@@ -54,9 +63,9 @@ namespace ui
 
         void resizeEvent(QResizeEvent *ev) override
         {
-            this->scene->camera.SetDPI((float)this->devicePixelRatio());
+            this->camera.SetDPI((float)this->devicePixelRatio());
 
-            this->scene->camera.SetWindowSize({
+            this->camera.SetWindowSize({
                     ev->size().width(),
                     ev->size().height(),
             });

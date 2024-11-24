@@ -22,10 +22,11 @@ namespace ui
     class Window : public QMainWindow
     {
         QTextEdit *editor_ = nullptr;
+        VulkanWindow *render_window_ = nullptr;
         VulkanRenderer *renderer_ = nullptr;
         QWidget *renderer_widget_ = nullptr;
 
-        std::unique_ptr<unlogic::Scene> scene_;
+        std::shared_ptr<unlogic::Scene> scene_;
 
     public slots:
         void on_run_button_pressed()
@@ -35,8 +36,10 @@ namespace ui
             unlogic::Compiler compiler({&unlogic::stdlib, &unlogic::runtime});
             auto program = compiler.Compile(program_text);
 
-            this->scene_->plots.clear();
+            this->scene_ = std::make_shared<unlogic::Scene>();
             program(this->scene_.get());
+
+            this->render_window_->setScene(this->scene_);
         }
 
     public:
@@ -58,13 +61,12 @@ namespace ui
             this->editor_->setText("given f(x) := x^2;\nplot f;");
             splitter->addWidget(this->editor_);
 
-            auto render_window = new VulkanWindow;
-            auto vertex_buffer_provider = std::make_unique<ui::VulkanVertexBufferProvider>(render_window);
-            this->scene_ = std::make_unique<unlogic::Scene>(std::move(vertex_buffer_provider));
-            render_window->setVulkanInstance(ui::vk_global);
-            render_window->setScene(this->scene_.get());
+            this->render_window_ = new VulkanWindow;
+            this->scene_ = std::make_shared<unlogic::Scene>();
+            this->render_window_->setVulkanInstance(ui::vk_global);
+            this->render_window_->setScene(this->scene_);
 
-            this->renderer_widget_ = QWidget::createWindowContainer(render_window);
+            this->renderer_widget_ = QWidget::createWindowContainer(this->render_window_);
             splitter->addWidget(this->renderer_widget_);
 
             main_layout->addWidget(splitter, 100);

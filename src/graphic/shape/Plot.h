@@ -7,14 +7,15 @@
 
 #include <string>
 #include <glm/glm.hpp>
-#include "Color.h"
-#include "VertexBuffer.h"
+#include "graphic/shape/Shape.h"
+#include "graphic/Color.h"
+#include "graphic/VertexBuffer.h"
 
 namespace unlogic
 {
     using Plot2dFunctionType = double (*)(double);
 
-    class Plot2d
+    class Plot2d : public Shape
     {
         std::string name_;
         Color color_ = Color::Red;
@@ -27,12 +28,8 @@ namespace unlogic
         float precision_ = 0.1f;
         float line_thickness_ = 0.05f;
 
-        VertexBufferProvider *buffer_provider_ = nullptr;
-
     public:
-        std::unique_ptr<VertexBuffer> vertex_buffer;
-
-        Plot2d(VertexBufferProvider *buffer_provider, std::string name, Plot2dFunctionType fn, Color color);
+        Plot2d(std::string name, Plot2dFunctionType fn, Color color);
     };
 } // namespace unlogic
 

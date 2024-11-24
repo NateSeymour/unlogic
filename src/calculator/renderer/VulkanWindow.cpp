@@ -2,12 +2,9 @@
 
 using namespace ui;
 
-void VulkanWindow::setScene(unlogic::Scene *scene)
+void VulkanWindow::setScene(std::shared_ptr<unlogic::Scene> scene)
 {
-    if(this->scene != scene)
-    {
-        this->scene = scene;
-        this->requestUpdate();
-        emit sceneChanged(scene);
-    }
+    this->scene = scene;
+    this->requestUpdate();
+    emit sceneChanged(scene);
 }

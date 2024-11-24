@@ -9,22 +9,22 @@ void VulkanRenderer::initResources()
 {
     this->dev_ = this->window_->vulkanInstance()->deviceFunctions(this->window_->device());
 
+    this->vertex_buffer_provider_ = std::make_unique<VulkanVertexBufferProvider>(this->window_);
+
     this->grid_pipeline_ = std::make_unique<VulkanPipeline>(this->window_, ":/shaders/grid.vert.qsb", ":/shaders/grid.frag.qsb");
     this->plot_pipeline_ = std::make_unique<VulkanPipeline>(this->window_, ":/shaders/plot.vert.qsb", ":/shaders/plot.frag.qsb", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
-
-    std::array corners = {
-            glm::vec2{-1.f, -1.f},
-            glm::vec2{1.f, -1.f},
-            glm::vec2{1.f, 1.f},
-            glm::vec2{-1.f, 1.f},
-    };
-
-    this->grid_ = this->window_->scene->Rect(corners, unlogic::Color::Green);
 }
 
 void VulkanRenderer::releaseResources()
 {
-    this->grid_->Release();
+    this->window_->grid.ReleaseBuffer();
+
+    for (auto &plot: this->window_->scene->plots)
+    {
+        plot.ReleaseBuffer();
+    }
+
+    this->vertex_buffer_provider_.reset();
 
     this->grid_pipeline_.reset();
     this->plot_pipeline_.reset();
@@ -39,8 +39,8 @@ void VulkanRenderer::startNextFrame()
     }
 
     // Set camera for all pipelines
-    *this->grid_pipeline_->camera = this->window_->scene->camera;
-    *this->plot_pipeline_->camera = this->window_->scene->camera;
+    *this->grid_pipeline_->camera = this->window_->camera;
+    *this->plot_pipeline_->camera = this->window_->camera;
 
     // Begin render pass
     VkCommandBuffer cmd = this->window_->currentCommandBuffer();
@@ -93,16 +93,14 @@ void VulkanRenderer::startNextFrame()
     };
     this->dev_->vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    // Draw Grid
-    if (this->window_->scene->draw_gridlines)
+    if (this->window_->scene->draw_grid)
     {
-        this->grid_pipeline_->DrawVertexBuffer(this->grid_.get());
+        this->grid_pipeline_->DrawVertexBuffer(this->window_->grid.GetOrCreateVertexBuffer(this->vertex_buffer_provider_.get()));
     }
 
-    // Draw Plots
     for (auto &plot: this->window_->scene->plots)
     {
-        this->plot_pipeline_->DrawVertexBuffer(plot.vertex_buffer.get());
+        this->plot_pipeline_->DrawVertexBuffer(plot.GetOrCreateVertexBuffer(this->vertex_buffer_provider_.get()));
     }
 
     this->dev_->vkCmdEndRenderPass(cmd);

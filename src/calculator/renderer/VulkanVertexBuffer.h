@@ -8,6 +8,7 @@
 #include <QVulkanDeviceFunctions>
 #include <QVulkanWindow>
 #include "graphic/VertexBuffer.h"
+#include "graphic/shape/Shape.h"
 
 namespace ui
 {
@@ -71,7 +72,7 @@ namespace ui
             this->dev_->vkUnmapMemory(this->window_->device(), this->vk_memory_);
         }
 
-        void *GetNativeHandle() override
+        void *NativeHandle() override
         {
             return (void *)this->vk_buffer_;
         }

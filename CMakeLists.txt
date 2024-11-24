@@ -60,10 +60,14 @@ add_library(unlogic STATIC
         src/graphic/Color.cpp
         src/graphic/Color.h
         src/graphic/ugl/Vertex.h
-        src/graphic/Plot.h
-        src/graphic/Plot.cpp
+        src/graphic/shape/Plot.h
+        src/graphic/shape/Plot.cpp
+        src/graphic/shape/Shape.cpp
+        src/graphic/shape/Shape.h
         src/graphic/VertexBuffer.h
         src/graphic/Camera.h
+        src/graphic/shape/Rect.cpp
+        src/graphic/shape/Rect.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} glm::glm buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)
@@ -94,8 +98,8 @@ qt_add_shaders(unlogic-calculator "shaders"
         PREFIX "/shaders"
         BASE src/calculator/resource/shaders
         FILES
-            src/calculator/resource/shaders/plot.frag
-            src/calculator/resource/shaders/plot.vert
+        src/calculator/resource/shaders/plot.frag
+        src/calculator/resource/shaders/plot.vert
         src/calculator/resource/shaders/grid.frag
         src/calculator/resource/shaders/grid.vert
 )
@@ -103,8 +107,8 @@ qt_add_resources(unlogic-calculator "fonts"
         PREFIX "/fonts"
         BASE src/calculator/resource
         FILES
-            src/calculator/resource/Roboto-Medium.ttf
-            src/calculator/resource/SourceCodePro.ttf
+        src/calculator/resource/Roboto-Medium.ttf
+        src/calculator/resource/SourceCodePro.ttf
 )
 target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui Qt6::ShaderTools Qt6::GuiPrivate unlogic)
 set_target_properties(unlogic-calculator PROPERTIES
