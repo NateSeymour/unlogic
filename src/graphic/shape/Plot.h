@@ -26,7 +26,7 @@ namespace unlogic
         glm::vec2 range_ = {-10.f, 10.f};
 
         float precision_ = 0.1f;
-        float line_thickness_ = 0.05f;
+        float line_thickness_ = 0.2f;
 
     public:
         Plot2d(std::string name, Plot2dFunctionType fn, Color color);

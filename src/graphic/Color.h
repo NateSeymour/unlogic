@@ -13,9 +13,14 @@ namespace unlogic
         static Color White;
         static Color Black;
         static Color Red;
+        static Color Orange;
+        static Color Yellow;
         static Color Green;
         static Color Blue;
+        static Color Cyan;
+        static Color Purple;
+        static Color Pink;
     };
-}
+} // namespace unlogic
 
-#endif //COLOR_H
+#endif // COLOR_H

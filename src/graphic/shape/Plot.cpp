@@ -41,7 +41,7 @@ Plot2d::Plot2d(std::string name, Plot2dFunctionType fn, Color color) : name_(std
 
         auto const &point = points[i];
 
-        this->vertices.push_back({glm::vec2(point.x - tx, point.y + ty), this->color_}); // a2
         this->vertices.push_back({glm::vec2(point.x + tx, point.y - ty), this->color_}); // a1
+        this->vertices.push_back({glm::vec2(point.x - tx, point.y + ty), this->color_}); // a2
     }
 }

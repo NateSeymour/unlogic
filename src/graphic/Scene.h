@@ -8,8 +8,6 @@
 #include <vector>
 #include <memory>
 #include <glm/glm.hpp>
-#include "Camera.h"
-#include "VertexBuffer.h"
 #include "Color.h"
 #include "shape/Plot.h"
 
@@ -27,6 +25,11 @@ namespace unlogic
                     Color::Red,
                     Color::Green,
                     Color::Blue,
+                    Color::Orange,
+                    Color::Yellow,
+                    Color::Cyan,
+                    Color::Pink,
+                    Color::Purple,
             };
             Color color = colors[std::rand() % colors.size()];
 

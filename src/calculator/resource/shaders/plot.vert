@@ -4,7 +4,7 @@ layout (binding = 0) uniform Camera {
     float dpi;
     float fov;
 
-    vec2 location;
+    vec3 location;
     vec2 window;
 
     mat4 model;
@@ -18,6 +18,6 @@ layout (location = 1) in vec4 in_color;
 layout (location = 0) out vec4 out_color;
 
 void main() {
-    gl_Position = camera.projection * camera.view * camera.model * vec4(in_position, 0.0, 1.0);
+    gl_Position = camera.projection * camera.view * camera.model * vec4(in_position.x, in_position.y * -1, 0.0, 1.0);
     out_color = in_color;
 }

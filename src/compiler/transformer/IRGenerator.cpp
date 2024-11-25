@@ -103,7 +103,7 @@ void unlogic::IRGenerator::Visit(unlogic::PotentiationNode const *node)
     llvm::Value *rhs = this->values.top();
     this->values.pop();
 
-    llvm::Function *std_pow = this->ctx.module->getFunction("unlogic_std_pow");
+    llvm::Function *std_pow = this->ctx.module->getFunction("pow");
 
     llvm::Value *value = this->builder.CreateCall(std_pow, {lhs, rhs}, "powtmp");
     this->values.push(value);

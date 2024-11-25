@@ -31,11 +31,12 @@ void main() {
     float dist = camera.location.z;
     float alpha = (180.f - camera.fov) / 2.f;
     float base = (dist / tan(alpha * (M_PI / 180.f))) * 2;
-    float aspect = camera.window.x / camera.window.y;
+    vec2 window = camera.window * camera.dpi;
+    float aspect = window.x / window.y;
 
     vec2 world = vec2(base * aspect, base);
 
-    vec2 st = (gl_FragCoord.xy / camera.window) * world;
+    vec2 st = (((gl_FragCoord.xy - window / 2) / window) * world) + camera.location.xy;
     vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
 
     if (centerline(st, 0.2)) {

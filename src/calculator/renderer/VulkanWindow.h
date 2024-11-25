@@ -58,7 +58,10 @@ namespace ui
 
         void wheelEvent(QWheelEvent *ev) override
         {
-            // this->scene->camera.resolution += (float)ev->angleDelta().y();
+            float angle = ev->angleDelta().y();
+            float direction = angle / std::abs(angle);
+
+            this->camera.TranslateWorld({0, 0, 5.f * direction});
         }
 
         void resizeEvent(QResizeEvent *ev) override
