@@ -17,7 +17,7 @@ program(&scene);
 ### Calculator
 
 <p align="center">
-    <img src="docs/public/SampleRender.png" width="500">
+    <img src="docs/public/SampleRender.png" width="1000">
 </p>
 
 Use `unlogic-calculator`, a Qt/Vulkan-based GUI for `unlogic` to perform graph analysis.
