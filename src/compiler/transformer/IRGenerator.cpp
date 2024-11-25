@@ -1,4 +1,4 @@
-#include <iostream>
+#include <format>
 #include "IRGenerator.h"
 
 void unlogic::IRGenerator::Visit(unlogic::NumericLiteralNode const *node)
@@ -160,16 +160,16 @@ void unlogic::IRGenerator::Visit(unlogic::PlotCommandNode const *node)
 {
     llvm::Value *scene = *this->ctx.scope.Lookup("__scene");
     llvm::Value *name = this->builder.CreateGlobalStringPtr(node->function_name);
-    auto function = this->ctx.scope.Lookup(node->function_name);
 
+    auto function = this->ctx.module->getFunction(node->function_name);
     if (!function)
     {
-        throw std::runtime_error("function not found");
+        throw std::runtime_error(std::format("Function \"{}\" could not be found!", node->function_name));
     }
 
     auto scene_add_plot = this->ctx.module->getFunction("unlogic_scene_add_plot");
 
-    std::array<llvm::Value *, 3> args = {scene, name, (llvm::Function *)*function};
+    std::array<llvm::Value *, 3> args = {scene, name, function};
 
     llvm::Value *ret = this->builder.CreateCall(scene_add_plot, args);
 
