@@ -22,7 +22,7 @@ namespace unlogic
 
         Plot2dFunctionType fn_ = nullptr;
 
-        glm::vec2 domain_ = {-10.f, 10.f};
+        glm::vec2 domain_ = {-100.f, 100.f};
         glm::vec2 range_ = {-10.f, 10.f};
 
         float precision_ = 0.1f;

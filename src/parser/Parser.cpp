@@ -68,6 +68,46 @@ bf::Terminal<G> terminals[] = {
 
 bf::CTRETokenizer ctre_tokenizer(std::to_array(terminals));
 
+bf::DefineNonTerminal<G, std::vector<std::string>> identifier_list
+    = bf::PR<G>(IDENTIFIER)<=>[](auto &$) -> ValueType
+    {
+        return std::vector<std::string>{ IDENTIFIER($[0]) };
+    }
+    | (identifier_list + SEPARATOR + IDENTIFIER)<=>[](auto &$) -> ValueType
+    {
+        auto list = identifier_list($[0]);
+        list.push_back(IDENTIFIER($[2]));
+
+        return std::move(list);
+    }
+    ;
+
+extern bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression;
+
+bf::DefineNonTerminal<G, std::vector<std::unique_ptr<Node>>> expression_list
+    = bf::PR<G>(expression)<=>[](auto &$) -> ValueType
+    {
+        std::vector<std::unique_ptr<Node>> list;
+        list.push_back(std::move(expression($[0])));
+
+        return std::move(list);
+    }
+    | (expression_list + SEPARATOR + expression)<=>[](auto &$) -> ValueType
+    {
+        auto list = expression_list($[0]);
+        list.push_back(std::move(expression($[2])));
+
+        return std::move(list);
+    }
+    ;
+
+bf::DefineNonTerminal<G, std::unique_ptr<Node>> function_call
+    = (IDENTIFIER + PAR_OPEN + expression_list + PAR_CLOSE)<=>[](auto &$) -> ValueType
+    {
+        return std::make_unique<CallNode>(IDENTIFIER($[0]), std::move(expression_list($[2])));
+    }
+    ;
+
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     = bf::PR<G>(NUMBER)<=>[](auto &$) -> ValueType
     {
@@ -76,6 +116,10 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     | bf::PR<G>(IDENTIFIER)<=>[](auto &$) -> ValueType
     {
         return std::make_unique<VariableNode>(IDENTIFIER($[0]));
+    }
+    | bf::PR<G>(function_call)<=>[](auto &$) -> ValueType
+    {
+        return std::move($[0]);
     }
     | (PAR_OPEN + expression + PAR_CLOSE)<=>[](auto &$) -> ValueType
     {
@@ -100,20 +144,6 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     | (expression + OP_SUB + expression)<=>[](auto &$) -> ValueType
     {
         return std::make_unique<SubtractionNode>(std::move(expression($[0])), std::move(expression($[2])));
-    }
-    ;
-
-bf::DefineNonTerminal<G, std::vector<std::string>> identifier_list
-    = bf::PR<G>(IDENTIFIER)<=>[](auto &$) -> ValueType
-    {
-        return std::vector<std::string>{ IDENTIFIER($[0]) };
-    }
-    | (identifier_list + SEPARATOR + IDENTIFIER)<=>[](auto &$) -> ValueType
-    {
-        auto list = identifier_list($[0]);
-        list.push_back(IDENTIFIER($[2]));
-
-        return std::move(list);
     }
     ;
 

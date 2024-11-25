@@ -68,6 +68,7 @@ add_library(unlogic STATIC
         src/graphic/Camera.h
         src/graphic/shape/Rect.cpp
         src/graphic/shape/Rect.h
+        src/util/overload.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} glm::glm buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)

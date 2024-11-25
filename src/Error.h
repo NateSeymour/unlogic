@@ -1,15 +1,16 @@
 #ifndef UNLOGIC_ERROR_H
 #define UNLOGIC_ERROR_H
 
+#include <string>
+
 namespace unlogic
 {
-    class Error
+    struct Error
     {
-        char const *error_;
+        std::string message;
 
-    public:
-        Error(char const *error) : error_(error) {}
+        Error(std::string message) : message(std::move(message)) {}
     };
-}
+} // namespace unlogic
 
-#endif //UNLOGIC_ERROR_H
+#endif // UNLOGIC_ERROR_H

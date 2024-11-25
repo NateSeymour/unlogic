@@ -5,6 +5,8 @@
 #ifndef UNLOGIC_COMPILER_H
 #define UNLOGIC_COMPILER_H
 
+#include <variant>
+#include <expected>
 #include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/IRCompileLayer.h>
 #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h>
@@ -16,6 +18,7 @@
 #include "Library.h"
 #include "transformer/IRGenerator.h"
 #include "graphic/Scene.h"
+#include "Error.h"
 
 namespace unlogic
 {
@@ -45,9 +48,12 @@ namespace unlogic
         Program() = delete;
     };
 
+    using CompilationError = std::variant<Error, bf::Error, llvm::Error>;
+
     class Compiler
     {
         std::vector<Library *> default_libraries_;
+        bf::SLRParser<ParserGrammarType> parser_;
 
     public:
         static void InitializeGlobalCompilerRuntime()
@@ -57,17 +63,21 @@ namespace unlogic
             llvm::InitializeNativeTargetAsmParser();
         }
 
-        Program Compile(std::string_view program_text)
+        std::expected<Program, CompilationError> Compile(std::string_view program_text)
         {
+            // Parse program
+            auto ast = this->parser_.Parse(program_text);
+            if (!ast.has_value())
+            {
+                return std::unexpected(ast.error());
+            }
+
+            auto ast_body = std::get<std::unique_ptr<Node>>(std::move(*ast));
+
             // Establish context for build
             auto ctx = std::make_unique<llvm::LLVMContext>();
 
-            // Build parser
-            auto parser = bf::SLRParser<ParserGrammarType>::Build(unlogic::tokenizer, unlogic::unlogic_program);
-
-            // Create JIT
-            auto jit_res = llvm::orc::LLJITBuilder().create();
-            auto jit = std::move(*jit_res);
+            auto jit = std::move(*llvm::orc::LLJITBuilder().create());
 
             // Create and link libraries to main dylib
             llvm::orc::JITDylib &main = jit->getMainJITDylib();
@@ -97,13 +107,9 @@ namespace unlogic
                 auto std_sym_def = main.define(llvm::orc::absoluteSymbols(library_symbols));
                 if (std_sym_def)
                 {
-                    throw std::runtime_error(llvm::toString(std::move(std_sym_def)));
+                    return std::unexpected(std::move(std_sym_def));
                 }
             }
-
-            // Parse program
-            auto result = parser->Parse(program_text);
-            auto body = std::get<std::unique_ptr<Node>>(std::move(*result));
 
             // Create IR generation context
             IRGenerationContext ir_ctx = {
@@ -116,7 +122,14 @@ namespace unlogic
             IRGenerator generator(ir_ctx);
 
             // Build program
-            body->Accept(generator);
+            try
+            {
+                ast_body->Accept(generator);
+            }
+            catch (std::runtime_error &e)
+            {
+                return std::unexpected(Error{e.what()});
+            }
 
             llvm::orc::ThreadSafeModule tsm(std::move(ir_ctx.module), std::move(ctx));
             auto e = jit->addIRModule(std::move(tsm));
@@ -124,8 +137,11 @@ namespace unlogic
             return Program(std::move(jit));
         }
 
-        Compiler() = default;
-        Compiler(std::vector<Library *> default_libraries) : default_libraries_(std::move(default_libraries)) {}
+        Compiler() = delete;
+        Compiler(std::vector<Library *> default_libraries = {}) :
+            default_libraries_(std::move(default_libraries)), parser_(*bf::SLRParser<ParserGrammarType>::Build(unlogic::tokenizer, unlogic::unlogic_program))
+        {
+        }
     };
 } // namespace unlogic
 
