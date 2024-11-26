@@ -27,7 +27,7 @@ bf::DefineTerminal<G, R"(\/)"> OP_DIV(bf::Left);
 bf::DefineTerminal<G, R"(\+)"> OP_ADD(bf::Left);
 bf::DefineTerminal<G, R"(\-)"> OP_SUB(bf::Left);
 
-bf::DefineTerminal<G, R"(:=)"> OP_ASN(bf::Left);
+bf::DefineTerminal<G, R"(=)"> OP_ASN(bf::Left);
 
 bf::DefineTerminal<G, R"(\()"> PAR_OPEN;
 bf::DefineTerminal<G, R"(\))"> PAR_CLOSE;
@@ -38,35 +38,6 @@ bf::DefineTerminal<G, R"(\])"> BRK_CLOSE;
 bf::DefineTerminal<G, R"(;)"> STMT_DELIMITER;
 
 bf::DefineTerminal<G, R"(,)"> SEPARATOR;
-
-bf::Terminal<G> terminals[] = {
-        KW_GIVEN,
-        KW_CALC,
-        KW_PLOT,
-        KW_ON,
-        KW_AS,
-
-        NUMBER,
-        IDENTIFIER,
-
-        OP_EXP,
-        OP_MUL,
-        OP_DIV,
-        OP_ADD,
-        OP_SUB,
-        OP_ASN,
-
-        PAR_OPEN,
-        PAR_CLOSE,
-        BRK_OPEN,
-        BRK_CLOSE,
-
-        STMT_DELIMITER,
-
-        SEPARATOR,
-};
-
-bf::CTRETokenizer ctre_tokenizer(std::to_array(terminals));
 
 bf::DefineNonTerminal<G, std::vector<std::string>> identifier_list
     = bf::PR<G>(IDENTIFIER)<=>[](auto &$) -> ValueType
@@ -222,21 +193,4 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> program
 /*
  * Exports
  */
-bf::Tokenizer<G> &unlogic::tokenizer = ctre_tokenizer;
 bf::NonTerminal<G> &unlogic::unlogic_program = program;
-
-/*
- * Syntax highlighting
- */
-std::map<bf::Terminal<G>, SyntaxHighlightingGroup> unlogic::syntax_highlighting_groups = {
-        { OP_EXP, SyntaxHighlightingGroup::Operator },
-        { OP_MUL, SyntaxHighlightingGroup::Operator },
-        { OP_DIV, SyntaxHighlightingGroup::Operator },
-        { OP_ADD, SyntaxHighlightingGroup::Operator },
-        { OP_SUB, SyntaxHighlightingGroup::Operator },
-        { OP_ASN, SyntaxHighlightingGroup::Operator },
-
-        { KW_GIVEN, SyntaxHighlightingGroup::Keyword },
-        { KW_CALC, SyntaxHighlightingGroup::Keyword },
-        { KW_PLOT, SyntaxHighlightingGroup::Keyword },
-};

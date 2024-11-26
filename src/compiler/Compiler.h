@@ -139,7 +139,7 @@ namespace unlogic
 
         Compiler() = delete;
         Compiler(std::vector<Library *> default_libraries = {}) :
-            default_libraries_(std::move(default_libraries)), parser_(*bf::SLRParser<ParserGrammarType>::Build(unlogic::tokenizer, unlogic::unlogic_program))
+            default_libraries_(std::move(default_libraries)), parser_(*bf::SLRParser<ParserGrammarType>::Build(unlogic::unlogic_program))
         {
         }
     };

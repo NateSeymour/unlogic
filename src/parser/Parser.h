@@ -16,7 +16,6 @@ namespace unlogic
     >;
     using ParserGrammarType = bf::GrammarDefinition<ParserValueType>;
 
-    extern bf::Tokenizer<ParserGrammarType> &tokenizer;
     extern bf::NonTerminal<ParserGrammarType> &unlogic_program;
 
     enum class SyntaxHighlightingGroup

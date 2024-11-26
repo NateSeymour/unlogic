@@ -35,6 +35,7 @@ namespace ui
                 glm::vec2{-1.f, 1.f},
         };
         std::shared_ptr<unlogic::Scene> scene;
+        glm::vec2 world_mouse_coordinates = {0.f, 0.f};
 
         void mousePressEvent(QMouseEvent *ev) override
         {
@@ -58,10 +59,8 @@ namespace ui
 
         void wheelEvent(QWheelEvent *ev) override
         {
-            float angle = ev->angleDelta().y();
-            float direction = angle / std::abs(angle);
-
-            this->camera.TranslateWorld({0, 0, 5.f * direction});
+            float delta = ev->pixelDelta().y();
+            this->camera.TranslateWorld({0, 0, delta / 5.f});
         }
 
         void resizeEvent(QResizeEvent *ev) override
