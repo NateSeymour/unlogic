@@ -6,7 +6,8 @@ AccessModifierOffset: -4
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignOperands: true
-AlignTrailingComments: false
+AlignTrailingComments: true
+AlignAfterOpenBracket: false
 AlwaysBreakTemplateDeclarations: Yes
 AllowShortFunctionsOnASingleLine: Empty
 BinPackArguments: false
@@ -23,7 +24,7 @@ BraceWrapping:
   AfterExternBlock: true
   BeforeCatch: true
   BeforeElse: true
-  BeforeLambdaBody: false
+  BeforeLambdaBody: true
   BeforeWhile: false
   IndentBraces: false
   SplitEmptyFunction: true
@@ -51,7 +52,6 @@ MacroBlockBegin: ''
 MacroBlockEnd: ''
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
-SortIncludes: Never
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeRangeBasedForLoopColon: false

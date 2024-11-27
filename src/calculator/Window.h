@@ -5,16 +5,14 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <format>
-#include "compiler/Compiler.h"
-#include "compiler/std/RuntimeLibrary.h"
-#include "compiler/std/StandardLibrary.h"
+#include <QLabel>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QSplitter>
 #include <QTextEdit>
-#include <QLabel>
 #include <QVBoxLayout>
+#include <format>
+#include "CompilerController.h"
 #include "renderer/VulkanInstance.h"
 #include "renderer/VulkanWindow.h"
 #include "util/overload.h"
@@ -23,50 +21,61 @@ namespace ui
 {
     class Window : public QMainWindow
     {
+        Q_OBJECT
+
         QTextEdit *editor_ = nullptr;
         VulkanWindow *render_window_ = nullptr;
-        VulkanRenderer *renderer_ = nullptr;
         QWidget *renderer_widget_ = nullptr;
         QLabel *status_label_ = nullptr;
 
+        CompilerController compiler_controller_;
+
         std::shared_ptr<unlogic::Scene> scene_;
 
-        unlogic::Compiler compiler_;
-
-    public slots:
-        void on_editor_text_changed()
+    public Q_SLOTS:
+        void editorTextChanged()
         {
-            auto program_text = this->editor_->toPlainText().toStdString();
+            std::string program_text = this->editor_->toPlainText().toStdString();
+            Q_EMIT compileAndRun(std::move(program_text));
+        }
 
-            this->status_label_->setText("Compiling...");
-            auto program = compiler_.Compile(program_text);
-
-            if (!program.has_value())
+        void statusUpdate(ui::CompilationStatus status)
+        {
+            switch (status)
             {
-                std::visit(unlogic::overload{
-                       [&](unlogic::Error const &error) {
-                           std::string message = std::format("Compilation Error: {}", error.message);
-                           this->status_label_->setText(message.c_str());
-                       },
-                       [&](bf::Error const &error) {
-                           std::string message = std::format("Parsing Error: {}", error.message);
-                           this->status_label_->setText(message.c_str());
-                       },
-                       [&](llvm::Error const &error) { /* Do Nothing */ },
-               }, program.error());
-            }
-            else
-            {
-                this->status_label_->setText("Compilation Successful!");
-                this->scene_ = std::make_shared<unlogic::Scene>();
-                program->operator()(this->scene_.get());
+                case CompilationStatus::InProgress:
+                {
+                    this->status_label_->setText("Compiling...");
+                    break;
+                }
 
-                this->render_window_->setScene(this->scene_);
+                case CompilationStatus::Successful:
+                {
+                    this->status_label_->setText("Compilation Successful!");
+                    break;
+                }
+
+                default:
+                    break;
             }
         }
 
+        void sceneReady(std::shared_ptr<unlogic::Scene> scene)
+        {
+            this->scene_ = std::move(scene);
+            this->render_window_->setScene(this->scene_);
+        }
+
+        void compilationError(unlogic::Error error)
+        {
+            this->status_label_->setText(error.message.c_str());
+        }
+
+    Q_SIGNALS:
+        void compileAndRun(std::string program_text);
+
     public:
-        Window() : compiler_({&unlogic::stdlib, &unlogic::runtime})
+        Window()
         {
             auto body = new QWidget;
             auto main_layout = new QVBoxLayout;
@@ -91,8 +100,14 @@ namespace ui
 
             // Editor
             this->editor_ = new QTextEdit;
-            QObject::connect(this->editor_, &QTextEdit::textChanged, this, &Window::on_editor_text_changed);
+            QObject::connect(this->editor_, &QTextEdit::textChanged, this, &Window::editorTextChanged);
             this->editor_->setFontFamily("Source Code Pro");
+
+            // Compiler Controller
+            QObject::connect(this, &Window::compileAndRun, &this->compiler_controller_, &CompilerController::compileAndRun);
+            QObject::connect(&this->compiler_controller_, &CompilerController::sceneReady, this, &Window::sceneReady);
+            QObject::connect(&this->compiler_controller_, &CompilerController::compilationError, this, &Window::compilationError);
+            QObject::connect(&this->compiler_controller_, &CompilerController::statusUpdate, this, &Window::statusUpdate);
 
             // Layout Composition
             splitter->addWidget(this->editor_);

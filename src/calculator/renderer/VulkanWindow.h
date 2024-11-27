@@ -2,9 +2,9 @@
 #define UNLOGIC_VULKANWINDOW_H
 
 #include <QMouseEvent>
-#include <QWheelEvent>
 #include <QResizeEvent>
 #include <QVulkanWindow>
+#include <QWheelEvent>
 #include "VulkanRenderer.h"
 #include "VulkanVertexBuffer.h"
 #include "graphic/Scene.h"
@@ -20,10 +20,10 @@ namespace ui
 
         QPointF last_mouse_pos_;
 
-    public slots:
+    public Q_SLOTS:
         void setScene(std::shared_ptr<unlogic::Scene> scene);
 
-    signals:
+    Q_SIGNALS:
         void sceneChanged(std::shared_ptr<unlogic::Scene> scene);
 
     protected:

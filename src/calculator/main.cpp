@@ -1,6 +1,7 @@
-#include "Window.h"
 #include <QApplication>
 #include <QtWidgets/QtWidgets>
+#include "Window.h"
+#include "compiler/Compiler.h"
 #include "renderer/VulkanInstance.h"
 
 int main(int argc, char **argv)

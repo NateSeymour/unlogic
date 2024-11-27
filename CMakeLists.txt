@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # External Libs
-find_package(Qt6 REQUIRED COMPONENTS Widgets Gui ShaderTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui ShaderTools)
 
 find_package(LLVM 18.1.3 CONFIG REQUIRED)
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
@@ -17,7 +17,7 @@ include(FetchContent)
 FetchContent_Declare(
         buffalo
         GIT_REPOSITORY https://github.com/NateSeymour/buffalo.git
-        GIT_TAG v1.1.0
+        GIT_TAG v1.1.1
 )
 FetchContent_MakeAvailable(buffalo)
 
@@ -79,6 +79,11 @@ qt_add_executable(unlogic-calculator
         src/calculator/main.cpp
         src/calculator/Window.cpp
         src/calculator/Window.h
+        src/calculator/CompilerController.cpp
+        src/calculator/CompilerController.h
+        src/calculator/CompilerWorker.cpp
+        src/calculator/CompilerWorker.h
+        src/calculator/CompilationStatus.h
         src/calculator/renderer/VulkanRenderer.h
         src/calculator/renderer/VulkanWindow.h
         src/calculator/renderer/VulkanWindow.cpp
@@ -92,6 +97,7 @@ qt_add_executable(unlogic-calculator
         src/calculator/renderer/VulkanPipeline.h
         src/calculator/renderer/VulkanVertexBuffer.cpp
 )
+target_compile_definitions(unlogic-calculator PRIVATE QT_NO_KEYWORDS)
 qt_add_shaders(unlogic-calculator "shaders"
         NOGLSL
         NOHSL
@@ -111,7 +117,7 @@ qt_add_resources(unlogic-calculator "fonts"
         src/calculator/resource/Roboto-Medium.ttf
         src/calculator/resource/SourceCodePro.ttf
 )
-target_link_libraries(unlogic-calculator PRIVATE Qt6::Widgets Qt6::Gui Qt6::ShaderTools Qt6::GuiPrivate unlogic)
+target_link_libraries(unlogic-calculator PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::ShaderTools Qt6::GuiPrivate unlogic)
 set_target_properties(unlogic-calculator PROPERTIES
         WIN32_EXECUTABLE ON
         MACOSX_BUNDLE ON
