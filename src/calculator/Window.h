@@ -9,6 +9,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QSplitter>
+#include <QTextCursor>
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <format>
@@ -31,6 +32,12 @@ namespace ui
         CompilerController compiler_controller_;
 
         std::shared_ptr<unlogic::Scene> scene_;
+
+        std::map<unlogic::SyntaxHighlightingGroup, QColor> colors_ = {
+                {unlogic::SyntaxKeyword, QColor{223, 139, 86}},
+        };
+
+        std::map<unlogic::SyntaxHighlightingGroup, QTextCharFormat> formats_;
 
     public Q_SLOTS:
         void editorTextChanged()
@@ -62,8 +69,16 @@ namespace ui
 
         void tokenizationComplete(std::vector<bf::Token<unlogic::ParserGrammarType>> tokens)
         {
+            QTextCursor cursor(this->editor_->document());
             for (auto const &token: tokens)
             {
+                cursor.setPosition(token.location.begin);
+                cursor.setPosition(token.location.end, QTextCursor::MoveMode::KeepAnchor);
+
+                if (this->formats_.contains(token.terminal->user_data))
+                {
+                    cursor.setCharFormat(this->formats_[token.terminal->user_data]);
+                }
             }
         }
 
@@ -116,6 +131,13 @@ namespace ui
             QObject::connect(&this->compiler_controller_, &CompilerController::tokenizationComplete, this, &Window::tokenizationComplete);
             QObject::connect(&this->compiler_controller_, &CompilerController::compilationError, this, &Window::compilationError);
             QObject::connect(&this->compiler_controller_, &CompilerController::statusUpdate, this, &Window::statusUpdate);
+
+            // Syntax Highlighting
+            for (auto const &[group, color]: this->colors_)
+            {
+                QBrush brush(color);
+                this->formats_[group].setForeground(brush);
+            }
 
             // Layout Composition
             splitter->addWidget(this->editor_);
