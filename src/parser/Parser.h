@@ -1,31 +1,26 @@
 #ifndef UNLOGIC_PARSER_H
 #define UNLOGIC_PARSER_H
 
-#include <map>
 #include <buffalo/buffalo.h>
-#include "Node.h"
+#include <memory>
 
 namespace unlogic
 {
-    using ParserValueType = std::variant<
-            double,
-            std::string,
-            std::vector<std::string>,
-            std::vector<std::unique_ptr<Node>>,
-            std::unique_ptr<Node>
-    >;
-    using ParserGrammarType = bf::GrammarDefinition<ParserValueType>;
+    class Node;
 
-    extern bf::NonTerminal<ParserGrammarType> &unlogic_program;
-
-    enum class SyntaxHighlightingGroup
+    enum SyntaxHighlightingGroup
     {
-        Operator,
-        Keyword,
-        Identifier,
+        SyntaxOperator,
+        SyntaxKeyword,
+        SyntaxIdentifier,
+        SyntaxLiteral,
+        SyntaxGrouper,
     };
 
-    extern std::map<bf::Terminal<ParserGrammarType>, SyntaxHighlightingGroup> syntax_highlighting_groups;
-}
+    using ParserValueType = std::variant<double, std::string, std::vector<std::string>, std::vector<std::unique_ptr<Node>>, std::unique_ptr<Node>>;
+    using ParserGrammarType = bf::GrammarDefinition<ParserValueType, SyntaxHighlightingGroup>;
 
-#endif //UNLOGIC_PARSER_H
+    extern bf::NonTerminal<ParserGrammarType> &unlogic_program;
+} // namespace unlogic
+
+#endif // UNLOGIC_PARSER_H

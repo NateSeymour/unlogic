@@ -1,43 +1,44 @@
 #include "Parser.h"
+#include "Node.h"
 
 using namespace unlogic;
 
 using G = ParserGrammarType;
 using ValueType = ParserValueType;
 
-bf::DefineTerminal<G, R"(given)"> KW_GIVEN;
-bf::DefineTerminal<G, R"(calc)"> KW_CALC;
-bf::DefineTerminal<G, R"(plot)"> KW_PLOT;
+bf::DefineTerminal<G, R"(given)"> KW_GIVEN(SyntaxKeyword);
+bf::DefineTerminal<G, R"(calc)"> KW_CALC(SyntaxKeyword);
+bf::DefineTerminal<G, R"(plot)"> KW_PLOT(SyntaxKeyword);
 
-bf::DefineTerminal<G, R"(on)"> KW_ON;
-bf::DefineTerminal<G, R"(as)"> KW_AS;
+bf::DefineTerminal<G, R"(on)"> KW_ON(SyntaxKeyword);
+bf::DefineTerminal<G, R"(as)"> KW_AS(SyntaxKeyword);
 
-bf::DefineTerminal<G, R"(\d+(\.\d+)?)", double> NUMBER([](auto const &tok) -> ValueType {
+bf::DefineTerminal<G, R"(\d+(\.\d+)?)", double> NUMBER(SyntaxLiteral, [](auto const &tok) -> ValueType {
     return std::stod(std::string(tok.raw));
 });
 
-bf::DefineTerminal<G, R"([a-zA-Z]+)", std::string> IDENTIFIER([](auto const &tok) -> ValueType {
+bf::DefineTerminal<G, R"([a-zA-Z]+)", std::string> IDENTIFIER(SyntaxIdentifier, [](auto const &tok) -> ValueType {
     return std::string(tok.raw);
 });
 
-bf::DefineTerminal<G, R"(\^)"> OP_EXP(bf::Right);
+bf::DefineTerminal<G, R"(\^)"> OP_EXP(bf::Right, SyntaxOperator);
 
-bf::DefineTerminal<G, R"(\*)"> OP_MUL(bf::Left);
-bf::DefineTerminal<G, R"(\/)"> OP_DIV(bf::Left);
-bf::DefineTerminal<G, R"(\+)"> OP_ADD(bf::Left);
-bf::DefineTerminal<G, R"(\-)"> OP_SUB(bf::Left);
+bf::DefineTerminal<G, R"(\*)"> OP_MUL(bf::Left, SyntaxOperator);
+bf::DefineTerminal<G, R"(\/)"> OP_DIV(bf::Left, SyntaxOperator);
+bf::DefineTerminal<G, R"(\+)"> OP_ADD(bf::Left, SyntaxOperator);
+bf::DefineTerminal<G, R"(\-)"> OP_SUB(bf::Left, SyntaxOperator);
 
-bf::DefineTerminal<G, R"(=)"> OP_ASN(bf::Left);
+bf::DefineTerminal<G, R"(=)"> OP_ASN(bf::Left, SyntaxOperator);
 
-bf::DefineTerminal<G, R"(\()"> PAR_OPEN;
-bf::DefineTerminal<G, R"(\))"> PAR_CLOSE;
+bf::DefineTerminal<G, R"(\()"> PAR_OPEN(SyntaxGrouper);
+bf::DefineTerminal<G, R"(\))"> PAR_CLOSE(SyntaxGrouper);
 
-bf::DefineTerminal<G, R"(\[)"> BRK_OPEN;
-bf::DefineTerminal<G, R"(\])"> BRK_CLOSE;
+bf::DefineTerminal<G, R"(\[)"> BRK_OPEN(SyntaxGrouper);
+bf::DefineTerminal<G, R"(\])"> BRK_CLOSE(SyntaxGrouper);
 
-bf::DefineTerminal<G, R"(;)"> STMT_DELIMITER;
+bf::DefineTerminal<G, R"(;)"> STMT_DELIMITER(SyntaxOperator);
 
-bf::DefineTerminal<G, R"(,)"> SEPARATOR;
+bf::DefineTerminal<G, R"(,)"> SEPARATOR(SyntaxOperator);
 
 bf::DefineNonTerminal<G, std::vector<std::string>> identifier_list
     = bf::PR<G>(IDENTIFIER)<=>[](auto &$) -> ValueType

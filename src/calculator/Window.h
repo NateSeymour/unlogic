@@ -60,6 +60,13 @@ namespace ui
             }
         }
 
+        void tokenizationComplete(std::vector<bf::Token<unlogic::ParserGrammarType>> tokens)
+        {
+            for (auto const &token: tokens)
+            {
+            }
+        }
+
         void sceneReady(std::shared_ptr<unlogic::Scene> scene)
         {
             this->scene_ = std::move(scene);
@@ -106,6 +113,7 @@ namespace ui
             // Compiler Controller
             QObject::connect(this, &Window::compileAndRun, &this->compiler_controller_, &CompilerController::compileAndRun);
             QObject::connect(&this->compiler_controller_, &CompilerController::sceneReady, this, &Window::sceneReady);
+            QObject::connect(&this->compiler_controller_, &CompilerController::tokenizationComplete, this, &Window::tokenizationComplete);
             QObject::connect(&this->compiler_controller_, &CompilerController::compilationError, this, &Window::compilationError);
             QObject::connect(&this->compiler_controller_, &CompilerController::statusUpdate, this, &Window::statusUpdate);
 

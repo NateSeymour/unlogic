@@ -18,6 +18,7 @@ CompilerController::CompilerController()
     QObject::connect(this, &CompilerController::compilationRequest, worker, &CompilerWorker::compileAndRun);
 
     QObject::connect(worker, &CompilerWorker::sceneReady, this, &CompilerController::sceneReady);
+    QObject::connect(worker, &CompilerWorker::tokenizationComplete, this, &CompilerController::tokenizationComplete);
     QObject::connect(worker, &CompilerWorker::statusUpdate, this, &CompilerController::statusUpdate);
     QObject::connect(worker, &CompilerWorker::compilationError, this, &CompilerController::compilationError);
 

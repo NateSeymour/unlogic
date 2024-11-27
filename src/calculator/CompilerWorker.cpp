@@ -9,7 +9,11 @@ using namespace ui;
 void CompilerWorker::compileAndRun(std::string program_text)
 {
     Q_EMIT statusUpdate(CompilationStatus::InProgress);
-    auto result = compiler_->Compile(program_text);
+
+    std::vector<bf::Token<unlogic::ParserGrammarType>> tokens;
+    auto result = compiler_->Compile(program_text, &tokens);
+
+    Q_EMIT tokenizationComplete(tokens);
 
     if (!result.has_value())
     {

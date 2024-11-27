@@ -8,6 +8,7 @@
 #include "CompilationStatus.h"
 #include "Error.h"
 #include "graphic/Scene.h"
+#include "parser/Parser.h"
 
 namespace ui
 {
@@ -22,6 +23,7 @@ namespace ui
 
     Q_SIGNALS:
         void sceneReady(std::shared_ptr<unlogic::Scene> scene);
+        void tokenizationComplete(std::vector<bf::Token<unlogic::ParserGrammarType>> tokens);
         void statusUpdate(ui::CompilationStatus status);
         void compilationError(unlogic::Error error);
         void compilationRequest(std::string program);

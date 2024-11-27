@@ -31,10 +31,10 @@ void Compiler::InitializeGlobalCompilerRuntime()
     llvm::InitializeNativeTargetAsmParser();
 }
 
-std::expected<Program, CompilationError> Compiler::Compile(std::string_view program_text)
+std::expected<Program, CompilationError> Compiler::Compile(std::string_view program_text, std::vector<bf::Token<ParserGrammarType>> *tokens)
 {
     // Parse program
-    auto ast = this->parser_.Parse(program_text);
+    auto ast = this->parser_.Parse(program_text, tokens);
     if (!ast.has_value())
     {
         return std::unexpected(ast.error());
@@ -82,8 +82,8 @@ std::expected<Program, CompilationError> Compiler::Compile(std::string_view prog
     // Create IR generation context
     IRGenerationContext ir_ctx = {
             .llvm_ctx = *ctx.get(),
-            .module   = std::move(module),
-            .scope    = program_scope,
+            .module = std::move(module),
+            .scope = program_scope,
     };
 
     // IR Generator

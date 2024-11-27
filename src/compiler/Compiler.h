@@ -11,6 +11,7 @@
 #include "Error.h"
 #include "Library.h"
 #include "graphic/Scene.h"
+#include "parser/Node.h"
 #include "parser/Parser.h"
 
 namespace unlogic
@@ -40,7 +41,7 @@ namespace unlogic
     public:
         static void InitializeGlobalCompilerRuntime();
 
-        std::expected<Program, CompilationError> Compile(std::string_view program_text);
+        std::expected<Program, CompilationError> Compile(std::string_view program_text, std::vector<bf::Token<ParserGrammarType>> *tokens = nullptr);
 
         Compiler() = delete;
         Compiler(std::vector<Library *> default_libraries = {});
