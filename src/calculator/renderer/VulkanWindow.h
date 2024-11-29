@@ -59,8 +59,17 @@ namespace ui
 
         void wheelEvent(QWheelEvent *ev) override
         {
-            float delta = ev->pixelDelta().y();
-            this->camera.TranslateWorld({0, 0, delta / 5.f});
+            float delta = 0.f;
+            if(ev->hasPixelDelta())
+            {
+                delta = ev->pixelDelta().y() / 5.f;
+            }
+            else
+            {
+                delta = ev->angleDelta().y() / 15.f;
+            }
+
+            this->camera.TranslateWorld({0, 0, delta});
         }
 
         void resizeEvent(QResizeEvent *ev) override

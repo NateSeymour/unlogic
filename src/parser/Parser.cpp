@@ -97,6 +97,10 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     {
         return std::move($[1]);
     }
+    | (BRK_OPEN + expression + BRK_CLOSE)<=>[](auto &$) -> ValueType
+    {
+        return std::move($[1]);
+    }
     | (expression + OP_EXP + expression)<=>[](auto &$) -> ValueType
     {
         return std::make_unique<PotentiationNode>(std::move(expression($[0])), std::move(expression($[2])));

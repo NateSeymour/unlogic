@@ -35,6 +35,10 @@ namespace ui
 
         std::map<unlogic::SyntaxHighlightingGroup, QColor> colors_ = {
                 {unlogic::SyntaxKeyword, QColor{223, 139, 86}},
+                {unlogic::SyntaxOperator, QColorConstants::DarkRed},
+                {unlogic::SyntaxGrouper, QColorConstants::Yellow},
+                {unlogic::SyntaxIdentifier, QColor{188, 190, 196}},
+                {unlogic::SyntaxLiteral, QColorConstants::Magenta},
         };
 
         std::map<unlogic::SyntaxHighlightingGroup, QTextCharFormat> formats_;
@@ -42,8 +46,17 @@ namespace ui
     public Q_SLOTS:
         void editorTextChanged()
         {
-            std::string program_text = this->editor_->toPlainText().toStdString();
-            Q_EMIT compileAndRun(std::move(program_text));
+            if(this->editor_->document()->isModified())
+            {
+                std::string program_text = this->editor_->toPlainText().toStdString();
+
+                if(!program_text.empty())
+                {
+                    Q_EMIT compileAndRun(std::move(program_text));
+                }
+
+                this->editor_->document()->setModified(false);
+            }
         }
 
         void statusUpdate(ui::CompilationStatus status)
@@ -69,8 +82,14 @@ namespace ui
 
         void tokenizationComplete(std::vector<bf::Token<unlogic::ParserGrammarType>> tokens)
         {
+            /*
+             * We need to disconnect the signal and reconnect it afterwards because QT is FUCKING DUMB and doesn't
+             * provide a way to test for content change. The reformatting change triggers a recompilation otherwise.
+             */
+            QObject::disconnect(this->editor_, &QTextEdit::textChanged, this, &Window::editorTextChanged);
+
             QTextCursor cursor(this->editor_->document());
-            for (auto const &token: tokens)
+            for (auto const &token : tokens)
             {
                 cursor.setPosition(token.location.begin);
                 cursor.setPosition(token.location.end, QTextCursor::MoveMode::KeepAnchor);
@@ -80,6 +99,8 @@ namespace ui
                     cursor.setCharFormat(this->formats_[token.terminal->user_data]);
                 }
             }
+
+            QObject::connect(this->editor_, &QTextEdit::textChanged, this, &Window::editorTextChanged);
         }
 
         void sceneReady(std::shared_ptr<unlogic::Scene> scene)
@@ -122,8 +143,8 @@ namespace ui
 
             // Editor
             this->editor_ = new QTextEdit;
+
             QObject::connect(this->editor_, &QTextEdit::textChanged, this, &Window::editorTextChanged);
-            this->editor_->setFontFamily("Source Code Pro");
 
             // Compiler Controller
             QObject::connect(this, &Window::compileAndRun, &this->compiler_controller_, &CompilerController::compileAndRun);
@@ -133,10 +154,16 @@ namespace ui
             QObject::connect(&this->compiler_controller_, &CompilerController::statusUpdate, this, &Window::statusUpdate);
 
             // Syntax Highlighting
+            QTextCharFormat base_format;
+            base_format.setFontFamilies({"Source Code Pro"});
+            base_format.setFontPointSize(10);
+            base_format.setForeground(QColor{188, 190, 186});
+            this->editor_->setCurrentCharFormat(base_format);
+
             for (auto const &[group, color]: this->colors_)
             {
-                QBrush brush(color);
-                this->formats_[group].setForeground(brush);
+                this->formats_[group] = base_format;
+                this->formats_[group].setForeground(color);
             }
 
             // Layout Composition

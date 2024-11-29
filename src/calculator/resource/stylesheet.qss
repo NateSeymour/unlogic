@@ -1,0 +1,12 @@
+QMainWindow {
+    background: #1E1F22;
+}
+
+QTextEdit {
+    background: #1E1F22;
+    border: none;
+}
+
+QLabel {
+    color: #BCBEC4;
+}

@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QtWidgets/QtWidgets>
+#include <iostream>
 #include "Window.h"
 #include "compiler/Compiler.h"
 #include "renderer/VulkanInstance.h"
@@ -30,7 +31,20 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    // Fonts
     QFontDatabase::addApplicationFont(":/fonts/SourceCodePro.ttf");
+
+    // Styles
+    QFile stylesheet(":/styles/stylesheet.qss");
+    if(stylesheet.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        app.setStyleSheet(stylesheet.readAll());
+        stylesheet.close();
+    }
+    else
+    {
+        std::cerr << "[MAIN] Failed to load styles!" << std::endl;
+    }
 
     // Create Window
     ui::Window window;
