@@ -3,11 +3,10 @@
 
 #include <buffalo/buffalo.h>
 #include <memory>
+#include "Node.h"
 
 namespace unlogic
 {
-    class Node;
-
     enum SyntaxHighlightingGroup
     {
         SyntaxOperator,
@@ -17,7 +16,7 @@ namespace unlogic
         SyntaxGrouper,
     };
 
-    using ParserValueType = std::variant<double, std::string, std::vector<std::string>, std::vector<std::unique_ptr<Node>>, std::unique_ptr<Node>>;
+    using ParserValueType = std::variant<double, std::string, std::vector<std::string>, UniqueNode, std::vector<UniqueNode>>;
     using ParserGrammarType = bf::GrammarDefinition<ParserValueType, SyntaxHighlightingGroup>;
 
     extern bf::NonTerminal<ParserGrammarType> &unlogic_program;

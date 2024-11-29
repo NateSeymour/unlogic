@@ -48,6 +48,8 @@ add_library(unlogic STATIC
         src/util/io.cpp
         src/util/io.h
         src/Error.h
+        src/parser/Node.cpp
+        src/parser/Node.h
         src/parser/Parser.cpp
         src/parser/Parser.h
         src/compiler/transformer/IRGenerator.cpp
@@ -105,23 +107,23 @@ qt_add_shaders(unlogic-calculator "shaders"
         PREFIX "/shaders"
         BASE src/calculator/resource/shaders
         FILES
-            src/calculator/resource/shaders/plot.frag
-            src/calculator/resource/shaders/plot.vert
-            src/calculator/resource/shaders/grid.frag
-            src/calculator/resource/shaders/grid.vert
+        src/calculator/resource/shaders/plot.frag
+        src/calculator/resource/shaders/plot.vert
+        src/calculator/resource/shaders/grid.frag
+        src/calculator/resource/shaders/grid.vert
 )
 qt_add_resources(unlogic-calculator "fonts"
         PREFIX "/fonts"
         BASE src/calculator/resource
         FILES
-            src/calculator/resource/Roboto-Medium.ttf
-            src/calculator/resource/SourceCodePro.ttf
+        src/calculator/resource/Roboto-Medium.ttf
+        src/calculator/resource/SourceCodePro.ttf
 )
 qt_add_resources(unlogic-calculator "styles"
         PREFIX "/styles"
         BASE src/calculator/resource
         FILES
-            src/calculator/resource/stylesheet.qss
+        src/calculator/resource/stylesheet.qss
 )
 target_link_libraries(unlogic-calculator PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::ShaderTools Qt6::GuiPrivate unlogic)
 set_target_properties(unlogic-calculator PROPERTIES

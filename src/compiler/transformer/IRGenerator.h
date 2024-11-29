@@ -1,34 +1,36 @@
 #ifndef UNLOGIC_IRGENERATOR_H
 #define UNLOGIC_IRGENERATOR_H
 
+#include <llvm/IR/IRBuilder.h>
 #include <stack>
-#include "parser/Node.h"
 #include "IRGenerationContext.h"
+#include "parser/Node.h"
 
 namespace unlogic
 {
-    struct IRGenerator : public INodeVisitor
+    struct IRGenerator
     {
         IRGenerationContext &ctx;
         llvm::IRBuilder<> builder;
         std::stack<llvm::Value *> values;
 
-        void Visit(const NumericLiteralNode *node) override;
-        void Visit(const StringLiteralNode *node) override;
-        void Visit(const DivisionNode *node) override;
-        void Visit(const ScopedBlockNode *node) override;
-        void Visit(const VariableNode *node) override;
-        void Visit(const CallNode *node) override;
-        void Visit(const AdditionNode *node) override;
-        void Visit(const SubtractionNode *node) override;
-        void Visit(const MultiplicationNode *node) override;
-        void Visit(const PotentiationNode *node) override;
-        void Visit(const FunctionDefinitionNode *node) override;
-        void Visit(const PlotCommandNode *node) override;
-        void Visit(const ProgramEntryNode *node) override;
+        llvm::Value *operator()(std::monostate &node);
+        llvm::Value *operator()(unlogic::NumericLiteralNode &node);
+        llvm::Value *operator()(StringLiteralNode &node);
+        llvm::Value *operator()(DivisionNode &node);
+        llvm::Value *operator()(ScopedBlockNode &node);
+        llvm::Value *operator()(VariableNode &node);
+        llvm::Value *operator()(CallNode &node);
+        llvm::Value *operator()(AdditionNode &node);
+        llvm::Value *operator()(SubtractionNode &node);
+        llvm::Value *operator()(MultiplicationNode &node);
+        llvm::Value *operator()(PotentiationNode &node);
+        llvm::Value *operator()(FunctionDefinitionNode &node);
+        llvm::Value *operator()(PlotCommandNode &node);
+        llvm::Value *operator()(ProgramEntryNode &node);
 
         IRGenerator(IRGenerationContext &ctx) : ctx(ctx), builder(ctx.llvm_ctx) {}
     };
-}
+} // namespace unlogic
 
-#endif //UNLOGIC_IRGENERATOR_H
+#endif // UNLOGIC_IRGENERATOR_H

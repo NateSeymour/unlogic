@@ -92,7 +92,7 @@ std::expected<Program, CompilationError> Compiler::Compile(std::string_view prog
     // Build program
     try
     {
-        ast_body->Accept(generator);
+        std::visit(generator, *ast_body);
     }
     catch (std::runtime_error &e)
     {

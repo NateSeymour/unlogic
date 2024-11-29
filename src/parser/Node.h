@@ -1,56 +1,33 @@
 #ifndef UNLOGIC_NODE_H
 #define UNLOGIC_NODE_H
 
-#include <string>
-#include <stdexcept>
-#include <memory>
 #include <map>
+#include <memory>
 #include <ranges>
+#include <stdexcept>
+#include <string>
 #include <vector>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Value.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Verifier.h>
 
 namespace unlogic
 {
-    struct NumericLiteralNode;
-    struct StringLiteralNode;
-    struct VariableNode;
-    struct CallNode;
-    struct AdditionNode;
-    struct SubtractionNode;
-    struct MultiplicationNode;
-    struct DivisionNode;
-    struct PotentiationNode;
-    struct FunctionDefinitionNode;
-    struct PlotCommandNode;
-    struct ScopedBlockNode;
-    struct ProgramEntryNode;
+    using Node = std::variant<
+            std::monostate,
+            struct NumericLiteralNode,
+            struct StringLiteralNode,
+            struct VariableNode,
+            struct CallNode,
+            struct AdditionNode,
+            struct SubtractionNode,
+            struct MultiplicationNode,
+            struct DivisionNode,
+            struct PotentiationNode,
+            struct FunctionDefinitionNode,
+            struct PlotCommandNode,
+            struct ScopedBlockNode,
+            struct ProgramEntryNode
+    >;
 
-    struct INodeVisitor
-    {
-        virtual void Visit(NumericLiteralNode const *node)      = 0;
-        virtual void Visit(StringLiteralNode const *node)       = 0;
-        virtual void Visit(VariableNode const *node)            = 0;
-        virtual void Visit(CallNode const *node)                = 0;
-        virtual void Visit(AdditionNode const *node)            = 0;
-        virtual void Visit(SubtractionNode const *node)         = 0;
-        virtual void Visit(MultiplicationNode const *node)      = 0;
-        virtual void Visit(DivisionNode const *node)            = 0;
-        virtual void Visit(PotentiationNode const *node)        = 0;
-        virtual void Visit(FunctionDefinitionNode const *node)  = 0;
-        virtual void Visit(PlotCommandNode const *node)  = 0;
-        virtual void Visit(ScopedBlockNode const *node)         = 0;
-        virtual void Visit(ProgramEntryNode const *node)        = 0;
-    };
-
-    struct Node
-    {
-        virtual void Accept(INodeVisitor &visitor) = 0;
-        virtual ~Node() = default;
-    };
+    using UniqueNode = std::unique_ptr<Node>;
 
     template<typename T>
     struct Literal
@@ -61,164 +38,115 @@ namespace unlogic
         virtual ~Literal() = default;
     };
 
-    struct NumericLiteralNode : public Node, public Literal<double>
+    struct NumericLiteralNode : Literal<double>
     {
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        NumericLiteralNode(double value) : Literal(value) {}
+        NumericLiteralNode(double value);
+        ~NumericLiteralNode();
     };
 
-    struct StringLiteralNode : public Node, public Literal<std::string>
+    struct StringLiteralNode : Literal<std::string>
     {
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        StringLiteralNode(std::string value) : Literal(std::move(value)) {}
+        StringLiteralNode(std::string value);
+        ~StringLiteralNode();
     };
 
-    struct VariableNode : public Node
+    struct VariableNode
     {
-        std::string identifier_;
+        std::string identifier;
 
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        VariableNode(std::string identifier) : identifier_(std::move(identifier)) {}
+        VariableNode(std::string identifier);
+        ~VariableNode();
     };
 
-    struct CallNode : public Node
+    struct CallNode
     {
-        std::string function_name_;
-        std::vector<std::unique_ptr<Node>> arguments_;
+        std::string function_name;
+        std::vector<UniqueNode> arguments;
 
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        CallNode(std::string function_name, std::vector<std::unique_ptr<Node>> arguments) : function_name_(std::move(function_name)), arguments_(std::move(arguments)) {}
+        CallNode(std::string function_name, std::vector<UniqueNode> arguments);
+        ~CallNode();
     };
 
-    struct BinaryNode : public Node
+    struct BinaryNode
     {
-        std::unique_ptr<Node> lhs_, rhs_;
+        UniqueNode lhs, rhs;
 
-        BinaryNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
+        BinaryNode(UniqueNode lhs, UniqueNode rhs);
+        ~BinaryNode();
     };
 
-    struct AdditionNode : public BinaryNode
+    struct AdditionNode : BinaryNode
     {
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        AdditionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+        AdditionNode(UniqueNode lhs, UniqueNode rhs);
+        ~AdditionNode();
     };
 
-    struct SubtractionNode : public BinaryNode
+    struct SubtractionNode : BinaryNode
     {
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        SubtractionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+        SubtractionNode(UniqueNode lhs, UniqueNode rhs);
+        ~SubtractionNode();
     };
 
-    struct MultiplicationNode : public BinaryNode
+    struct MultiplicationNode : BinaryNode
     {
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        MultiplicationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+        MultiplicationNode(UniqueNode lhs, UniqueNode rhs);
+        ~MultiplicationNode();
     };
 
-    struct DivisionNode : public BinaryNode
+    struct DivisionNode : BinaryNode
     {
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        DivisionNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+        DivisionNode(UniqueNode lhs, UniqueNode rhs);
+        ~DivisionNode();
     };
 
-    struct PotentiationNode : public BinaryNode
+    struct PotentiationNode : BinaryNode
     {
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        PotentiationNode(std::unique_ptr<Node> lhs, std::unique_ptr<Node> rhs) : BinaryNode(std::move(lhs), std::move(rhs)) {}
+        PotentiationNode(UniqueNode lhs, UniqueNode rhs);
+        ~PotentiationNode();
     };
 
-    struct FunctionDefinitionNode : public Node
+    struct FunctionDefinitionNode
     {
-        std::string name_;
-        std::vector<std::string> args_;
-        std::unique_ptr<Node> body_;
+        std::string name;
+        std::vector<std::string> args;
+        UniqueNode body;
 
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        FunctionDefinitionNode(std::string name, std::vector<std::string> arguments, std::unique_ptr<Node> body)
-            : name_(std::move(name)),
-              args_(std::move(arguments)),
-              body_(std::move(body)) {}
-
-        FunctionDefinitionNode(std::string name, std::unique_ptr<Node> body)
-            : name_(std::move(name)),
-              body_(std::move(body)) {}
+        FunctionDefinitionNode(std::string name, std::vector<std::string> arguments, UniqueNode body);
+        FunctionDefinitionNode(std::string name, UniqueNode body);
+        ~FunctionDefinitionNode();
     };
 
-    struct PlotCommandNode : public Node
+    struct PlotCommandNode
     {
         std::string function_name;
 
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        PlotCommandNode(std::string function_name) : function_name(std::move(function_name)) {}
+        PlotCommandNode(std::string function_name);
+        ~PlotCommandNode();
     };
 
-    struct ScopedBlockNode : public Node
+    struct ScopedBlockNode
     {
-        std::vector<std::unique_ptr<Node>> statements_;
+        std::vector<UniqueNode> statements;
 
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        ScopedBlockNode(std::vector<std::unique_ptr<Node>> statements) : statements_(std::move(statements)) {};
+        ScopedBlockNode(std::vector<UniqueNode> statements);
+        ~ScopedBlockNode();
     };
 
-    struct ProgramEntryNode : public Node
+    struct ProgramEntryNode
     {
-        std::unique_ptr<Node> body;
+        UniqueNode body;
 
-        void Accept(INodeVisitor &visitor) override
-        {
-            visitor.Visit(this);
-        }
-
-        ProgramEntryNode(std::unique_ptr<Node> body) : body(std::move(body)) {}
+        ProgramEntryNode(UniqueNode body);
+        ~ProgramEntryNode();
     };
-}
 
-#endif //UNLOGIC_NODE_H
+    template<typename T, typename ...Args>
+    UniqueNode unique_node(Args &&... args)
+    {
+        auto temp = std::make_unique<Node>();
+        temp->emplace<T>(std::forward<Args>(args)...);
+        return std::move(temp);
+    }
+} // namespace unlogic
+
+#endif // UNLOGIC_NODE_H

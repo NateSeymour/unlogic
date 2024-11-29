@@ -1,134 +1,114 @@
-#include <format>
 #include "IRGenerator.h"
+#include <format>
+#include <llvm/IR/Verifier.h>
 
-void unlogic::IRGenerator::Visit(unlogic::NumericLiteralNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::NumericLiteralNode &node)
 {
-    llvm::Value *value = llvm::ConstantFP::get(this->ctx.llvm_ctx, llvm::APFloat(node->value));
-    this->values.push(value);
+    return llvm::ConstantFP::get(this->ctx.llvm_ctx, llvm::APFloat(node.value));
 }
 
-void unlogic::IRGenerator::Visit(unlogic::StringLiteralNode const *node) {}
-
-void unlogic::IRGenerator::Visit(unlogic::VariableNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::StringLiteralNode &node)
 {
-    llvm::Value *value = *this->ctx.scope.Lookup(node->identifier_);
-    this->values.push(value);
+    return this->builder.CreateGlobalStringPtr(node.value);
 }
 
-void unlogic::IRGenerator::Visit(unlogic::CallNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::DivisionNode &node)
 {
-    llvm::Function *function = ctx.module->getFunction(node->function_name_);
+    llvm::Value *lhs = std::visit(*this, *node.lhs);
+    llvm::Value *rhs = std::visit(*this, *node.rhs);
 
-    if (function->arg_size() < node->arguments_.size())
+    return this->builder.CreateFDiv(lhs, rhs, "divtmp");
+}
+
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::ScopedBlockNode &node)
+{
+    for (auto &statement: node.statements)
+    {
+        std::visit(*this, *statement);
+    }
+
+    return nullptr;
+}
+
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::VariableNode &node)
+{
+    return *this->ctx.scope.Lookup(node.identifier);
+}
+
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::CallNode &node)
+{
+    llvm::Function *function = ctx.module->getFunction(node.function_name);
+
+    if (function->arg_size() < node.arguments.size())
     {
         throw std::runtime_error("Aaaaaahhhhhhh");
     }
 
     std::vector<llvm::Value *> argument_values;
-    argument_values.reserve(node->arguments_.size());
-    for (auto const &argument: node->arguments_)
+    argument_values.reserve(node.arguments.size());
+    for (auto &argument: node.arguments)
     {
-        argument->Accept(*this);
-        argument_values.push_back(this->values.top());
-        this->values.pop();
+        llvm::Value *arg_value = std::visit(*this, *argument);
+        argument_values.push_back(arg_value);
     }
 
-    llvm::Value *value = this->builder.CreateCall(function, argument_values, "calltmp");
-    this->values.push(value);
+    return this->builder.CreateCall(function, argument_values, "calltmp");
 }
 
-void unlogic::IRGenerator::Visit(unlogic::AdditionNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::AdditionNode &node)
 {
-    node->lhs_->Accept(*this);
-    llvm::Value *lhs = this->values.top();
-    this->values.pop();
+    llvm::Value *lhs = std::visit(*this, *node.lhs);
+    llvm::Value *rhs = std::visit(*this, *node.rhs);
 
-    node->rhs_->Accept(*this);
-    llvm::Value *rhs = this->values.top();
-    this->values.pop();
-
-    llvm::Value *value = this->builder.CreateFAdd(lhs, rhs, "addtmp");
-    this->values.push(value);
+    return this->builder.CreateFAdd(lhs, rhs, "addtmp");
 }
 
-void unlogic::IRGenerator::Visit(unlogic::SubtractionNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::SubtractionNode &node)
 {
-    node->lhs_->Accept(*this);
-    llvm::Value *lhs = this->values.top();
-    this->values.pop();
+    llvm::Value *lhs = std::visit(*this, *node.lhs);
+    llvm::Value *rhs = std::visit(*this, *node.rhs);
 
-    node->rhs_->Accept(*this);
-    llvm::Value *rhs = this->values.top();
-    this->values.pop();
-
-    llvm::Value *value = this->builder.CreateFSub(lhs, rhs, "subtmp");
-    this->values.push(value);
+    return this->builder.CreateFSub(lhs, rhs, "subtmp");
 }
 
-void unlogic::IRGenerator::Visit(unlogic::MultiplicationNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::MultiplicationNode &node)
 {
-    node->lhs_->Accept(*this);
-    llvm::Value *lhs = this->values.top();
-    this->values.pop();
+    llvm::Value *lhs = std::visit(*this, *node.lhs);
+    llvm::Value *rhs = std::visit(*this, *node.rhs);
 
-    node->rhs_->Accept(*this);
-    llvm::Value *rhs = this->values.top();
-    this->values.pop();
-
-    llvm::Value *value = this->builder.CreateFMul(lhs, rhs, "multmp");
-    this->values.push(value);
+    return this->builder.CreateFMul(lhs, rhs, "multmp");
 }
 
-void unlogic::IRGenerator::Visit(unlogic::DivisionNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::PotentiationNode &node)
 {
-    node->lhs_->Accept(*this);
-    llvm::Value *lhs = this->values.top();
-    this->values.pop();
-
-    node->rhs_->Accept(*this);
-    llvm::Value *rhs = this->values.top();
-    this->values.pop();
-
-    llvm::Value *value = this->builder.CreateFDiv(lhs, rhs, "divtmp");
-    this->values.push(value);
-}
-
-void unlogic::IRGenerator::Visit(unlogic::PotentiationNode const *node)
-{
-    node->lhs_->Accept(*this);
-    llvm::Value *lhs = this->values.top();
-    this->values.pop();
-
-    node->rhs_->Accept(*this);
-    llvm::Value *rhs = this->values.top();
-    this->values.pop();
+    llvm::Value *lhs = std::visit(*this, *node.lhs);
+    llvm::Value *rhs = std::visit(*this, *node.rhs);
 
     llvm::Function *std_pow = this->ctx.module->getFunction("pow");
 
-    llvm::Value *value = this->builder.CreateCall(std_pow, {lhs, rhs}, "powtmp");
-    this->values.push(value);
+    return this->builder.CreateCall(std_pow, {lhs, rhs}, "powtmp");
 }
 
-void unlogic::IRGenerator::Visit(unlogic::FunctionDefinitionNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &node)
 {
     // Save entry
     llvm::BasicBlock *parent = this->builder.GetInsertBlock();
 
     // Generate function information
-    std::vector<llvm::Type *> argument_types(node->args_.size(), llvm::Type::getDoubleTy(ctx.llvm_ctx));
+    std::vector<llvm::Type *> argument_types(node.args.size(), llvm::Type::getDoubleTy(ctx.llvm_ctx));
     llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(ctx.llvm_ctx), argument_types, false);
-    llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, node->name_, *ctx.module);
+    llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, node.name, *ctx.module);
 
-    this->ctx.scope.Insert(node->name_, function);
+    this->ctx.scope.Insert(node.name, function);
 
     unsigned idx = 0;
     for (auto &arg: function->args())
     {
-        arg.setName(node->args_[idx++]);
+        arg.setName(node.args[idx++]);
     }
 
     // Generate function body
-    llvm::BasicBlock *block = llvm::BasicBlock::Create(ctx.llvm_ctx, node->name_, function);
+    llvm::BasicBlock *block = llvm::BasicBlock::Create(ctx.llvm_ctx, node.name, function);
     this->builder.SetInsertPoint(block);
 
     ctx.scope.PushLayer();
@@ -137,9 +117,7 @@ void unlogic::IRGenerator::Visit(unlogic::FunctionDefinitionNode const *node)
         ctx.scope.Insert(std::string(arg.getName()), &arg);
     }
 
-    node->body_->Accept(*this);
-    llvm::Value *return_value = this->values.top();
-    this->values.pop();
+    llvm::Value *return_value = std::visit(*this, *node.body);
 
     this->builder.CreateRet(return_value);
 
@@ -150,42 +128,31 @@ void unlogic::IRGenerator::Visit(unlogic::FunctionDefinitionNode const *node)
         throw std::runtime_error("function has errors");
     }
 
-    this->values.push(function);
-
     // Return to parent block
     this->builder.SetInsertPoint(parent);
+
+    return function;
 }
 
-void unlogic::IRGenerator::Visit(unlogic::PlotCommandNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
 {
     llvm::Value *scene = *this->ctx.scope.Lookup("__scene");
-    llvm::Value *name = this->builder.CreateGlobalStringPtr(node->function_name);
+    llvm::Value *name = this->builder.CreateGlobalStringPtr(node.function_name);
 
-    auto function = this->ctx.module->getFunction(node->function_name);
+    auto function = this->ctx.module->getFunction(node.function_name);
     if (!function)
     {
-        throw std::runtime_error(std::format("Function \"{}\" could not be found!", node->function_name));
+        throw std::runtime_error(std::format("Function \"{}\" could not be found!", node.function_name));
     }
 
     auto scene_add_plot = this->ctx.module->getFunction("unlogic_scene_add_plot");
 
     std::array<llvm::Value *, 3> args = {scene, name, function};
 
-    llvm::Value *ret = this->builder.CreateCall(scene_add_plot, args);
-
-    this->values.push(ret);
+    return this->builder.CreateCall(scene_add_plot, args);
 }
 
-void unlogic::IRGenerator::Visit(unlogic::ScopedBlockNode const *node)
-{
-    for (auto &statement: node->statements_)
-    {
-        statement->Accept(*this);
-        this->values.pop();
-    }
-}
-
-void unlogic::IRGenerator::Visit(unlogic::ProgramEntryNode const *node)
+llvm::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
 {
     std::array<llvm::Type *, 1> args = {
             llvm::PointerType::getUnqual(this->ctx.llvm_ctx),
@@ -201,7 +168,7 @@ void unlogic::IRGenerator::Visit(unlogic::ProgramEntryNode const *node)
 
     this->builder.SetInsertPoint(block);
 
-    node->body->Accept(*this);
+    std::visit(*this, *node.body);
 
     this->builder.CreateRetVoid();
     this->ctx.scope.PopLayer();
@@ -210,4 +177,11 @@ void unlogic::IRGenerator::Visit(unlogic::ProgramEntryNode const *node)
     {
         throw std::runtime_error("function has errors");
     }
+
+    return nullptr;
+}
+
+llvm::Value *unlogic::IRGenerator::operator()(std::monostate &node)
+{
+    throw std::runtime_error("Invalid Node!");
 }

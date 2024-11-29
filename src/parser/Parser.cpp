@@ -1,5 +1,4 @@
 #include "Parser.h"
-#include "Node.h"
 
 using namespace unlogic;
 
@@ -59,7 +58,7 @@ extern bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression;
 bf::DefineNonTerminal<G, std::vector<std::unique_ptr<Node>>> expression_list
     = bf::PR<G>(expression)<=>[](auto &$) -> ValueType
     {
-        std::vector<std::unique_ptr<Node>> list;
+        std::vector<UniqueNode> list;
         list.push_back(std::move(expression($[0])));
 
         return std::move(list);
@@ -76,18 +75,18 @@ bf::DefineNonTerminal<G, std::vector<std::unique_ptr<Node>>> expression_list
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> function_call
     = (IDENTIFIER + PAR_OPEN + expression_list + PAR_CLOSE)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<CallNode>(IDENTIFIER($[0]), std::move(expression_list($[2])));
+        return unique_node<CallNode>(IDENTIFIER($[0]), expression_list($[2]));
     }
     ;
 
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     = bf::PR<G>(NUMBER)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<NumericLiteralNode>(NUMBER($[0]));
+        return unique_node<NumericLiteralNode>(NUMBER($[0]));
     }
     | bf::PR<G>(IDENTIFIER)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<VariableNode>(IDENTIFIER($[0]));
+        return unique_node<VariableNode>(IDENTIFIER($[0]));
     }
     | bf::PR<G>(function_call)<=>[](auto &$) -> ValueType
     {
@@ -103,41 +102,41 @@ bf::DefineNonTerminal<G, std::unique_ptr<Node>> expression
     }
     | (expression + OP_EXP + expression)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<PotentiationNode>(std::move(expression($[0])), std::move(expression($[2])));
+        return unique_node<PotentiationNode>(expression($[0]), expression($[2]));
     }
     | (expression + OP_MUL + expression)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<MultiplicationNode>(std::move(expression($[0])), std::move(expression($[2])));
+        return unique_node<MultiplicationNode>(expression($[0]), expression($[2]));
     }
     | (expression + OP_DIV + expression)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<DivisionNode>(std::move(expression($[0])), std::move(expression($[2])));
+        return unique_node<DivisionNode>(expression($[0]), expression($[2]));
     }
     | (expression + OP_ADD + expression)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<AdditionNode>(std::move(expression($[0])), std::move(expression($[2])));
+        return unique_node<AdditionNode>(expression($[0]), expression($[2]));
     }
     | (expression + OP_SUB + expression)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<SubtractionNode>(std::move(expression($[0])), std::move(expression($[2])));
+        return unique_node<SubtractionNode>(expression($[0]), expression($[2]));
     }
     ;
 
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> function_definition
     = (KW_GIVEN + IDENTIFIER + PAR_OPEN + identifier_list + PAR_CLOSE + OP_ASN + expression)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<FunctionDefinitionNode>(
-                std::move(IDENTIFIER($[1])),
-                std::move(identifier_list($[3])),
-                std::move(expression($[6]))
+        return unique_node<FunctionDefinitionNode>(
+                IDENTIFIER($[1]),
+                identifier_list($[3]),
+                expression($[6])
         );
     }
     | (KW_GIVEN + IDENTIFIER + PAR_OPEN + PAR_CLOSE + OP_ASN + expression)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<FunctionDefinitionNode>(
-                std::move(IDENTIFIER($[1])),
+        return unique_node<FunctionDefinitionNode>(
+                IDENTIFIER($[1]),
                 std::vector<std::string>{},
-                std::move(expression($[5]))
+                expression($[5])
         );
     }
     ;
@@ -149,7 +148,7 @@ bf::DefineNonTerminal<G> variable_definition
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> plot_command
     = (KW_PLOT + IDENTIFIER)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<PlotCommandNode>(IDENTIFIER($[1]));
+        return unique_node<PlotCommandNode>(IDENTIFIER($[1]));
     }
     ;
 
@@ -184,14 +183,14 @@ bf::DefineNonTerminal<G, std::vector<std::unique_ptr<Node>>> statement_list
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> scoped_block
     = bf::PR<G>(statement_list)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<ScopedBlockNode>(std::move(statement_list($[0])));
+        return unique_node<ScopedBlockNode>(statement_list($[0]));
     }
     ;
 
 bf::DefineNonTerminal<G, std::unique_ptr<Node>> program
     = bf::PR<G>(scoped_block)<=>[](auto &$) -> ValueType
     {
-        return std::make_unique<ProgramEntryNode>(std::move(scoped_block($[0])));
+        return unique_node<ProgramEntryNode>(scoped_block($[0]));
     }
     ;
 
