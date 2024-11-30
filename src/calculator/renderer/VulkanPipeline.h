@@ -4,36 +4,36 @@
 #include <QVulkanDeviceFunctions>
 #include <QVulkanWindow>
 #include "graphic/Camera.h"
-#include "graphic/VertexBuffer.h"
 
 namespace ui
 {
+    struct CreateVulkanPipelineInfo
+    {
+        QVulkanWindow *window = nullptr;
+        VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        char const *vert_shader = nullptr;
+        char const *frag_shader = nullptr;
+    };
+
     class VulkanPipeline
     {
         QVulkanWindow *window_;
         QVulkanDeviceFunctions *dev_;
 
-        VkDescriptorPool descriptor_pool_ = nullptr;
         VkDescriptorSetLayout descriptor_set_layout_ = nullptr;
-        VkDescriptorSet descriptor_set_ = nullptr;
         VkPipelineLayout pipeline_layout_ = nullptr;
         VkPipeline pipeline_ = nullptr;
 
-        VkBuffer camera_buffer_ = nullptr;
-        VkDeviceMemory camera_memory_ = nullptr;
+    protected:
+        VkShaderModule LoadShader(char const *path);
 
     public:
-        unlogic::Camera *camera = nullptr;
-
-        VkShaderModule LoadShader(char const *path);
-        VkPipeline NativeHandle();
-
-        void DrawVertexBuffer(unlogic::VertexBuffer *vertex_buffer);
-
+        void Bind(VkCommandBuffer cmd);
+        void BindDescriptorSets(VkCommandBuffer cmd, VkDescriptorSet const *descriptor_set, std::size_t count);
         void Destroy();
 
-        VulkanPipeline(QVulkanWindow *window, char const *vert, char const *frag, VkPrimitiveTopology primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-        ~VulkanPipeline();
+        VulkanPipeline(CreateVulkanPipelineInfo const &info);
+        virtual ~VulkanPipeline();
     };
 } // namespace ui
 

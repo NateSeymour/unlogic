@@ -1,7 +1,0 @@
-given {
-	a := 34.5;
-	f(x) := x^2;
-};
-
-plot f on (1, 5];
-solve 10 = 3x + 2 for x as "My Equation";

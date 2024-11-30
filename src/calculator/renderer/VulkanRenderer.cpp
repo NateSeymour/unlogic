@@ -9,23 +9,33 @@ void VulkanRenderer::initResources()
 {
     this->dev_ = this->window_->vulkanInstance()->deviceFunctions(this->window_->device());
 
-    this->vertex_buffer_provider_ = std::make_unique<VulkanVertexBufferProvider>(this->window_);
+    CreateVulkanPipelineInfo grid_info{
+            .window = this->window_,
+            .vert_shader = ":/shaders/grid.vert.qsb",
+            .frag_shader = ":/shaders/grid.frag.qsb",
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+    };
+    this->grid_pipeline_ = std::make_unique<VulkanPipeline>(grid_info);
 
-    this->grid_pipeline_ = std::make_unique<VulkanPipeline>(this->window_, ":/shaders/grid.vert.qsb", ":/shaders/grid.frag.qsb");
-    this->plot_pipeline_ = std::make_unique<VulkanPipeline>(this->window_, ":/shaders/plot.vert.qsb", ":/shaders/plot.frag.qsb", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+    CreateVulkanPipelineInfo plot_info{
+            .window = this->window_,
+            .vert_shader = ":/shaders/plot.vert.qsb",
+            .frag_shader = ":/shaders/plot.frag.qsb",
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+    };
+    this->plot_pipeline_ = std::make_unique<VulkanPipeline>(plot_info);
+
+    for (int i = 0; i < this->window_->concurrentFrameCount(); i++)
+    {
+        this->contexts_.push_back({
+                .camera_buffer = VulkanBuffer::Create<unlogic::Camera>(this->window_, BufferType::Uniform),
+        });
+    }
 }
 
 void VulkanRenderer::releaseResources()
 {
-    this->window_->grid.ReleaseBuffer();
-
-    for (auto &plot: this->window_->scene->plots)
-    {
-        plot.ReleaseBuffer();
-    }
-
-    this->vertex_buffer_provider_.reset();
-
+    this->contexts_.clear();
     this->grid_pipeline_.reset();
     this->plot_pipeline_.reset();
 }
@@ -38,21 +48,10 @@ void VulkanRenderer::startNextFrame()
         return;
     }
 
-    // Set camera for all pipelines
-    *this->grid_pipeline_->camera = this->window_->camera;
-    *this->plot_pipeline_->camera = this->window_->camera;
-
     // Begin render pass
     VkCommandBuffer cmd = this->window_->currentCommandBuffer();
 
-    unlogic::Color background = this->window_->scene->background;
-
-    VkClearColorValue clearColor = {
-            background.r,
-            background.g,
-            background.b,
-            background.a,
-    };
+    VkClearColorValue clearColor = {0.f, 0.f, 0.f, 1.f};
     VkClearDepthStencilValue clearDS = {1.0f, 0};
     VkClearValue clearValues[2];
     memset(clearValues, 0, sizeof(clearValues));
@@ -72,7 +71,6 @@ void VulkanRenderer::startNextFrame()
 
     this->dev_->vkCmdBeginRenderPass(cmd, &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    // Set Viewport
     VkViewport viewport{
             .x = 0.f,
             .y = 0.f,
@@ -93,15 +91,13 @@ void VulkanRenderer::startNextFrame()
     };
     this->dev_->vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    if (this->window_->scene->draw_grid)
-    {
-        this->grid_pipeline_->DrawVertexBuffer(this->window_->grid.GetOrCreateVertexBuffer(this->vertex_buffer_provider_.get()));
-    }
+    auto &ctx = this->contexts_[this->window_->currentFrame()];
 
-    for (auto &plot: this->window_->scene->plots)
-    {
-        this->plot_pipeline_->DrawVertexBuffer(plot.GetOrCreateVertexBuffer(this->vertex_buffer_provider_.get()));
-    }
+    ctx.camera_buffer.Write<unlogic::Camera>(&this->window_->camera);
+
+    this->grid_pipeline_->Bind(cmd);
+
+    this->plot_pipeline_->Bind(cmd);
 
     this->dev_->vkCmdEndRenderPass(cmd);
 

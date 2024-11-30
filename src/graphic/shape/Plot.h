@@ -9,7 +9,6 @@
 #include <glm/glm.hpp>
 #include "graphic/shape/Shape.h"
 #include "graphic/Color.h"
-#include "graphic/VertexBuffer.h"
 
 namespace unlogic
 {

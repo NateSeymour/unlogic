@@ -3,12 +3,21 @@
 
 #include <QVulkanDeviceFunctions>
 #include <QVulkanWindowRenderer>
+#include <chrono>
+#include "VulkanBuffer.h"
 #include "VulkanPipeline.h"
-#include "VulkanVertexBuffer.h"
+#include "graphic/Scene.h"
 
 namespace ui
 {
     class VulkanWindow;
+
+    struct VulkanFrameContext
+    {
+        std::chrono::time_point<std::chrono::steady_clock> first_flight;
+        VulkanBuffer camera_buffer;
+        std::vector<VulkanBuffer> plot_buffers;
+    };
 
     class VulkanRenderer : public QVulkanWindowRenderer
     {
@@ -16,15 +25,12 @@ namespace ui
 
         QVulkanDeviceFunctions *dev_ = nullptr;
 
-        std::unique_ptr<VulkanVertexBufferProvider> vertex_buffer_provider_;
-
         std::unique_ptr<VulkanPipeline> grid_pipeline_;
         std::unique_ptr<VulkanPipeline> plot_pipeline_;
 
-        std::unique_ptr<unlogic::VertexBuffer> grid_ = nullptr;
+        std::vector<VulkanFrameContext> contexts_;
 
     public:
-        // Vulkan Commands
         void initResources() override;
         void releaseResources() override;
         void startNextFrame() override;

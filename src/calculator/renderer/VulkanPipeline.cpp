@@ -13,17 +13,19 @@ VkShaderModule ui::VulkanPipeline::LoadShader(char const *path)
 
     QByteArray shader_data = shader_file.readAll();
     QShader shader = QShader::fromSerialized(shader_data);
-    QShaderKey shader_key = std::invoke([&]() {
-        for (auto const &key: shader.availableShaders())
-        {
-            if (key.source() == QShader::Source::SpirvShader)
+    QShaderKey shader_key = std::invoke(
+            [&]()
             {
-                return key;
-            }
-        }
+                for (auto const &key: shader.availableShaders())
+                {
+                    if (key.source() == QShader::Source::SpirvShader)
+                    {
+                        return key;
+                    }
+                }
 
-        throw std::runtime_error("shader does not contain SPIR-V source");
-    });
+                throw std::runtime_error("shader does not contain SPIR-V source");
+            });
     QShaderCode shader_code = shader.shader(shader_key);
 
     VkShaderModuleCreateInfo create_info{
@@ -41,12 +43,22 @@ VkShaderModule ui::VulkanPipeline::LoadShader(char const *path)
     return module;
 }
 
-ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char const *frag, VkPrimitiveTopology primitive_topology) : window_(window)
+void ui::VulkanPipeline::Bind(VkCommandBuffer cmd)
+{
+    this->dev_->vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline_);
+}
+
+void ui::VulkanPipeline::BindDescriptorSets(VkCommandBuffer cmd, VkDescriptorSet const *descriptor_set, std::size_t count = 1)
+{
+    this->dev_->vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline_layout_, 0, count, descriptor_set, 0, nullptr);
+}
+
+ui::VulkanPipeline::VulkanPipeline(CreateVulkanPipelineInfo const &info) : window_(info.window)
 {
     this->dev_ = this->window_->vulkanInstance()->deviceFunctions(this->window_->device());
 
-    VkShaderModule vert_shader = this->LoadShader(vert);
-    VkShaderModule frag_shader = this->LoadShader(frag);
+    VkShaderModule vert_shader = this->LoadShader(info.vert_shader);
+    VkShaderModule frag_shader = this->LoadShader(info.frag_shader);
 
     VkPipelineShaderStageCreateInfo vert_shader_stage_info{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -93,10 +105,12 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char
             .pVertexAttributeDescriptions = vertex_attribute_descriptions.data(),
     };
 
+    bool enable_primitive_restart = info.topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ? VK_TRUE : VK_FALSE;
+
     VkPipelineInputAssemblyStateCreateInfo input_assembly_info{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = primitive_topology,
-            .primitiveRestartEnable = primitive_topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ? VK_TRUE : VK_FALSE,
+            .topology = info.topology,
+            .primitiveRestartEnable = enable_primitive_restart,
     };
 
     std::array dynamic_states = {
@@ -218,33 +232,27 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char
 
     this->dev_->vkDestroyShaderModule(this->window_->device(), vert_shader, nullptr);
     this->dev_->vkDestroyShaderModule(this->window_->device(), frag_shader, nullptr);
+}
 
-    VkBufferCreateInfo camera_buffer_info{
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size = sizeof(unlogic::Camera),
-            .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-    };
+void ui::VulkanPipeline::Destroy()
+{
+    this->dev_->vkDestroyDescriptorSetLayout(this->window_->device(), this->descriptor_set_layout_, nullptr);
+    this->dev_->vkDestroyPipeline(this->window_->device(), this->pipeline_, nullptr);
+    this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->pipeline_layout_, nullptr);
+}
 
-    if (this->dev_->vkCreateBuffer(this->window_->device(), &camera_buffer_info, nullptr, &this->camera_buffer_) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create camera buffer");
-    }
+ui::VulkanPipeline::~VulkanPipeline()
+{
+    this->Destroy();
+}
 
-    VkMemoryAllocateInfo memory_allocate_info{
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = camera_buffer_info.size,
-            .memoryTypeIndex = this->window_->hostVisibleMemoryIndex(),
-    };
+/*
+this->dev_->vkDestroyBuffer(this->window_->device(), this->ubo_buffer_, nullptr);
+    this->dev_->vkFreeMemory(this->window_->device(), this->ubo_memory_, nullptr);
 
-    if (this->dev_->vkAllocateMemory(this->window_->device(), &memory_allocate_info, nullptr, &this->camera_memory_) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to allocate memory");
-    }
+    this->dev_->vkDestroyDescriptorPool(this->window_->device(), this->descriptor_pool_, nullptr);
 
-    this->dev_->vkBindBufferMemory(this->window_->device(), this->camera_buffer_, this->camera_memory_, 0);
 
-    this->dev_->vkMapMemory(this->window_->device(), this->camera_memory_, 0, camera_buffer_info.size, 0, (void **)&this->camera);
 
     VkDescriptorPoolSize descriptor_pool_size{
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -276,7 +284,7 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char
     }
 
     VkDescriptorBufferInfo descriptor_buffer_info{
-            .buffer = this->camera_buffer_,
+            .buffer = this->ubo_buffer_,
             .offset = 0,
             .range = sizeof(unlogic::Camera),
     };
@@ -292,29 +300,9 @@ ui::VulkanPipeline::VulkanPipeline(QVulkanWindow *window, char const *vert, char
     };
 
     this->dev_->vkUpdateDescriptorSets(this->window_->device(), 1, &write_descriptor_set, 0, nullptr);
-}
+*/
 
-void ui::VulkanPipeline::Destroy()
-{
-    this->dev_->vkDestroyBuffer(this->window_->device(), this->camera_buffer_, nullptr);
-    this->dev_->vkFreeMemory(this->window_->device(), this->camera_memory_, nullptr);
-
-    this->dev_->vkDestroyDescriptorPool(this->window_->device(), this->descriptor_pool_, nullptr);
-    this->dev_->vkDestroyDescriptorSetLayout(this->window_->device(), this->descriptor_set_layout_, nullptr);
-    this->dev_->vkDestroyPipeline(this->window_->device(), this->pipeline_, nullptr);
-    this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->pipeline_layout_, nullptr);
-}
-
-ui::VulkanPipeline::~VulkanPipeline()
-{
-    this->Destroy();
-}
-
-VkPipeline ui::VulkanPipeline::NativeHandle()
-{
-    return this->pipeline_;
-}
-
+/*
 void ui::VulkanPipeline::DrawVertexBuffer(unlogic::VertexBuffer *vertex_buffer)
 {
     VkCommandBuffer cmd = this->window_->currentCommandBuffer();
@@ -328,3 +316,4 @@ void ui::VulkanPipeline::DrawVertexBuffer(unlogic::VertexBuffer *vertex_buffer)
 
     this->dev_->vkCmdDraw(cmd, vertex_buffer->GetVertexCount(), 1, 0, 0);
 }
+*/

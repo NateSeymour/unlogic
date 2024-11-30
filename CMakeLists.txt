@@ -66,7 +66,6 @@ add_library(unlogic STATIC
         src/graphic/shape/Plot.cpp
         src/graphic/shape/Shape.cpp
         src/graphic/shape/Shape.h
-        src/graphic/VertexBuffer.h
         src/graphic/Camera.h
         src/graphic/shape/Rect.cpp
         src/graphic/shape/Rect.h
@@ -92,12 +91,12 @@ qt_add_executable(unlogic-calculator
         src/calculator/renderer/VulkanInstance.h
         src/calculator/renderer/VulkanInstance.cpp
         src/calculator/renderer/VulkanRenderer.cpp
-        src/calculator/renderer/VulkanVertexBuffer.h
         src/calculator/resource/shaders/plot.frag
         src/calculator/resource/shaders/plot.vert
         src/calculator/renderer/VulkanPipeline.cpp
         src/calculator/renderer/VulkanPipeline.h
-        src/calculator/renderer/VulkanVertexBuffer.cpp
+        src/calculator/renderer/VulkanBuffer.cpp
+        src/calculator/renderer/VulkanBuffer.h
 )
 target_compile_definitions(unlogic-calculator PRIVATE QT_NO_KEYWORDS)
 qt_add_shaders(unlogic-calculator "shaders"
@@ -107,23 +106,23 @@ qt_add_shaders(unlogic-calculator "shaders"
         PREFIX "/shaders"
         BASE src/calculator/resource/shaders
         FILES
-        src/calculator/resource/shaders/plot.frag
-        src/calculator/resource/shaders/plot.vert
-        src/calculator/resource/shaders/grid.frag
-        src/calculator/resource/shaders/grid.vert
+            src/calculator/resource/shaders/plot.frag
+            src/calculator/resource/shaders/plot.vert
+            src/calculator/resource/shaders/grid.frag
+            src/calculator/resource/shaders/grid.vert
 )
 qt_add_resources(unlogic-calculator "fonts"
         PREFIX "/fonts"
         BASE src/calculator/resource
         FILES
-        src/calculator/resource/Roboto-Medium.ttf
-        src/calculator/resource/SourceCodePro.ttf
+            src/calculator/resource/Roboto-Medium.ttf
+            src/calculator/resource/SourceCodePro.ttf
 )
 qt_add_resources(unlogic-calculator "styles"
         PREFIX "/styles"
         BASE src/calculator/resource
         FILES
-        src/calculator/resource/stylesheet.qss
+            src/calculator/resource/stylesheet.qss
 )
 target_link_libraries(unlogic-calculator PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::ShaderTools Qt6::GuiPrivate unlogic)
 set_target_properties(unlogic-calculator PROPERTIES

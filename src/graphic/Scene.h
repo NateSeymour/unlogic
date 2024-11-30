@@ -5,9 +5,8 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <cstdlib>
 #include <vector>
-#include <memory>
-#include <glm/glm.hpp>
 #include "Color.h"
 #include "shape/Plot.h"
 
@@ -15,7 +14,6 @@ namespace unlogic
 {
     struct Scene
     {
-        Color background = Color::Green;
         bool draw_grid = true;
         std::vector<Plot2d> plots;
 
