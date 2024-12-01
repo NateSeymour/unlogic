@@ -10,7 +10,7 @@ namespace unlogic
     class Shape
     {
     protected:
-        Color color;
+        Color color = Color::Green;
         std::vector<Vertex> vertices;
 
     public:

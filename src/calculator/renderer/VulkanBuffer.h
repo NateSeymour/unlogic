@@ -44,7 +44,7 @@ namespace ui
                 throw std::runtime_error("attempting to write to buffer of incorrect size!");
             }
 
-            memcpy(this->data_, &value, sizeof(T) * count);
+            memcpy(this->data_, value, sizeof(T) * count);
         }
 
         [[nodiscard]] VkBuffer GetNativeHandle() const noexcept;

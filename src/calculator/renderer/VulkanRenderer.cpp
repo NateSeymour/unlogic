@@ -195,6 +195,8 @@ void VulkanRenderer::startNextFrame()
             auto const &plot_vertices = plot.GetVertices();
             auto plot_buffer = VulkanBuffer::Create<unlogic::Vertex>(this->window_, BufferType::Vertex, plot_vertices.size());
             plot_buffer->Write<unlogic::Vertex>(plot_vertices.data(), plot_vertices.size());
+
+            ctx.plot_buffers.push_back(std::move(plot_buffer));
         }
 
         ctx.valid = true;

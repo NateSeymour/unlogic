@@ -205,7 +205,7 @@ ui::VulkanPipeline::VulkanPipeline(CreateVulkanPipelineInfo const &info) : windo
             .pViewportState = &viewport_state_info,
             .pRasterizationState = &rasterization_state_info,
             .pMultisampleState = &multisample_state_info,
-            .pDepthStencilState = nullptr,
+            .pDepthStencilState = &depth_stencil_state_info,
             .pColorBlendState = &color_blend_state_info,
             .pDynamicState = &dynamic_state_info,
             .layout = this->pipeline_layout_,
