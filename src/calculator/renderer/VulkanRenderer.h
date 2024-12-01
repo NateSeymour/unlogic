@@ -14,9 +14,14 @@ namespace ui
 
     struct VulkanFrameContext
     {
-        std::chrono::time_point<std::chrono::steady_clock> first_flight;
-        VulkanBuffer camera_buffer;
-        std::vector<VulkanBuffer> plot_buffers;
+        std::atomic<bool> valid = false;
+
+        VkDescriptorSet descriptor_set = nullptr;
+
+        std::shared_ptr<unlogic::Scene> scene;
+        std::unique_ptr<VulkanBuffer> camera_buffer;
+        std::unique_ptr<VulkanBuffer> grid_buffer;
+        std::vector<std::unique_ptr<VulkanBuffer>> plot_buffers;
     };
 
     class VulkanRenderer : public QVulkanWindowRenderer
@@ -25,12 +30,17 @@ namespace ui
 
         QVulkanDeviceFunctions *dev_ = nullptr;
 
+        VkDescriptorSetLayout descriptor_set_layout_;
+        VkDescriptorPool descriptor_pool_;
+
         std::unique_ptr<VulkanPipeline> grid_pipeline_;
         std::unique_ptr<VulkanPipeline> plot_pipeline_;
 
-        std::vector<VulkanFrameContext> contexts_;
+        std::array<VulkanFrameContext, QVulkanWindow::MAX_CONCURRENT_FRAME_COUNT> contexts_;
 
     public:
+        void invalidateFrameContexts() noexcept;
+
         void initResources() override;
         void releaseResources() override;
         void startNextFrame() override;

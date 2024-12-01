@@ -43,6 +43,11 @@ VkShaderModule ui::VulkanPipeline::LoadShader(char const *path)
     return module;
 }
 
+VkPipelineLayout ui::VulkanPipeline::GetLayout() const noexcept
+{
+    return this->pipeline_layout_;
+}
+
 void ui::VulkanPipeline::Bind(VkCommandBuffer cmd)
 {
     this->dev_->vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline_);
@@ -174,29 +179,14 @@ ui::VulkanPipeline::VulkanPipeline(CreateVulkanPipelineInfo const &info) : windo
             .blendConstants = {0.f, 0.f, 0.f, 0.f},
     };
 
-    VkDescriptorSetLayoutBinding descriptor_layout_binding{
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS,
-            .pImmutableSamplers = nullptr,
+    VkPipelineDepthStencilStateCreateInfo depth_stencil_state_info{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
     };
-
-    VkDescriptorSetLayoutCreateInfo descriptor_set_layout_info{
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = 1,
-            .pBindings = &descriptor_layout_binding,
-    };
-
-    if (this->dev_->vkCreateDescriptorSetLayout(this->window_->device(), &descriptor_set_layout_info, nullptr, &this->descriptor_set_layout_) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create descriptor set layout");
-    }
 
     VkPipelineLayoutCreateInfo pipeline_layout_info{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = 1,
-            .pSetLayouts = &this->descriptor_set_layout_,
+            .pSetLayouts = &info.descriptor_set_layout_,
             .pushConstantRangeCount = 0,
             .pPushConstantRanges = nullptr,
     };
@@ -215,7 +205,7 @@ ui::VulkanPipeline::VulkanPipeline(CreateVulkanPipelineInfo const &info) : windo
             .pViewportState = &viewport_state_info,
             .pRasterizationState = &rasterization_state_info,
             .pMultisampleState = &multisample_state_info,
-            .pDepthStencilState = nullptr,
+            .pDepthStencilState = &depth_stencil_state_info,
             .pColorBlendState = &color_blend_state_info,
             .pDynamicState = &dynamic_state_info,
             .layout = this->pipeline_layout_,
@@ -236,7 +226,6 @@ ui::VulkanPipeline::VulkanPipeline(CreateVulkanPipelineInfo const &info) : windo
 
 void ui::VulkanPipeline::Destroy()
 {
-    this->dev_->vkDestroyDescriptorSetLayout(this->window_->device(), this->descriptor_set_layout_, nullptr);
     this->dev_->vkDestroyPipeline(this->window_->device(), this->pipeline_, nullptr);
     this->dev_->vkDestroyPipelineLayout(this->window_->device(), this->pipeline_layout_, nullptr);
 }
@@ -252,54 +241,6 @@ this->dev_->vkDestroyBuffer(this->window_->device(), this->ubo_buffer_, nullptr)
 
     this->dev_->vkDestroyDescriptorPool(this->window_->device(), this->descriptor_pool_, nullptr);
 
-
-
-    VkDescriptorPoolSize descriptor_pool_size{
-            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-    };
-
-    VkDescriptorPoolCreateInfo descriptor_pool_info{
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = 1,
-            .poolSizeCount = 1,
-            .pPoolSizes = &descriptor_pool_size,
-    };
-
-    if (this->dev_->vkCreateDescriptorPool(this->window_->device(), &descriptor_pool_info, nullptr, &this->descriptor_pool_) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create descriptor pool");
-    }
-
-    VkDescriptorSetAllocateInfo descriptor_set_allocate_info{
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = this->descriptor_pool_,
-            .descriptorSetCount = 1,
-            .pSetLayouts = &this->descriptor_set_layout_,
-    };
-
-    if (this->dev_->vkAllocateDescriptorSets(this->window_->device(), &descriptor_set_allocate_info, &this->descriptor_set_) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to allocate descriptor set");
-    }
-
-    VkDescriptorBufferInfo descriptor_buffer_info{
-            .buffer = this->ubo_buffer_,
-            .offset = 0,
-            .range = sizeof(unlogic::Camera),
-    };
-
-    VkWriteDescriptorSet write_descriptor_set{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = this->descriptor_set_,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pBufferInfo = &descriptor_buffer_info,
-    };
-
-    this->dev_->vkUpdateDescriptorSets(this->window_->device(), 1, &write_descriptor_set, 0, nullptr);
 */
 
 /*

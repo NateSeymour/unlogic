@@ -1,4 +1,5 @@
 #include "Rect.h"
+#include <array>
 
 using namespace unlogic;
 

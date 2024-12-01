@@ -10,6 +10,9 @@ namespace ui
     struct CreateVulkanPipelineInfo
     {
         QVulkanWindow *window = nullptr;
+
+        VkDescriptorSetLayout descriptor_set_layout_ = nullptr;
+
         VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         char const *vert_shader = nullptr;
         char const *frag_shader = nullptr;
@@ -20,7 +23,6 @@ namespace ui
         QVulkanWindow *window_;
         QVulkanDeviceFunctions *dev_;
 
-        VkDescriptorSetLayout descriptor_set_layout_ = nullptr;
         VkPipelineLayout pipeline_layout_ = nullptr;
         VkPipeline pipeline_ = nullptr;
 
@@ -28,6 +30,8 @@ namespace ui
         VkShaderModule LoadShader(char const *path);
 
     public:
+        [[nodiscard]] VkPipelineLayout GetLayout() const noexcept;
+
         void Bind(VkCommandBuffer cmd);
         void BindDescriptorSets(VkCommandBuffer cmd, VkDescriptorSet const *descriptor_set, std::size_t count);
         void Destroy();
