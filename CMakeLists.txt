@@ -70,6 +70,8 @@ add_library(unlogic STATIC
         src/graphic/shape/Rect.cpp
         src/graphic/shape/Rect.h
         src/util/overload.h
+        src/compiler/transformer/debug/DebugPrinter.cpp
+        src/compiler/transformer/debug/DebugPrinter.h
 )
 target_link_libraries(unlogic PUBLIC ${llvm_libs} glm::glm buffalo)
 target_include_directories(unlogic PUBLIC ${LLVM_INCLUDE_DIRS} src)

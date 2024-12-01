@@ -15,7 +15,7 @@ namespace unlogic
         std::stack<llvm::Value *> values;
 
         llvm::Value *operator()(std::monostate &node);
-        llvm::Value *operator()(unlogic::NumericLiteralNode &node);
+        llvm::Value *operator()(NumericLiteralNode &node);
         llvm::Value *operator()(StringLiteralNode &node);
         llvm::Value *operator()(DivisionNode &node);
         llvm::Value *operator()(ScopedBlockNode &node);
