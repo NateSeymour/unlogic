@@ -38,12 +38,12 @@ void VulkanRenderer::initResources()
 
     VkDescriptorPoolSize descriptor_pool_size{
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = this->contexts_.size(),
+            .descriptorCount = QVulkanWindow::MAX_CONCURRENT_FRAME_COUNT,
     };
 
     VkDescriptorPoolCreateInfo descriptor_pool_info{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = this->contexts_.size(),
+            .maxSets = QVulkanWindow::MAX_CONCURRENT_FRAME_COUNT,
             .poolSizeCount = 1,
             .pPoolSizes = &descriptor_pool_size,
     };
@@ -74,7 +74,6 @@ void VulkanRenderer::initResources()
     for (int i = 0; i < this->window_->concurrentFrameCount(); i++)
     {
         this->contexts_[i].valid = false;
-        this->contexts_[i].scene = this->window_->scene;
         this->contexts_[i].camera_buffer = VulkanBuffer::Create<unlogic::Camera>(this->window_, BufferType::Uniform);
         this->contexts_[i].plot_buffers.clear();
 
@@ -139,7 +138,7 @@ void VulkanRenderer::startNextFrame()
     // Begin render pass
     VkCommandBuffer cmd = this->window_->currentCommandBuffer();
 
-    VkClearColorValue clearColor = {0.f, 0.f, 0.f, 0.f};
+    VkClearColorValue clearColor = {1.f, 1.f, 1.f, 1.f};
     VkClearDepthStencilValue clearDS = {1.0f, 0};
     VkClearValue clearValues[2];
     memset(clearValues, 0, sizeof(clearValues));
@@ -202,13 +201,13 @@ void VulkanRenderer::startNextFrame()
     }
 
     this->grid_pipeline_->Bind(cmd);
-    this->dev_->vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->grid_pipeline_->GetLayout(), 0, 1, &ctx.descriptor_set, 0, nullptr);
+    this->grid_pipeline_->BindDescriptorSets(cmd, &ctx.descriptor_set, 1);
 
     ctx.grid_buffer->Bind(cmd);
     this->dev_->vkCmdDraw(cmd, ctx.grid_buffer->GetCount(), 1, 0, 0);
 
     this->plot_pipeline_->Bind(cmd);
-    this->dev_->vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, this->plot_pipeline_->GetLayout(), 0, 1, &ctx.descriptor_set, 0, nullptr);
+    this->plot_pipeline_->BindDescriptorSets(cmd, &ctx.descriptor_set, 1);
 
     for (auto &plot_buffer: ctx.plot_buffers)
     {
