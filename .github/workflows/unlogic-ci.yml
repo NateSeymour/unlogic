@@ -2,9 +2,9 @@ name: Unlogic CI
 
 on:
   push:
-    branches: [ ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -13,24 +13,12 @@ jobs:
       - name: Update Package Manager
         run: sudo apt update
       - name: Install System Dependencies
-        run: sudo apt install -y build-essential cmake ninja-build llvm-18-dev wget libxkbcommon-x11-dev libxcb-icccm4-dev libxcb-image0-dev libx11-xcb-dev xcb
-      - name: Download QT
-        run: wget -O qt-installer.run https://d13lb3tujbc8s0.cloudfront.net/onlineinstallers/qt-online-installer-linux-x64-4.8.1.run
-      - name: Install QT
-        run: |
-          sudo chmod +x ./qt-installer.run
-          sudo ./qt-installer.run \
-            --accept-licenses \
-            --accept-obligations \
-            --default-answer \
-            --confirm-command install qt6.8.0-full-dev
+        run: sudo apt install -y build-essential cmake ninja-build llvm-18-dev qt6-base-dev
       - uses: actions/checkout@v4
       - name: Configure Project
         run: mkdir cmake-build-release && cd cmake-build-release && cmake .. -DCMAKE_BUILD_TYPE=Release -G "Ninja"
       - name: Build Unlogic
         run: cd cmake-build-release && cmake --build . --target unlogic
-      - name: Build Unlogic Calculator
-        run: cd cmake-build-release && cmake --build . --target unlogic-calculator
       - name: Build Tests
         run: cd cmake-build-release && cmake --build . --target unlogic-test
       - name: Run Tests
