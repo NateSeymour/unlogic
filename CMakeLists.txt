@@ -4,5 +4,10 @@ project(unlogic-parent)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(CONFIGURE_CALCULATOR "Configure unlogic-calculator" ON)
+
 add_subdirectory(unlogic)
-add_subdirectory(calculator)
+
+if (${CONFIGURE_CALCULATOR})
+    add_subdirectory(calculator)
+endif ()

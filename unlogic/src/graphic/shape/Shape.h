@@ -2,8 +2,8 @@
 #define UNLOGIC_SHAPE_H
 
 #include <vector>
-#include "graphic/ugl/Vertex.h"
 #include "graphic/Color.h"
+#include "graphic/Vertex.h"
 
 namespace unlogic
 {

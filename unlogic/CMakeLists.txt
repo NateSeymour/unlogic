@@ -59,7 +59,7 @@ add_library(unlogic STATIC
         src/graphic/Scene.h
         src/graphic/Color.cpp
         src/graphic/Color.h
-        src/graphic/ugl/Vertex.h
+        src/graphic/Vertex.h
         src/graphic/shape/Plot.h
         src/graphic/shape/Plot.cpp
         src/graphic/shape/Shape.cpp

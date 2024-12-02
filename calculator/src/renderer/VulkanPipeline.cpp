@@ -1,7 +1,7 @@
 #include "VulkanPipeline.h"
 #include <QFile>
 #include <rhi/qshader.h>
-#include "graphic/ugl/Vertex.h"
+#include "graphic/Vertex.h"
 
 VkShaderModule ui::VulkanPipeline::LoadShader(char const *path)
 {
