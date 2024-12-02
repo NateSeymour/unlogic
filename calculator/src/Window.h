@@ -17,6 +17,7 @@
 #include "renderer/VulkanInstance.h"
 #include "renderer/VulkanWindow.h"
 #include "util/overload.h"
+#include "widgets/Notebook.h"
 
 namespace ui
 {
@@ -25,6 +26,7 @@ namespace ui
         Q_OBJECT
 
         QTextEdit *editor_ = nullptr;
+        Notebook *notebook_ = nullptr;
         VulkanWindow *render_window_ = nullptr;
         QWidget *renderer_widget_ = nullptr;
         QLabel *status_label_ = nullptr;
@@ -46,11 +48,11 @@ namespace ui
     public Q_SLOTS:
         void editorTextChanged()
         {
-            if(this->editor_->document()->isModified())
+            if (this->editor_->document()->isModified())
             {
                 std::string program_text = this->editor_->toPlainText().toStdString();
 
-                if(!program_text.empty())
+                if (!program_text.empty())
                 {
                     Q_EMIT compileAndRun(std::move(program_text));
                 }
@@ -89,7 +91,7 @@ namespace ui
             QObject::disconnect(this->editor_, &QTextEdit::textChanged, this, &Window::editorTextChanged);
 
             QTextCursor cursor(this->editor_->document());
-            for (auto const &token : tokens)
+            for (auto const &token: tokens)
             {
                 cursor.setPosition(token.location.begin);
                 cursor.setPosition(token.location.end, QTextCursor::MoveMode::KeepAnchor);
@@ -126,6 +128,9 @@ namespace ui
             main_layout->setSpacing(0);
             main_layout->setContentsMargins(0, 0, 0, 0);
 
+            // Scene
+            this->scene_ = std::make_shared<unlogic::Scene>();
+
             // Main Area
             auto splitter = new QSplitter;
 
@@ -135,7 +140,6 @@ namespace ui
 
             // Scene Rendering Window
             this->render_window_ = new VulkanWindow;
-            this->scene_ = std::make_shared<unlogic::Scene>();
             this->render_window_->setVulkanInstance(ui::vk_global);
             this->render_window_->setScene(this->scene_);
 
@@ -145,6 +149,10 @@ namespace ui
             this->editor_ = new QTextEdit;
 
             QObject::connect(this->editor_, &QTextEdit::textChanged, this, &Window::editorTextChanged);
+
+            // Notebook
+            this->notebook_ = new Notebook;
+            this->notebook_->setScene(this->scene_);
 
             // Compiler Controller
             QObject::connect(this, &Window::compileAndRun, &this->compiler_controller_, &CompilerController::compileAndRun);
@@ -168,6 +176,7 @@ namespace ui
 
             // Layout Composition
             splitter->addWidget(this->editor_);
+            splitter->addWidget(this->notebook_);
             splitter->addWidget(this->renderer_widget_);
 
             main_layout->addWidget(splitter, 100);

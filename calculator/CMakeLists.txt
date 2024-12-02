@@ -30,6 +30,8 @@ qt_add_executable(unlogic-calculator
         resource/shaders/plot.vert
         resource/shaders/grid.frag
         resource/shaders/grid.vert
+        src/widgets/Notebook.cpp
+        src/widgets/Notebook.h
 )
 target_compile_definitions(unlogic-calculator PRIVATE QT_NO_KEYWORDS)
 qt_add_shaders(unlogic-calculator "shaders"
