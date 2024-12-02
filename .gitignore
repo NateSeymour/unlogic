@@ -4,3 +4,4 @@ build/
 .idea
 scratch/
 CMakeUserPresets.json
+docs
