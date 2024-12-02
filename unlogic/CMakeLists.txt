@@ -52,9 +52,11 @@ add_library(unlogic STATIC
         src/parser/Parser.h
         src/compiler/transformer/IRGenerator.cpp
         src/compiler/transformer/IRGenerator.h
+        src/compiler/transformer/debug/DebugPrinter.cpp
+        src/compiler/transformer/debug/DebugPrinter.h
+        src/compiler/transformer/IRGenerationContext.h
         src/compiler/std/RuntimeLibrary.cpp
         src/compiler/std/RuntimeLibrary.h
-        src/compiler/transformer/IRGenerationContext.h
         src/graphic/Scene.cpp
         src/graphic/Scene.h
         src/graphic/Color.cpp
