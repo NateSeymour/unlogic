@@ -28,4 +28,4 @@ jobs:
       - name: Build Tests
         run: cd cmake-build-release && cmake --build . --target unlogic-test
       - name: Run Tests
-        run: cd cmake-build-release && ./unlogic-test
+        run: cd cmake-build-release && ./unlogic/unlogic-test
