@@ -1,26 +1,26 @@
 #include "IRGenerator.h"
 #include <format>
-#include <llvm/IR/Verifier.h>
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::NumericLiteralNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::NumericLiteralNode &node)
 {
-    return llvm::ConstantFP::get(this->ctx.llvm_ctx, llvm::APFloat(node.value));
+    return builder.CreateConstant<double>(node.value);
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::StringLiteralNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::StringLiteralNode &node)
 {
-    return this->builder.CreateGlobalStringPtr(node.value);
+    return nullptr;
+    // return this->builder.CreateGlobalStringPtr(node.value);
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::DivisionNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::DivisionNode &node)
 {
-    llvm::Value *lhs = std::visit(*this, *node.lhs);
-    llvm::Value *rhs = std::visit(*this, *node.rhs);
+    city::Value *lhs = std::visit(*this, *node.lhs);
+    city::Value *rhs = std::visit(*this, *node.rhs);
 
     return this->builder.CreateFDiv(lhs, rhs, "divtmp");
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::ScopedBlockNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::ScopedBlockNode &node)
 {
     for (auto &statement: node.statements)
     {
@@ -30,14 +30,14 @@ llvm::Value *unlogic::IRGenerator::operator()(unlogic::ScopedBlockNode &node)
     return nullptr;
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::VariableNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::VariableNode &node)
 {
     return *this->ctx.scope.Lookup(node.identifier);
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::CallNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::CallNode &node)
 {
-    llvm::Function *function = ctx.module->getFunction(node.function_name);
+    city::Function *function = ctx.module->getFunction(node.function_name);
 
     if (function->arg_size() < node.arguments.size())
     {
@@ -55,15 +55,15 @@ llvm::Value *unlogic::IRGenerator::operator()(unlogic::CallNode &node)
     return this->builder.CreateCall(function, argument_values, "calltmp");
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::AdditionNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::AdditionNode &node)
 {
-    llvm::Value *lhs = std::visit(*this, *node.lhs);
-    llvm::Value *rhs = std::visit(*this, *node.rhs);
+    city::Value *lhs = std::visit(*this, *node.lhs);
+    city::Value *rhs = std::visit(*this, *node.rhs);
 
-    return this->builder.CreateFAdd(lhs, rhs, "addtmp");
+    return this->builder.InsertFAddInst(lhs, rhs)->GetReturnValue();
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::SubtractionNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::SubtractionNode &node)
 {
     llvm::Value *lhs = std::visit(*this, *node.lhs);
     llvm::Value *rhs = std::visit(*this, *node.rhs);
@@ -71,7 +71,7 @@ llvm::Value *unlogic::IRGenerator::operator()(unlogic::SubtractionNode &node)
     return this->builder.CreateFSub(lhs, rhs, "subtmp");
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::MultiplicationNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::MultiplicationNode &node)
 {
     llvm::Value *lhs = std::visit(*this, *node.lhs);
     llvm::Value *rhs = std::visit(*this, *node.rhs);
@@ -79,7 +79,7 @@ llvm::Value *unlogic::IRGenerator::operator()(unlogic::MultiplicationNode &node)
     return this->builder.CreateFMul(lhs, rhs, "multmp");
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::PotentiationNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::PotentiationNode &node)
 {
     llvm::Value *lhs = std::visit(*this, *node.lhs);
     llvm::Value *rhs = std::visit(*this, *node.rhs);
@@ -89,7 +89,7 @@ llvm::Value *unlogic::IRGenerator::operator()(unlogic::PotentiationNode &node)
     return this->builder.CreateCall(std_pow, {lhs, rhs}, "powtmp");
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &node)
 {
     // Save entry
     llvm::BasicBlock *parent = this->builder.GetInsertBlock();
@@ -134,7 +134,7 @@ llvm::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &n
     return function;
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
 {
     llvm::Value *scene = *this->ctx.scope.Lookup("__scene");
     llvm::Value *name = this->builder.CreateGlobalStringPtr(node.function_name);
@@ -152,7 +152,7 @@ llvm::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
     return this->builder.CreateCall(scene_add_plot, args);
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
+city::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
 {
     std::array<llvm::Type *, 1> args = {
             llvm::PointerType::getUnqual(this->ctx.llvm_ctx),
@@ -181,7 +181,7 @@ llvm::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
     return nullptr;
 }
 
-llvm::Value *unlogic::IRGenerator::operator()(std::monostate &node)
+city::Value *unlogic::IRGenerator::operator()(std::monostate &node)
 {
     throw std::runtime_error("Invalid Node!");
 }

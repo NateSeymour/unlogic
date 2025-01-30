@@ -1,31 +1,31 @@
 #ifndef UNLOGIC_IRGENERATIONCONTEXT_H
 #define UNLOGIC_IRGENERATIONCONTEXT_H
 
-#include <vector>
-#include <optional>
+#include <city/Value.h>
 #include <map>
+#include <optional>
 #include <ranges>
-#include <llvm/IR/Value.h>
-#include <llvm/IR/LLVMContext.h>
+#include <vector>
 
 namespace unlogic
 {
     class Scope
     {
-        std::vector<std::map<std::string, llvm::Value*>> layers;
+        std::vector<std::map<std::string, city::Value *>> layers;
 
     public:
-        std::optional<llvm::Value*> Lookup(std::string const &key)
+        std::optional<city::Value *> Lookup(std::string const &key)
         {
-            for(auto &layer : this->layers | std::ranges::views::reverse)
+            for (auto &layer: this->layers | std::ranges::views::reverse)
             {
-                if(layer.contains(key)) return layer[key];
+                if (layer.contains(key))
+                    return layer[key];
             }
 
             return std::nullopt;
         }
 
-        void Insert(std::string const &key, llvm::Value *value)
+        void Insert(std::string const &key, city::Value *value)
         {
             this->layers.back()[key] = value;
         }
@@ -43,10 +43,9 @@ namespace unlogic
 
     struct IRGenerationContext
     {
-        llvm::LLVMContext &llvm_ctx;
-        std::unique_ptr<llvm::Module> module;
+        city::IRModule &module;
         Scope &scope;
     };
-}
+} // namespace unlogic
 
-#endif //UNLOGIC_IRGENERATIONCONTEXT_H
+#endif // UNLOGIC_IRGENERATIONCONTEXT_H
