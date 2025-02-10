@@ -34,7 +34,6 @@ namespace unlogic
     {
         city::JIT jit_;
         Scope scope_;
-        std::unordered_map<std::string, city::Function *> functions_;
         bf::SLRParser<ParserGrammarType> parser_;
 
     public:

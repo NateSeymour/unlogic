@@ -27,7 +27,7 @@ namespace unlogic
             return std::nullopt;
         }
 
-        void Set(std::string &key, city::Value *value)
+        void Set(std::string const &key, city::Value *value)
         {
             this->layers.back()[key] = value;
         }

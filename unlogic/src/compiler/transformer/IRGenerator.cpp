@@ -37,11 +37,11 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::VariableNode &node)
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::CallNode &node)
 {
-    city::Function *function = this->ctx.functions.at(node.function_name);
+    city::Function *function = (*this->ctx.scope.Lookup(node.function_name))->ToFunction();
 
-    if (function->GetArgumentCount() < node.arguments.size())
+    if (function == nullptr)
     {
-        throw std::runtime_error("Aaaaaahhhhhhh");
+        throw std::runtime_error("function does not exist");
     }
 
     std::vector<city::Value *> arguments;
@@ -84,9 +84,9 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::PotentiationNode &node)
     city::Value *lhs = std::visit(*this, *node.lhs);
     city::Value *rhs = std::visit(*this, *node.rhs);
 
-    city::Function *std_pow = this->ctx.module->getFunction("pow");
+    city::Function *std_pow = (*this->ctx.scope.Lookup("__pow"))->ToFunction();
 
-    return this->builder.CreateCall(std_pow, {lhs, rhs}, "powtmp");
+    return this->builder.InsertCallInst(std_pow, {lhs, rhs});
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &node)
@@ -98,10 +98,10 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &n
     std::vector<city::Type> argument_types(node.args.size(), city::Type::Get<double>());
     city::IRFunction *function = this->builder.CreateFunction(node.name, city::Type::Get<double>(), argument_types);
 
-    this->ctx.functions[node.name] = function;
+    this->ctx.scope.Set(node.name, function);
 
     ctx.scope.PushLayer();
-    for (auto const &[value, name]: std::views::zip(function->GetArgs(), node.args))
+    for (auto const &[value, name]: std::views::zip(function->GetArgumentValues(), node.args))
     {
         ctx.scope.Set(name, value);
     }
@@ -120,6 +120,7 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &n
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
 {
+    /*
     llvm::Value *scene = *this->ctx.scope.Lookup("__scene");
     llvm::Value *name = this->builder.CreateGlobalStringPtr(node.function_name);
 
@@ -134,27 +135,23 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
     std::array<llvm::Value *, 3> args = {scene, name, function};
 
     return this->builder.CreateCall(scene_add_plot, args);
+    */
+
+    return nullptr;
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
 {
-    std::array<llvm::Type *, 1> args = {
-            llvm::PointerType::getUnqual(this->ctx.llvm_ctx),
-    };
-    llvm::FunctionType *entry_type = llvm::FunctionType::get(llvm::Type::getVoidTy(this->ctx.llvm_ctx), args, false);
-    llvm::Function *entry = llvm::Function::Create(entry_type, llvm::Function::ExternalLinkage, "__entry", *this->ctx.module);
-
-    llvm::BasicBlock *block = llvm::BasicBlock::Create(ctx.llvm_ctx, "__entry", entry);
+    city::IRFunction *entry = this->builder.CreateFunction("__entry", city::Type::Get<double>(), {city::Type::Get<long>()});
 
     this->ctx.scope.PushLayer();
 
-    this->ctx.scope.Set("__scene", entry->getArg(0));
-
-    this->builder.SetInsertPoint(block);
+    this->ctx.scope.Set("__scene", entry->GetArgumentValues()[0]);
 
     std::visit(*this, *node.body);
 
-    this->builder.CreateRetVoid();
+    this->builder.InsertRetInst();
+
     this->ctx.scope.PopLayer();
 
     return nullptr;
