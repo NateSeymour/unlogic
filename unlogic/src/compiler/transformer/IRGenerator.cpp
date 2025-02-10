@@ -17,7 +17,7 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::DivisionNode &node)
     city::Value *lhs = std::visit(*this, *node.lhs);
     city::Value *rhs = std::visit(*this, *node.rhs);
 
-    return this->builder.CreateFDiv(lhs, rhs, "divtmp");
+    return this->builder.InsertDivInst(lhs, rhs);
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::ScopedBlockNode &node)
@@ -37,22 +37,22 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::VariableNode &node)
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::CallNode &node)
 {
-    city::Function *function = ctx.module->getFunction(node.function_name);
+    city::Function *function = this->ctx.functions.at(node.function_name);
 
-    if (function->arg_size() < node.arguments.size())
+    if (function->GetArgumentCount() < node.arguments.size())
     {
         throw std::runtime_error("Aaaaaahhhhhhh");
     }
 
-    std::vector<llvm::Value *> argument_values;
-    argument_values.reserve(node.arguments.size());
+    std::vector<city::Value *> arguments;
+    arguments.reserve(node.arguments.size());
     for (auto &argument: node.arguments)
     {
-        llvm::Value *arg_value = std::visit(*this, *argument);
-        argument_values.push_back(arg_value);
+        city::Value *arg_value = std::visit(*this, *argument);
+        arguments.push_back(arg_value);
     }
 
-    return this->builder.CreateCall(function, argument_values, "calltmp");
+    return this->builder.InsertCallInst(function, arguments);
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::AdditionNode &node)
@@ -60,31 +60,31 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::AdditionNode &node)
     city::Value *lhs = std::visit(*this, *node.lhs);
     city::Value *rhs = std::visit(*this, *node.rhs);
 
-    return this->builder.InsertFAddInst(lhs, rhs)->GetReturnValue();
+    return this->builder.InsertAddInst(lhs, rhs);
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::SubtractionNode &node)
 {
-    llvm::Value *lhs = std::visit(*this, *node.lhs);
-    llvm::Value *rhs = std::visit(*this, *node.rhs);
+    city::Value *lhs = std::visit(*this, *node.lhs);
+    city::Value *rhs = std::visit(*this, *node.rhs);
 
-    return this->builder.CreateFSub(lhs, rhs, "subtmp");
+    return this->builder.InsertSubInst(lhs, rhs);
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::MultiplicationNode &node)
 {
-    llvm::Value *lhs = std::visit(*this, *node.lhs);
-    llvm::Value *rhs = std::visit(*this, *node.rhs);
+    city::Value *lhs = std::visit(*this, *node.lhs);
+    city::Value *rhs = std::visit(*this, *node.rhs);
 
-    return this->builder.CreateFMul(lhs, rhs, "multmp");
+    return this->builder.InsertMulInst(lhs, rhs);
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::PotentiationNode &node)
 {
-    llvm::Value *lhs = std::visit(*this, *node.lhs);
-    llvm::Value *rhs = std::visit(*this, *node.rhs);
+    city::Value *lhs = std::visit(*this, *node.lhs);
+    city::Value *rhs = std::visit(*this, *node.rhs);
 
-    llvm::Function *std_pow = this->ctx.module->getFunction("pow");
+    city::Function *std_pow = this->ctx.module->getFunction("pow");
 
     return this->builder.CreateCall(std_pow, {lhs, rhs}, "powtmp");
 }
@@ -92,46 +92,30 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::PotentiationNode &node)
 city::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &node)
 {
     // Save entry
-    llvm::BasicBlock *parent = this->builder.GetInsertBlock();
+    city::IRBlock &parent = this->builder.GetInsertPoint();
 
     // Generate function information
-    std::vector<llvm::Type *> argument_types(node.args.size(), llvm::Type::getDoubleTy(ctx.llvm_ctx));
-    llvm::FunctionType *function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(ctx.llvm_ctx), argument_types, false);
-    llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, node.name, *ctx.module);
+    std::vector<city::Type> argument_types(node.args.size(), city::Type::Get<double>());
+    city::IRFunction *function = this->builder.CreateFunction(node.name, city::Type::Get<double>(), argument_types);
 
-    this->ctx.scope.Insert(node.name, function);
-
-    unsigned idx = 0;
-    for (auto &arg: function->args())
-    {
-        arg.setName(node.args[idx++]);
-    }
-
-    // Generate function body
-    llvm::BasicBlock *block = llvm::BasicBlock::Create(ctx.llvm_ctx, node.name, function);
-    this->builder.SetInsertPoint(block);
+    this->ctx.functions[node.name] = function;
 
     ctx.scope.PushLayer();
-    for (auto &arg: function->args())
+    for (auto const &[value, name]: std::views::zip(function->GetArgs(), node.args))
     {
-        ctx.scope.Insert(std::string(arg.getName()), &arg);
+        ctx.scope.Set(name, value);
     }
 
-    llvm::Value *return_value = std::visit(*this, *node.body);
+    city::Value *retval = std::visit(*this, *node.body);
 
-    this->builder.CreateRet(return_value);
+    this->builder.InsertRetInst(retval);
 
     ctx.scope.PopLayer();
-
-    if (llvm::verifyFunction(*function, &llvm::errs()))
-    {
-        throw std::runtime_error("function has errors");
-    }
 
     // Return to parent block
     this->builder.SetInsertPoint(parent);
 
-    return function;
+    return nullptr;
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
@@ -164,7 +148,7 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
 
     this->ctx.scope.PushLayer();
 
-    this->ctx.scope.Insert("__scene", entry->getArg(0));
+    this->ctx.scope.Set("__scene", entry->getArg(0));
 
     this->builder.SetInsertPoint(block);
 
@@ -172,11 +156,6 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
 
     this->builder.CreateRetVoid();
     this->ctx.scope.PopLayer();
-
-    if (llvm::verifyFunction(*entry, &llvm::errs()))
-    {
-        throw std::runtime_error("function has errors");
-    }
 
     return nullptr;
 }

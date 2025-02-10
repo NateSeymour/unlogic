@@ -1,4 +1,5 @@
 #include "Compiler.h"
+#include <cmath>
 #include "parser/Node.h"
 #include "transformer/IRGenerator.h"
 
@@ -22,33 +23,47 @@ std::expected<Program, CompilationError> Compiler::Compile(std::string_view prog
     }
     auto ast_body = std::get<std::unique_ptr<Node>>(std::move(*ast));
 
-    city::IRModule module{"unlogic_user_program"};
+    this->jit_.RemoveModule("__user");
 
-    Scope program_scope;
-    program_scope.PushLayer();
+    city::IRModule module{"__user"};
 
-    IRGenerationContext ir_ctx = {
+    this->scope_.PushLayer();
+
+    IRGenerationContext ctx = {
             .module = module,
-            .scope = program_scope,
+            .scope = this->scope_,
+            .functions = this->functions_,
     };
 
-    IRGenerator generator(ir_ctx);
-
-    // Build program
     try
     {
-        std::visit(generator, *ast_body);
+        std::visit(IRGenerator{ctx}, *ast_body);
     }
     catch (std::runtime_error &e)
     {
         return std::unexpected(Error{e.what()});
     }
 
+    this->scope_.PopLayer();
+
     this->jit_.InsertIRModule(std::move(module));
-    return Program(this->jit_.CompileAndLink());
+    return Program(this->jit_.Link());
 }
 
 Compiler::Compiler() : parser_(*bf::SLRParser<ParserGrammarType>::Build(unlogic_program))
 {
-    // TODO: Add standard library modules
+    this->scope_.PushLayer();
+
+    city::InterfaceModule stdlib{"std"};
+    city::Function *std_functions[] = {
+            stdlib.InsertBinding("__pow", (double (*)(double, double))std::pow),
+            stdlib.InsertBinding("__sqrt", (double (*)(double))std::sqrt),
+    };
+
+    for (auto function: std_functions)
+    {
+        this->functions_[function->GetName()] = function;
+    }
+
+    this->jit_.InsertInterfaceModule(std::move(stdlib));
 }

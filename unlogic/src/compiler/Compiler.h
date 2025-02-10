@@ -6,6 +6,7 @@
 #include <expected>
 #include <variant>
 #include "Error.h"
+#include "Scope.h"
 #include "graphic/Scene.h"
 #include "parser/Node.h"
 #include "parser/Parser.h"
@@ -32,6 +33,8 @@ namespace unlogic
     class Compiler
     {
         city::JIT jit_;
+        Scope scope_;
+        std::unordered_map<std::string, city::Function *> functions_;
         bf::SLRParser<ParserGrammarType> parser_;
 
     public:

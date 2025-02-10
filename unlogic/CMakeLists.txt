@@ -18,7 +18,7 @@ set(CITY_ENABLE_TESTS OFF)
 FetchContent_Declare(
         city
         GIT_REPOSITORY https://github.com/NateSeymour/city.git
-        GIT_TAG v0.0.4
+        GIT_TAG v0.3.0
 )
 FetchContent_MakeAvailable(city)
 
@@ -42,8 +42,6 @@ add_library(unlogic STATIC
         src/parser/Node.h
         src/compiler/Compiler.cpp
         src/compiler/Compiler.h
-        src/compiler/std/StandardLibrary.cpp
-        src/compiler/std/StandardLibrary.h
         src/util/io.cpp
         src/util/io.h
         src/Error.h
@@ -56,8 +54,6 @@ add_library(unlogic STATIC
         src/compiler/transformer/debug/DebugPrinter.cpp
         src/compiler/transformer/debug/DebugPrinter.h
         src/compiler/transformer/IRGenerationContext.h
-        src/compiler/std/RuntimeLibrary.cpp
-        src/compiler/std/RuntimeLibrary.h
         src/graphic/Scene.cpp
         src/graphic/Scene.h
         src/graphic/Color.cpp
@@ -71,6 +67,7 @@ add_library(unlogic STATIC
         src/graphic/shape/Rect.cpp
         src/graphic/shape/Rect.h
         src/util/overload.h
+        src/compiler/Scope.h
 )
 target_link_libraries(unlogic PUBLIC city glm::glm buffalo)
 target_include_directories(unlogic PUBLIC src)
