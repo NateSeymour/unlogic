@@ -1,7 +1,5 @@
 #include "CompilerWorker.h"
 #include "compiler/Compiler.h"
-#include "compiler/std/RuntimeLibrary.h"
-#include "compiler/std/StandardLibrary.h"
 #include "util/overload.h"
 
 using namespace ui;
@@ -31,7 +29,6 @@ void CompilerWorker::compileAndRun(std::string program_text)
                             std::string message = std::format("Parsing Error: {}", error.message);
                             return unlogic::Error{message};
                         },
-                        [&](llvm::Error const &error) { return unlogic::Error{"LLVM Error!"}; },
                 },
                 result.error());
 
@@ -60,8 +57,7 @@ void CompilerWorker::compileAndRun(std::string program_text)
 
 CompilerWorker::CompilerWorker()
 {
-    std::vector<unlogic::Library *> libs = {&unlogic::stdlib, &unlogic::runtime};
-    this->compiler_ = std::make_unique<unlogic::Compiler>(libs);
+    this->compiler_ = std::make_unique<unlogic::Compiler>();
 }
 
 CompilerWorker::~CompilerWorker() = default;

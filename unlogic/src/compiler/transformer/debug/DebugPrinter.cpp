@@ -28,19 +28,52 @@ std::string unlogic::DebugPrinter::operator()(DivisionNode &node)
     return std::format("({} / {})", lhs, rhs);
 }
 
-std::string unlogic::DebugPrinter::operator()(ScopedBlockNode &node) {}
+std::string unlogic::DebugPrinter::operator()(ScopedBlockNode &node)
+{
+    return "";
+}
 
 std::string unlogic::DebugPrinter::operator()(VariableNode &node)
 {
     return node.identifier;
 }
 
-std::string unlogic::DebugPrinter::operator()(CallNode &node) {}
+std::string unlogic::DebugPrinter::operator()(CallNode &node)
+{
+    return "";
+}
 
-std::string unlogic::DebugPrinter::operator()(AdditionNode &node) {}
-std::string unlogic::DebugPrinter::operator()(SubtractionNode &node) {}
-std::string unlogic::DebugPrinter::operator()(MultiplicationNode &node) {}
-std::string unlogic::DebugPrinter::operator()(PotentiationNode &node) {}
-std::string unlogic::DebugPrinter::operator()(FunctionDefinitionNode &node) {}
-std::string unlogic::DebugPrinter::operator()(PlotCommandNode &node) {}
-std::string unlogic::DebugPrinter::operator()(ProgramEntryNode &node) {}
+std::string unlogic::DebugPrinter::operator()(AdditionNode &node)
+{
+    return "";
+}
+
+std::string unlogic::DebugPrinter::operator()(SubtractionNode &node)
+{
+    return "";
+}
+
+std::string unlogic::DebugPrinter::operator()(MultiplicationNode &node)
+{
+    return "";
+}
+
+std::string unlogic::DebugPrinter::operator()(PotentiationNode &node)
+{
+    return "";
+}
+
+std::string unlogic::DebugPrinter::operator()(FunctionDefinitionNode &node)
+{
+    return "";
+}
+
+std::string unlogic::DebugPrinter::operator()(PlotCommandNode &node)
+{
+    return "";
+}
+
+std::string unlogic::DebugPrinter::operator()(ProgramEntryNode &node)
+{
+    return "";
+}

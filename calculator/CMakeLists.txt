@@ -64,3 +64,7 @@ set_target_properties(unlogic-calculator PROPERTIES
         WIN32_EXECUTABLE ON
         MACOSX_BUNDLE ON
 )
+
+if (MSVC)
+    target_compile_options(unlogic-calculator PUBLIC "/Zc:__cplusplus")
+endif ()

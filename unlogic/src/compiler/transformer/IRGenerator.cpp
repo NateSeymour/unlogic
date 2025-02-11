@@ -120,24 +120,17 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::FunctionDefinitionNode &n
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
 {
-    /*
-    llvm::Value *scene = *this->ctx.scope.Lookup("__scene");
-    llvm::Value *name = this->builder.CreateGlobalStringPtr(node.function_name);
+    city::Value *scene = *this->ctx.scope.Lookup("__scene");
 
-    auto function = this->ctx.module->getFunction(node.function_name);
+    auto function = (*this->ctx.scope.Lookup(node.function_name))->ToFunction();
     if (!function)
     {
         throw std::runtime_error(std::format("Function \"{}\" could not be found!", node.function_name));
     }
 
-    auto scene_add_plot = this->ctx.module->getFunction("unlogic_scene_add_plot");
+    auto plot_anon = (*this->ctx.scope.Lookup("__plot_anon"))->ToFunction();
 
-    std::array<llvm::Value *, 3> args = {scene, name, function};
-
-    return this->builder.CreateCall(scene_add_plot, args);
-    */
-
-    return nullptr;
+    return this->builder.InsertCallInst(plot_anon, {scene, function});
 }
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)

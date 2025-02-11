@@ -1,14 +1,12 @@
 #include <QApplication>
-#include <QtWidgets/QtWidgets>
+#include <QFile>
+#include <QFontDatabase>
 #include <iostream>
 #include "Window.h"
-#include "compiler/Compiler.h"
 #include "renderer/VulkanInstance.h"
 
 int main(int argc, char **argv)
 {
-    unlogic::Compiler::InitializeGlobalCompilerRuntime();
-
     QApplication app(argc, argv);
 
     // Initialize global Vulkan Instance
@@ -36,7 +34,7 @@ int main(int argc, char **argv)
 
     // Styles
     QFile stylesheet(":/styles/stylesheet.qss");
-    if(stylesheet.open(QIODevice::ReadOnly | QIODevice::Text))
+    if (stylesheet.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         app.setStyleSheet(stylesheet.readAll());
         stylesheet.close();
