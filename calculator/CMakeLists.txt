@@ -4,7 +4,7 @@ project(unlogic-calculator)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui ShaderTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets ShaderTools)
 
 qt_standard_project_setup()
 qt_add_executable(unlogic-calculator
@@ -59,7 +59,7 @@ qt_add_resources(unlogic-calculator "styles"
         FILES
         resource/stylesheet.qss
 )
-target_link_libraries(unlogic-calculator PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui Qt6::ShaderTools Qt6::GuiPrivate unlogic)
+target_link_libraries(unlogic-calculator PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::ShaderTools Qt6::GuiPrivate unlogic)
 set_target_properties(unlogic-calculator PROPERTIES
         WIN32_EXECUTABLE ON
         MACOSX_BUNDLE ON

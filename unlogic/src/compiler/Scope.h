@@ -1,7 +1,7 @@
 #ifndef UNLOGIC_PARENT_SCOPE_H
 #define UNLOGIC_PARENT_SCOPE_H
 
-#include <city/Value.h>
+#include <city/value/Value.h>
 #include <optional>
 #include <ranges>
 #include <unordered_map>
@@ -11,7 +11,7 @@ namespace unlogic
 {
     class Scope
     {
-        std::vector<std::unordered_map<std::string, city::Value *>> layers;
+        std::vector<std::unordered_map<std::string, city::Value *> > layers;
 
     public:
         std::optional<city::Value *> Lookup(std::string const &key)
