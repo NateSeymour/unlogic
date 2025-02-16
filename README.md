@@ -2,6 +2,16 @@
 
 A math JIT compiler and graph generator.
 
+## Releases
+
+`unlogic` is currently in alpha, but semi-functional test versions for apple-silicon macs can be found on the
+releases page. These do not bundle the following dependencies: `qt`, `vulkan`. As such, they must be installed via
+`homebrew` prior to use.
+
+```shell
+brew install qt vulkan-tools
+```
+
 ## Examples
 
 ### JIT-Compiling and Running a Function
