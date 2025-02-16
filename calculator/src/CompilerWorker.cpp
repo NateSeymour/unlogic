@@ -41,7 +41,7 @@ void CompilerWorker::compileAndRun(std::string program_text)
 
         try
         {
-            auto &program = *result;
+            auto program = result->Lookup("__entry").ToPointer<void(unlogic::Scene *)>();
             program(scene.get());
         }
         catch (std::exception &e)
