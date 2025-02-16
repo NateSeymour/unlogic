@@ -151,8 +151,8 @@ namespace ui
             QObject::connect(this->editor_, &QTextEdit::textChanged, this, &Window::editorTextChanged);
 
             // Notebook
-            this->notebook_ = new Notebook;
-            this->notebook_->setScene(this->scene_);
+            // this->notebook_ = new Notebook;
+            // this->notebook_->setScene(this->scene_);
 
             // Compiler Controller
             QObject::connect(this, &Window::compileAndRun, &this->compiler_controller_, &CompilerController::compileAndRun);
@@ -176,7 +176,7 @@ namespace ui
 
             // Layout Composition
             splitter->addWidget(this->editor_);
-            splitter->addWidget(this->notebook_);
+            // splitter->addWidget(this->notebook_);
             splitter->addWidget(this->renderer_widget_);
 
             main_layout->addWidget(splitter, 100);

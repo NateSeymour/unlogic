@@ -138,13 +138,11 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
     city::IRFunction *entry = this->builder.CreateFunction("__entry", city::Type::Get<double>(), {city::Type::Get<long>()});
 
     this->ctx.scope.PushLayer();
-
     this->ctx.scope.Set("__scene", entry->GetArgumentValues()[0]);
 
     std::visit(*this, *node.body);
 
     this->builder.InsertRetInst();
-
     this->ctx.scope.PopLayer();
 
     return nullptr;
