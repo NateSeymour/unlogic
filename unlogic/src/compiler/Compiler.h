@@ -7,27 +7,11 @@
 #include <variant>
 #include "Error.h"
 #include "Scope.h"
-#include "graphic/Scene.h"
 #include "parser/Node.h"
 #include "parser/Parser.h"
 
 namespace unlogic
 {
-    class Program
-    {
-        friend class Compiler;
-
-        city::Assembly assembly_;
-
-    protected:
-        explicit Program(city::Assembly &&assembly) : assembly_(std::move(assembly)) {}
-
-    public:
-        void operator()(Scene *scene);
-
-        Program() = delete;
-    };
-
     using CompilationError = std::variant<Error, bf::Error>;
 
     class Compiler
@@ -37,7 +21,7 @@ namespace unlogic
         bf::SLRParser<ParserGrammarType> parser_;
 
     public:
-        std::expected<Program, CompilationError> Compile(std::string_view program_text, std::vector<bf::Token<ParserGrammarType>> *tokens = nullptr);
+        std::expected<city::Assembly, CompilationError> Compile(std::string_view program_text, std::vector<bf::Token<ParserGrammarType>> *tokens = nullptr);
 
         Compiler();
     };
