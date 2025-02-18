@@ -135,7 +135,7 @@ city::Value *unlogic::IRGenerator::operator()(unlogic::PlotCommandNode &node)
 
 city::Value *unlogic::IRGenerator::operator()(unlogic::ProgramEntryNode &node)
 {
-    city::IRFunction *entry = this->builder.CreateFunction("__entry", city::Type::Get<double>(), {city::Type::Get<long>()});
+    city::IRFunction *entry = this->builder.CreateFunction("__entry", city::Type::Get<double>(), {city::Type::Get<void *>()});
 
     this->ctx.scope.PushLayer();
     this->ctx.scope.Set("__scene", entry->GetArgumentValues()[0]);

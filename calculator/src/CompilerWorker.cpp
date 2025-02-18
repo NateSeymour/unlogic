@@ -39,16 +39,10 @@ void CompilerWorker::compileAndRun(std::string program_text)
         Q_EMIT statusUpdate(CompilationStatus::Successful);
         auto scene = std::make_shared<unlogic::Scene>();
 
-        try
+        auto program = result->Lookup("__entry").ToPointer<void(unlogic::Scene *)>();
+        if (program != nullptr)
         {
-            auto program = result->Lookup("__entry").ToPointer<void(unlogic::Scene *)>();
             program(scene.get());
-        }
-        catch (std::exception &e)
-        {
-            Q_EMIT statusUpdate(CompilationStatus::Error);
-            Q_EMIT compilationError(std::move(unlogic::Error{e.what()}));
-            return;
         }
 
         Q_EMIT sceneReady(std::move(scene));

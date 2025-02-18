@@ -64,7 +64,7 @@ Compiler::Compiler() : parser_(*bf::SLRParser<ParserGrammarType>::Build(unlogic_
 
     for (auto function: std_functions)
     {
-        this->scope_.Set(function->GetName(), function);
+        this->scope_.Set(*function->GetName(), function);
     }
 
     this->jit_.InsertInterfaceModule(std::move(stdlib));
