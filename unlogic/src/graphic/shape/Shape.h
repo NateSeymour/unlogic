@@ -18,6 +18,8 @@ namespace unlogic
         {
             return this->vertices;
         }
+
+        virtual ~Shape() = default;
     };
 } // namespace unlogic
 
