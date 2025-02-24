@@ -81,8 +81,5 @@ if (APPLE)
     )
     add_custom_command(TARGET unlogic-calculator POST_BUILD
             COMMAND "macdeployqt"
-            ARGS "unlogic-calculator.app" "-dmg" "-always-overwrite" "-verbose=2" "-libpath=/usr/local/share/qt/")
-    add_custom_command(TARGET unlogic-calculator POST_BUILD
-            COMMAND "mv"
-            ARGS "unlogic-calculator.dmg" "Unlogic-${CMAKE_BUILD_TYPE}.dmg")
+            ARGS "unlogic-calculator.app" "-dmg" "-always-overwrite" "-verbose=2")
 endif ()
