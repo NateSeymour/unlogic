@@ -4,6 +4,7 @@ project(unlogic-calculator)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Vulkan REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets ShaderTools)
 
 qt_standard_project_setup()
@@ -67,4 +68,21 @@ set_target_properties(unlogic-calculator PROPERTIES
 
 if (MSVC)
     target_compile_options(unlogic-calculator PUBLIC "/Zc:__cplusplus")
+endif ()
+
+if (APPLE)
+    add_custom_command(TARGET unlogic-calculator POST_BUILD
+            COMMAND "mkdir"
+            ARGS "-p" "unlogic-calculator.app/Contents/Frameworks"
+    )
+    add_custom_command(TARGET unlogic-calculator POST_BUILD
+            COMMAND "cp"
+            ARGS "-f" "/opt/homebrew/lib/libvulkan.1.dylib" "unlogic-calculator.app/Contents/Frameworks/"
+    )
+    add_custom_command(TARGET unlogic-calculator POST_BUILD
+            COMMAND "macdeployqt"
+            ARGS "unlogic-calculator.app" "-dmg" "-always-overwrite" "-verbose=2" "-libpath=/usr/local/share/qt/")
+    add_custom_command(TARGET unlogic-calculator POST_BUILD
+            COMMAND "mv"
+            ARGS "unlogic-calculator.dmg" "Unlogic-${CMAKE_BUILD_TYPE}.dmg")
 endif ()

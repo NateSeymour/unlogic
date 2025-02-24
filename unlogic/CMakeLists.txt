@@ -18,7 +18,7 @@ set(CITY_ENABLE_TESTS OFF)
 FetchContent_Declare(
         city
         GIT_REPOSITORY https://github.com/NateSeymour/city.git
-        GIT_TAG v0.3.14
+        GIT_TAG v0.4.4
 )
 FetchContent_MakeAvailable(city)
 
