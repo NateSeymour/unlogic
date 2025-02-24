@@ -8,7 +8,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Dependencies
-        run: choco install aqt vulkan-sdk
+        run: choco install aqt
+
+      - name: Setup Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.0
 
       - name: Install QT and Modules
         run: aqt install-qt windows desktop 6.8.1 win64_msvc2022_64 -m all
