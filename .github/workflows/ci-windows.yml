@@ -29,8 +29,8 @@ jobs:
         run: cmake --build "${{ github.workspace }}\build" --config Release --target unlogic-test
 
       - name: Run Tests
-        working-directory: "${{ github.workspace }}\build"
-        run: .\Release\unlogic\unlogic-test --gtest_shuffle
+        working-directory: "${{ github.workspace }}/build"
+        run: .\Release\unlogic\unlogic-test.exe --gtest_shuffle
 
       - name: Build Calculator
         run: cmake --build "${{ github.workspace }}\build" --config Release --target unlogic-calculator
