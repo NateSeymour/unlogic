@@ -11,7 +11,7 @@ jobs:
         run: choco install aqt
 
       - name: Install QT and Modules
-        run: aqt install-qt windows desktop win64_msvc2022_64 6.8.1 -m all
+        run: aqt install-qt windows desktop 6.8.1 win64_msvc2022_64 -m all
 
       - name: Configure CMake
         run: >
