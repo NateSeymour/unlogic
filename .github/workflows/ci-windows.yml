@@ -12,6 +12,8 @@ jobs:
 
       - name: Setup Vulkan SDK
         uses: humbletim/setup-vulkan-sdk@v1.2.0
+        with:
+          vulkan-query-version: 1.2.198.1
 
       - name: Install QT and Modules
         run: aqt install-qt windows desktop 6.8.1 win64_msvc2022_64 -m all
