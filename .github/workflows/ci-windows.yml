@@ -18,14 +18,11 @@ jobs:
       - name: Install QT and Modules
         run: aqt install-qt --outputdir "${{ github.workspace }}\qt6.8.1" windows desktop 6.8.1 win64_msvc2022_64 -m all
 
-      - name: Print QT Tree
-        run: tree "${{ github.workspace }}\qt6.8.1"
-
       - name: Configure CMake
         run: >
           cmake -B "${{ github.workspace }}\build"
           -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_PREFIX_PATH="${{ github.workspace }}\qt6.8.1\6.8.1\lib\cmake"
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}\qt6.8.1\6.8.1\msvc2022_64\lib\cmake"
           -S ${{ github.workspace }}
 
       - name: Build Tests
