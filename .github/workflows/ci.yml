@@ -29,11 +29,13 @@ jobs:
           prerelease: false
           release_name: ${{ github.ref }}
           tag_name: ${{ github.ref }}
-          body: ${{ steps.changelog.outputs.changes  }}
+          body: ${{ steps.changelog.outputs.changes }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
   build-macos:
     runs-on: macos-latest
+    needs: release
     steps:
       - uses: actions/checkout@v4
 
@@ -96,6 +98,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    needs: release
     steps:
       - uses: actions/checkout@v4
 
