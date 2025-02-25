@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Extract changes
+        if: startsWith(github.ref, 'refs/tags/v')
         id: changelog
         uses: requarks/changelog-action@v1
         with:
