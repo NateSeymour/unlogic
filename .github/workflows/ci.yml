@@ -29,7 +29,7 @@ jobs:
           prerelease: ${{ startsWith(github.ref, 'refs/tags/v') }}
           release_name: ${{ github.ref }}
           tag_name: ${{ github.ref }}
-          body: ${{ steps.changelog.outputs.changes || "Debug Release" }}
+          body: ${{ steps.changelog.outputs.changes || 'Debug Release' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
   build-macos:
