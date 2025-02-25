@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,6 +21,7 @@ jobs:
           useGitmojis: false
 
       - name: Generate Release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/create-release@v1
         id: create_release
         with:
