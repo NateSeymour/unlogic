@@ -8,12 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Extract changes
-        if: startsWith(github.ref, 'refs/tags/v')
         id: changelog
         uses: requarks/changelog-action@v1
         with:
@@ -26,10 +26,10 @@ jobs:
         id: create_release
         with:
           draft: false
-          prerelease: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          prerelease: false
           release_name: ${{ github.ref }}
           tag_name: ${{ github.ref }}
-          body: ${{ steps.changelog.outputs.changes || 'Debug Release' }}
+          body: ${{ steps.changelog.outputs.changes  }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
   build-macos:
@@ -84,6 +84,7 @@ jobs:
         run: cmake --build "${{ github.workspace }}/build" --config Release --target unlogic-calculator
 
       - name: Upload Build Artefacts
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
