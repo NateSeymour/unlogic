@@ -1,0 +1,126 @@
+name: CI
+
+on: [ push, pull_request ]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract changes
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+          useGitmojis: false
+
+      - name: Generate Release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          release_name: ${{ github.ref }}
+          tag_name: ${{ github.ref }}
+          body: ${{ steps.changelog.outputs.changes }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Apple Codesigning Certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_CODESIGN_CERT }}
+          P12_PASSWORD: ${{ secrets.APPPLE_CODESIGN_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          
+          # import certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Install Dependencies
+        run: brew install git ninja qt molten-vk vulkan-tools
+
+      - name: Configure CMake
+        run: >
+          cmake -B "${{ github.workspace }}/build"
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DAPPLE_CODESIGN_IDENTITY="${{ secrets.APPLE_CODESIGN_IDENTITY }}"
+          -DCMAKE_OSX_ARCHITECTURES="arm64"
+          -S ${{ github.workspace }}
+
+      - name: Build Tests
+        run: cmake --build "${{ github.workspace }}/build" --config Release --target unlogic-test
+
+      - name: Run Tests
+        working-directory: "${{ github.workspace }}/build"
+        run: ./unlogic/unlogic-test --gtest_shuffle
+
+      - name: Build Calculator
+        run: cmake --build "${{ github.workspace }}/build" --config Release --target unlogic-calculator
+
+      - name: Upload Build Artefacts
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: "${{ github.workspace }}/build/calculator/unlogic-calculator.dmg"
+          asset_name: unlogic-calculator.dmg
+          asset_content_type: application/octet-stream
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: choco install aqt
+
+      - name: Setup Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.0
+        with:
+          vulkan-query-version: 1.2.198.1
+
+      - name: Install QT and Modules
+        run: aqt install-qt --outputdir "${{ github.workspace }}\qt6.8.1" windows desktop 6.8.1 win64_msvc2022_64 -m all
+
+      - name: Configure CMake
+        run: >
+          cmake -B "${{ github.workspace }}\build"
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}\qt6.8.1\6.8.1\msvc2022_64\lib\cmake"
+          -S ${{ github.workspace }}
+
+      - name: Build Tests
+        run: cmake --build "${{ github.workspace }}\build" --config Release --target unlogic-test
+
+      - name: Run Tests
+        working-directory: "${{ github.workspace }}/build"
+        run: .\Release\unlogic-test.exe --gtest_shuffle
+
+      - name: Build Calculator
+        run: cmake --build "${{ github.workspace }}\build" --config Release --target unlogic-calculator

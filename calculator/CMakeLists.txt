@@ -4,6 +4,8 @@ project(unlogic-calculator)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(APPLE_CODESIGN_IDENTITY "Identity to codesign with" NONE)
+
 find_package(Vulkan REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets ShaderTools)
 
@@ -81,5 +83,5 @@ if (APPLE)
     )
     add_custom_command(TARGET unlogic-calculator POST_BUILD
             COMMAND "macdeployqt"
-            ARGS "unlogic-calculator.app" "-dmg" "-always-overwrite" "-verbose=2")
+            ARGS "unlogic-calculator.app" "-dmg" "-always-overwrite" "-verbose=2" "-codesign=${APPLE_CODESIGN_IDENTITY}")
 endif ()
